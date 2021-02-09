@@ -29,7 +29,7 @@ classdef Path
             
             % Empty constructor
             if isempty(args)
-                obj = Path.empty(1, 0);
+                obj = Path.empty();
                 return
             end
             
@@ -78,9 +78,11 @@ classdef Path
         end
         
         
+        
+        
         %% Conversion
         function result = string(objects)
-            result = [objects.parent_] + [objects.stem_] + [objects.extension_];
+            result = objects.selectString(@(obj) obj.parent_ + obj.stem_ + obj.extension_);
         end
         
         function result = char(obj)
@@ -94,21 +96,56 @@ classdef Path
             result = arrayfun(@char, objects, 'UniformOutput', false);
         end
         
-        %% Properties        
+        %% Name
         function result = name(objects)
-            result = Path([objects.stem_] + [objects.extension_]);
+            result = objects.selectPath(@(obj) Path(obj.stem_ + obj.extension));
         end
         
+        function result = hasName(objects, names)
+            arguments
+                objects
+                names (1, :) string = strings(0);
+            end
+            result = objects.selectLogical(@(obj) matchesWildcardPattern(obj.stem_ + obj.extension_, names, true));
+        end
+        
+        function result = whereName(objects, names)
+            arguments
+                objects
+                names (1, :) string = strings(0);
+            end
+            result = objects.where(@(obj) matchesWildcardPattern(obj.stem_ + obj.extension_, names, true));
+        end
+        
+        function result = hasNotName(objects, names)
+            arguments
+                objects
+                names (1, :) string = strings(0);
+            end
+            result = objects.selectLogical(@(obj) matchesWildcardPattern(obj.stem_ + obj.extension_, names, false));
+        end
+        
+        function result = whereNameNot(objects, names)
+            arguments
+                objects
+                names (1, :) string = strings(0);
+            end
+            result = objects.where(@(obj) matchesWildcardPattern(obj.stem_ + obj.extension_, names, false));
+        end
+        
+
+        
+        %% Properties
         function result = extension(objects)
-            result = [objects.extension_];
+            result = objects.selectString(@(obj) obj.extension_);
         end
         
         function result = stem(objects)
-            result = [objects.stem_];
+            result = objects.selectString(@(obj) obj.stem_);
         end
         
         function result = parent(objects)
-            result = Path([objects.parent_]);
+            result = objects.selectPath(@(obj) Path(obj.parent_));
         end
         
         function result = root(objects)
@@ -117,7 +154,7 @@ classdef Path
             else
                 error("Not implemented.");
             end
-            result = string(regexp(objects.string, expression, "match", "emptymatch"));
+            result = objects.selectString(@(obj) regexp(obj.string, expression, "match", "emptymatch"));
         end
         
         function result = isRelative(objects)
@@ -126,6 +163,14 @@ classdef Path
         
         function result = isAbsolute(objects)
             result = ~objects.isRelative;
+        end
+        
+        function result = eq(objects, others)
+            result = objects.string == others.string;
+        end
+        
+        function result = ne(objects, others)
+            result = ~objects.eq(others);
         end
         
         %% Manipulation
@@ -156,43 +201,7 @@ classdef Path
         function result = mldivide(objects, appendage)
             result = objects.append(appendage);
         end
-        
-        %% Filter
-        function result = where(objects, filters)
-            arguments
-                objects
-                filters.Name (1, :) string = missing;
-                filters.Stem(1, :) string = missing;
-                filters.Extension (1, :) string = missing;
-                filters.Parent(1, :) string = missing;
-                filters.NameNot (1, :) string = missing;
-                filters.StemNot (1, :) string = missing;
-                filters.ExtensionNot (1, :) string = missing;
-                filters.ParentNot (1, :) string = missing;
-            end
-            
-            keep = true(size(objects));
-            for i = 1 : length(objects)
-                if ~ismissing(filters.Name)
-                    keep(i) = keep(i) & any(objects(i).name.string == filters.Name); end
-                if ~ismissing(filters.Stem)
-                    keep(i) = keep(i) & any(objects(i).stem == filters.Stem); end
-                if ~ismissing(filters.Extension)
-                    keep(i) = keep(i) & any(objects(i).extension == filters.Extension); end
-                if ~ismissing(filters.Parent)
-                    keep(i) = keep(i) & any(objects(i).parent.string == filters.Parent); end
-                if ~ismissing(filters.NameNot)
-                    keep(i) = keep(i) & all(objects(i).name.string ~= filters.NameNot); end
-                if ~ismissing(filters.StemNot)
-                    keep(i) = keep(i) & all(objects(i).stem ~= filters.StemNot); end
-                if ~ismissing(filters.ExtensionNot)
-                    keep(i) = keep(i) & all(objects(i).extension ~= filters.ExtensionNot); end                
-                if ~ismissing(filters.ParentNot)
-                    keep(i) = keep(i) & all(objects(i).parent.string ~= filters.ParentNot); end       
-            end
-            result = objects(keep);
-        end
-        
+                
         %% File system interaction        
         function result = exists(objects)
             result = objects.fileExists & objects.folderExists;
@@ -263,6 +272,40 @@ classdef Path
                     error("Path:load:VariableNotFound", "Variable ""%s"" not found in file ""%s"".", variable, obj); end
                 varargout{end+1} = data.(variable);
             end
+        end
+    end
+    
+    methods (Access = private)     
+        function result = selectString(objects, fun)
+            result = strings(size(objects));
+            for i = 1 : numel(objects)
+                result(i) = fun(objects(i));
+            end
+        end
+        
+        function result = selectLogical(objects, fun)
+            result = true(size(objects));
+            for i = 1 : numel(objects)
+                result(i) = fun(objects(i));
+            end
+        end
+        
+        function result = selectPath(objects, fun)
+            if ~isempty(objects)
+                for i = numel(objects) : -1 : 1
+                    result(i) = fun(objects(i));
+                end
+            else
+                result = Path.empty(size(objects));
+            end
+        end
+        
+        function result = where(objects, filterFun)
+            keep = true(1, length(objects));
+            for iObject = 1:length(objects)
+                keep(iObject) = filterFun(objects(iObject));
+            end
+            result = objects(keep);
         end
     end
     
@@ -342,5 +385,17 @@ classdef Path
                 s = ".";
             end
         end
+        
+
     end
+end
+
+function result = matchesWildcardPattern(s, patterns, mode)
+result = ~mode;
+for pattern = regexptranslate("wildcard", patterns)
+    if ~isempty(regexp(s, "^"+pattern+"$", 'once'))
+        result = mode;
+        return
+    end
+end
 end

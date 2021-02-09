@@ -87,6 +87,7 @@ classdef PathTest < matlab.unittest.TestCase
         %% Conversion
         function string(obj)
             obj.assertEqual(Path(["one", "two"]).string, ["one", "two"]);
+            obj.assertEqual(Path.empty.string, strings(0));
         end
         
         function char(obj)
@@ -135,21 +136,50 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertEqual(actual, expected);
         end
         
-        %% Properties
+        %% Name
         function name(obj)
             obj.assertEqual(Path("C:/one/two/three.ext").name.string, "three.ext");
             obj.assertEqual(Path("one.two.three.ext").name.string, "one.two.three.ext");
             obj.assertEqual(Path("one").name.string, "one");
             obj.assertEqual(Path("..").name.string, "..");
             obj.assertEqual(Path(".").name.string, ".");
+            obj.assertEmpty(Path.empty.name);
+            obj.assertInstanceOf(Path.empty.name, "Path")
         end
         
+        function hasName(obj)
+            obj.assertEqual(Path("one.two; three/four").hasName(["hree*", "*.two"]), [true, false]);
+            obj.assertEqual(Path("one.two; three/four").hasName(), [false, false]);
+            obj.assertEqual(Path.empty.hasName(["hree*", "*.two"]), logical.empty);
+        end
+        
+        function whereName(obj)
+            obj.assertEqual(Path("one.two; three/four").whereName(["hree*", "*.two"]), Path("one.two"));
+            obj.assertEqual(Path("one.two; three/four").whereName(), Path.empty(1, 0));
+            obj.assertEqual(Path.empty.whereName(["hree*", "*.two"]), Path.empty(1, 0));
+        end
+        
+        function hasNotName(obj)
+            obj.assertEqual(Path("one.two; three/four").hasNotName(["hree*", "*.two"]), [false, true]);
+            obj.assertEqual(Path("one.two; three/four").hasNotName(), [true, true]);
+            obj.assertEqual(Path.empty.hasName(["hree*", "*.two"]), logical.empty);
+        end
+        
+        function whereNameNot(obj)
+            obj.assertEqual(Path("one.two; three/four").whereNameNot(["hree*", "*.two"]), Path("three/four"));
+            obj.assertEqual(Path("one.two; three/four").whereNameNot(), Path("one.two; three/four"));
+            obj.assertEqual(Path.empty.whereNameNot(["hree*", "*.two"]), Path.empty(1, 0));
+        end
+        
+        %% Properties        
         function stem(obj)
             obj.assertEqual(Path("C:/one/two/three.ext").stem, "three");
             obj.assertEqual(Path("one.two.three.ext").stem, "one.two.three");
             obj.assertEqual(Path("one").stem, "one");
             obj.assertEqual(Path("..").stem, "..");
             obj.assertEqual(Path(".").stem, ".");
+            obj.assertEmpty(Path.empty.stem);
+            obj.assertInstanceOf(Path.empty.stem, "string")
         end
         
         function extension(obj)
@@ -170,13 +200,26 @@ classdef PathTest < matlab.unittest.TestCase
         end
         
         function root(obj)
-            error()
+            obj.assertEqual(Path("C:/one/two.ext").root, "C:");
+            obj.assertEqual(Path("one/two").root, "");
         end
         
         function isRelative(obj)
             obj.assertTrue(all(Path(".; ..; a/b.c; ../../a/b/c").isRelative));
             obj.assertFalse(any(Path("C:\; D:\a\b.c; \\test\; \\test\a\b").isRelative));
-%             obj.assertTrue(Path("one").isRelative);
+        end
+        
+        function isAbsolute(obj)            
+            obj.assertFalse(any(Path(".; ..; a/b.c; ../../a/b/c").isAbsolute));
+            obj.assertTrue(any(Path("C:\; D:\a\b.c; \\test\; \\test\a\b").isAbsolute));
+        end
+        
+        function equalAndNotEqual(obj)
+            paths = Path("one/two; C:\a\b.c; three/four; C:\a\b.c");
+            obj.assertEqual(paths(1:2) == paths(3:4), [false, true]);
+            obj.assertEqual(paths(1:2) ~= paths(3:4), [true, false]);
+            obj.assertEqual(paths(2) == paths(3:4), [false, true]);
+            obj.assertEqual(paths(3:4) ~= paths(2), [true, false]);
         end
         
         %% Manipulation
@@ -197,39 +240,7 @@ classdef PathTest < matlab.unittest.TestCase
         function mldivide(obj)
             obj.assertEqual(Path("one") \ "two", Path("one/two"));
         end
-        
-        
-        %% Filter
-        function where(obj)
-            paths = Path([
-                "C:\one\two.txt"        % 1
-                "two.txt"               % 2
-                "one\two.csv"           % 3
-                "C:\three\four.txt"     % 4
-                "three.txt"             % 5
-                "one\three.dat"         % 6
-                "five"                  % 7
-                ".."                    % 8
-                ]);
-            obj.assertEqual(paths([1, 2, 7]), paths.where("Name", ["two.txt", "five", "six"]));
-            obj.assertEqual(paths([3, 4, 5, 7]), paths.where("NameNot", ["two.txt", "three.dat", "six", ".."]));
-            
-            obj.assertEqual(paths([1, 2, 3, 4, 8]), paths.where("Stem", ["one", "two", "four", ".."]));
-            obj.assertEqual(paths([4, 7, 8]), paths.where("StemNot", ["two", "three", "six"]));
-            
-            obj.assertEqual(paths([1, 2, 4, 5, 7, 8]), paths.where("Extension", [".txt", ".mat", ""]));
-            obj.assertEqual(paths([3, 6]), paths.where("ExtensionNot", [".txt", ".mat", ""]));
-            
-            obj.assertEqual(paths([1, 3, 6]), paths.where("Parent", ["one", "C:\one", "D:\"]));
-            obj.assertEqual(paths([1, 4]), paths.where("ParentNot", ["one", ".", "D:\"]));
-            
-            obj.assertEqual(paths([2]), paths.where( ...
-                "NameNot", ["six", "three.txt"], ...
-                "Extension", [".txt", ".mat"], ...
-                "StemNot", ["four", "five"], ...
-                "ParentNot", ["C:\one", "D:\"] ...
-            ));
-        end
+
         
         %% File system interaction
         function mkdir(obj)

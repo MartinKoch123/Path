@@ -1,7 +1,7 @@
 # Path
- MATLAB Class representing filesystem paths
+ MATLAB Class for handling filesystem paths
  
- The `Path` class represents a filesystem path and provides functionality for extracting path properties, manipulate and combine paths and interact with the filesystem.
+ The `Path` class represents filesystem paths and provides functionality for extracting path properties, manipulate and combine paths and interact with the filesystem.
  
  ## Examples Usage
  
