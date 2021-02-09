@@ -112,7 +112,7 @@ classdef PathTest < matlab.unittest.TestCase
         
         function assertRemovesOuterSeparators(obj)
             s = filesep;
-            actual = Path([s s 'one/two/three' s]).string;
+            actual = Path([s 'one/two/three' s]).string;
             expected = adjustSeparators("one/two/three");
             obj.assertEqual(actual, expected);
         end
@@ -135,7 +135,7 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertEqual(actual, expected);
         end
         
-        %% Parts
+        %% Properties
         function name(obj)
             obj.assertEqual(Path("C:/one/two/three.ext").name.string, "three.ext");
             obj.assertEqual(Path("one.two.three.ext").name.string, "one.two.three.ext");
@@ -167,6 +167,16 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertEqual(Path("one").parent, Path("."));
             obj.assertEqual(Path("..").parent, Path("."));
             obj.assertEqual(Path(".").parent, Path("."));
+        end
+        
+        function root(obj)
+            error()
+        end
+        
+        function isRelative(obj)
+            obj.assertTrue(all(Path(".; ..; a/b.c; ../../a/b/c").isRelative));
+            obj.assertFalse(any(Path("C:\; D:\a\b.c; \\test\; \\test\a\b").isRelative));
+%             obj.assertTrue(Path("one").isRelative);
         end
         
         %% Manipulation

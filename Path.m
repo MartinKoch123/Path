@@ -9,6 +9,7 @@ classdef Path
     
     properties (Constant, Hidden)
         FILE_SEPARATOR_REGEX = regexptranslate("escape", filesep);
+        isWindows = true;
     end
     
     methods
@@ -55,17 +56,18 @@ classdef Path
                     stem = match2.stem;
                 end
                 
-                % Extract root from parent directory.
-                rootMatch = regexp(match.parent, "^(?<root>(\\\\[^\\]+|\w:|)\\?)(?<rest>.*)", "names", "emptymatch");
-                
-                obj(i).parent_ = rootMatch.rest;
+
+                obj(i).parent_ = match.parent;
                 obj(i).stem_ = stem;
                 obj(i).extension_ = extension;
-                obj(i).root_ = rootMatch.root;
             end
         end
         
-        function disp(objects)            
+        function disp(objects)        
+            if isscalar(objects)
+                fprintf("     Path(""%s"")\n", objects.string);
+                return
+            end
             fprintf("  %i×%i Path array\n\n", size(objects, 1), size(objects, 2));            
             if isempty(objects)
                 return; end
@@ -78,7 +80,7 @@ classdef Path
         
         %% Conversion
         function result = string(objects)
-            result = [objects.root_] + [objects.parent_] + [objects.stem_] + [objects.extension_];
+            result = [objects.parent_] + [objects.stem_] + [objects.extension_];
         end
         
         function result = char(obj)
@@ -106,11 +108,24 @@ classdef Path
         end
         
         function result = parent(objects)
-            result = Path([objects.root_] + [objects.parent_]);
+            result = Path([objects.parent_]);
+        end
+        
+        function result = root(objects)
+            if Path.isWindows
+                expression = "^(\\\\[^\\]+|[A-Za-z]:|)";
+            else
+                error("Not implemented.");
+            end
+            result = string(regexp(objects.string, expression, "match", "emptymatch"));
         end
         
         function result = isRelative(objects)
-            
+            result = [objects.root] == "";
+        end
+        
+        function result = isAbsolute(objects)
+            result = ~objects.isRelative;
         end
         
         %% Manipulation
@@ -128,7 +143,7 @@ classdef Path
                 result = objects;
                 return 
             elseif isscalar(objects) || isscalar(appendagePath) || length(objects) == length(appendagePath)
-                result = Path(objects.string + "/" + appendagePath.string);
+                result = Path(objects.string + filesep + appendagePath.string);
             else
                 error("Path:append:LengthMismatch", "Length of object array, %i, and length of appendage array, %i, must either match or one of them must be scalar.", length(objects), length(appendage));
             end
@@ -297,13 +312,22 @@ classdef Path
             s = s.strip;
             
             % Replace / and \ with correct separator.
-            s = s.replace(["\", "/"], fs);
+            s = s.replace(["\", "/"], filesep);
             
             % Remove repeating separators.
-            s = regexprep(s, fs + "*", fs);
+            if Path.isWindows
+                s = regexprep(s, "(?<!^)" + fs + "+", fs);
+            else
+                s = regexprep(s, fs + "+", fs);
+            end
             
             % Remove leading and trailing separators.
-            s = regexprep(s, ["^"+fs+"+", fs+"+$"], "");
+            if Path.isWindows
+                expression = ["^"+fs+"(?!"+fs+")", fs+"+$"];
+            else
+                expression = fs+"+$";
+            end
+            s = regexprep(s, expression, "");
             
             % Remove current-directory-dots.
             s = regexprep(s, ["(?<=(^|"+fs+"))(\."+fs+")", "("+fs+"\.)$"], "");
