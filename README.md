@@ -16,18 +16,28 @@ path =
 
 ### Path properties
 ```
->> disp(path.parent)
+>> path.parent
+
      Path("C:\folder")
 
->> disp(path.extension)
-.txt
+>> path.extension
+
+    ".txt"
  ```
  
- ### Concatenate
+### Concatenate
 ```
->> disp(path.parent \ "data.mat")
+>> path.parent / "data.mat"
+
      Path("C:\folder\data.mat")
 ```
-    
+
+### Filter
+```
+>> Path("cats.txt; dogs.dat; donkeys.csv").whereStemIs("do*")
+
+     Path("dogs.dat")
+     Path("donkeys.csv")
+```
  
  

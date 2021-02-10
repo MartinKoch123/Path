@@ -78,8 +78,6 @@ classdef Path
         end
         
         
-        
-        
         %% Conversion
         function result = string(objects)
             result = objects.selectString(@(obj) obj.parent_ + obj.stem_ + obj.extension_);
@@ -101,53 +99,107 @@ classdef Path
             result = objects.selectPath(@(obj) Path(obj.stem_ + obj.extension));
         end
         
-        function result = hasName(objects, names)
-            arguments
-                objects
-                names (1, :) string = strings(0);
-            end
-            result = objects.selectLogical(@(obj) matchesWildcardPattern(obj.stem_ + obj.extension_, names, true));
+        function result = hasName(objects, pattern)
+            arguments; objects; pattern (1, :) string = strings(0); end
+            result = objects.selectLogical(@(obj) matchesWildcardPattern(obj.stem_ + obj.extension_, pattern, true));
         end
         
-        function result = whereName(objects, names)
-            arguments
-                objects
-                names (1, :) string = strings(0);
-            end
-            result = objects.where(@(obj) matchesWildcardPattern(obj.stem_ + obj.extension_, names, true));
+        function result = whereName(objects, pattern)
+            arguments; objects; pattern (1, :) string = strings(0); end
+            result = objects.where(@(obj) matchesWildcardPattern(obj.stem_ + obj.extension_, pattern, true));
         end
         
-        function result = hasNotName(objects, names)
-            arguments
-                objects
-                names (1, :) string = strings(0);
-            end
-            result = objects.selectLogical(@(obj) matchesWildcardPattern(obj.stem_ + obj.extension_, names, false));
+        function result = hasNotName(objects, pattern)
+            arguments; objects; pattern (1, :) string = strings(0); end
+            result = objects.selectLogical(@(obj) matchesWildcardPattern(obj.stem_ + obj.extension_, pattern, false));
         end
         
-        function result = whereNameNot(objects, names)
-            arguments
-                objects
-                names (1, :) string = strings(0);
-            end
-            result = objects.where(@(obj) matchesWildcardPattern(obj.stem_ + obj.extension_, names, false));
+        function result = whereNameNot(objects, pattern)
+            arguments; objects; pattern (1, :) string = strings(0); end
+            result = objects.where(@(obj) matchesWildcardPattern(obj.stem_ + obj.extension_, pattern, false));
         end
         
-
-        
-        %% Properties
-        function result = extension(objects)
-            result = objects.selectString(@(obj) obj.extension_);
-        end
-        
+        %% Stem
         function result = stem(objects)
             result = objects.selectString(@(obj) obj.stem_);
         end
         
+        function result = hasStem(objects, pattern)
+            arguments; objects; pattern (1, :) string = strings(0); end
+            result = objects.selectLogical(@(obj) matchesWildcardPattern(obj.stem_, pattern, true));
+        end
+        
+        function result = whereStemIs(objects, pattern)
+            arguments; objects; pattern (1, :) string = strings(0); end
+            result = objects.where(@(obj) matchesWildcardPattern(obj.stem_, pattern, true));
+        end
+        
+        function result = hasNotStem(objects, pattern)
+            arguments; objects; pattern (1, :) string = strings(0); end
+            result = objects.selectLogical(@(obj) matchesWildcardPattern(obj.stem_, pattern, false));
+        end
+        
+        function result = whereStemIsNot(objects, pattern)
+            arguments; objects; pattern (1, :) string = strings(0); end
+            result = objects.where(@(obj) matchesWildcardPattern(obj.stem_, pattern, false));
+        end
+        
+        %% Extension
+        function result = extension(objects)
+            result = objects.selectString(@(obj) obj.extension_);
+        end
+        
+        function result = hasExtension(objects, pattern)
+            arguments; objects; pattern (1, :) string = strings(0); end
+            result = objects.selectLogical(@(obj) matchesWildcardPattern(obj.extension_, pattern, true));
+        end
+        
+        function result = whereExtensionIs(objects, pattern)
+            arguments; objects; pattern (1, :) string = strings(0); end
+            result = objects.where(@(obj) matchesWildcardPattern(obj.extension_, pattern, true));
+        end
+        
+        function result = hasNotExtension(objects, pattern)
+            arguments; objects; pattern (1, :) string = strings(0); end
+            result = objects.selectLogical(@(obj) matchesWildcardPattern(obj.extension_, pattern, false));
+        end
+        
+        function result = whereExtensionIsNot(objects, pattern)
+            arguments; objects; pattern (1, :) string = strings(0); end
+            result = objects.where(@(obj) matchesWildcardPattern(obj.extension_, pattern, false));
+        end
+
+        
+        %% Parent
         function result = parent(objects)
             result = objects.selectPath(@(obj) Path(obj.parent_));
         end
         
+        function result = hasParent(objects, pattern)
+            arguments; objects; pattern (1, :) string = strings(0); end
+            pattern = Path.clean(pattern) + "\";
+            result = objects.selectLogical(@(obj) matchesWildcardPattern(obj.parent_, pattern, true));
+        end
+        
+        function result = whereParentIs(objects, pattern)
+            arguments; objects; pattern (1, :) string = strings(0); end
+            pattern = Path.clean(pattern) + "\";
+            result = objects.where(@(obj) matchesWildcardPattern(obj.parent_, pattern, true));
+        end
+        
+        function result = hasNotParent(objects, pattern)
+            arguments; objects; pattern (1, :) string = strings(0); end
+            pattern = Path.clean(pattern) + "\";
+            result = objects.selectLogical(@(obj) matchesWildcardPattern(obj.parent_, pattern, false));
+        end
+        
+        function result = whereParentIsNot(objects, pattern)
+            arguments; objects; pattern (1, :) string = strings(0); end
+            pattern = Path.clean(pattern) + "\";
+            result = objects.where(@(obj) matchesWildcardPattern(obj.parent_, pattern, false));
+        end
+        
+        %% Root
         function result = root(objects)
             if Path.isWindows
                 expression = "^(\\\\[^\\]+|[A-Za-z]:|)";
@@ -156,6 +208,32 @@ classdef Path
             end
             result = objects.selectString(@(obj) regexp(obj.string, expression, "match", "emptymatch"));
         end
+        
+        function result = hasRoot(objects, pattern)
+            arguments; objects; pattern (1, :) string = strings(0); end
+            pattern = Path.clean(pattern);
+            result = objects.selectLogical(@(obj) matchesWildcardPattern(obj.root, pattern, true));
+        end
+        
+        function result = whereRootIs(objects, pattern)
+            arguments; objects; pattern (1, :) string = strings(0); end
+            pattern = Path.clean(pattern);
+            result = objects.where(@(obj) matchesWildcardPattern(obj.root, pattern, true));
+        end
+        
+        function result = hasNotRoot(objects, pattern)
+            arguments; objects; pattern (1, :) string = strings(0); end
+            pattern = Path.clean(pattern);
+            result = objects.selectLogical(@(obj) matchesWildcardPattern(obj.root, pattern, false));
+        end
+        
+        function result = whereRootIsNot(objects, pattern)
+            arguments; objects; pattern (1, :) string = strings(0); end
+            pattern = Path.clean(pattern);
+            result = objects.where(@(obj) matchesWildcardPattern(obj.root, pattern, false));
+        end
+        
+        %% Properties
         
         function result = isRelative(objects)
             result = [objects.root] == "";
@@ -349,40 +427,46 @@ classdef Path
     end
     
     methods (Static, Access = private)
-        function s = clean(s)
+        function result = clean(paths)
             fs = Path.FILE_SEPARATOR_REGEX;
             
-            s = s.strip;
-            
-            % Replace / and \ with correct separator.
-            s = s.replace(["\", "/"], filesep);
-            
-            % Remove repeating separators.
-            if Path.isWindows
-                s = regexprep(s, "(?<!^)" + fs + "+", fs);
-            else
-                s = regexprep(s, fs + "+", fs);
-            end
-            
-            % Remove leading and trailing separators.
-            if Path.isWindows
-                expression = ["^"+fs+"(?!"+fs+")", fs+"+$"];
-            else
-                expression = fs+"+$";
-            end
-            s = regexprep(s, expression, "");
-            
-            % Remove current-directory-dots.
-            s = regexprep(s, ["(?<=(^|"+fs+"))(\."+fs+")", "("+fs+"\.)$"], "");
-            
-            % Resolve folder-up-dots.
-            expression = "("+fs+"|^)[^"+fs+":]+(?<!\.\.)"+fs+"\.\."; % Folder name folled by folder-up dots.
-            while ~isempty(regexp(s, expression, 'once'))
+            result = paths;
+            for i = 1 : length(paths)
+                s = paths(i);
+                
+                s = s.strip;
+                
+                % Replace / and \ with correct separator.
+                s = s.replace(["\", "/"], filesep);
+                
+                % Remove repeating separators.
+                if Path.isWindows
+                    s = regexprep(s, "(?<!^)" + fs + "+", fs);
+                else
+                    s = regexprep(s, fs + "+", fs);
+                end
+                
+                % Remove leading and trailing separators.
+                if Path.isWindows
+                    expression = ["^"+fs+"(?!"+fs+")", fs+"+$"];
+                else
+                    expression = fs+"+$";
+                end
                 s = regexprep(s, expression, "");
-            end
-            
-            if s == ""
-                s = ".";
+                
+                % Remove current-directory-dots.
+                s = regexprep(s, ["(?<=(^|"+fs+"))(\."+fs+")", "("+fs+"\.)$"], "");
+                
+                % Resolve folder-up-dots.
+                expression = "("+fs+"|^)[^"+fs+":]+(?<!\.\.)"+fs+"\.\."; % Folder name folled by folder-up dots.
+                while ~isempty(regexp(s, expression, 'once'))
+                    s = regexprep(s, expression, "");
+                end
+                
+                if s == ""
+                    s = ".";
+                end
+                result(i) = s;
             end
         end
         

@@ -153,16 +153,16 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertEqual(Path.empty.hasName(["hree*", "*.two"]), logical.empty);
         end
         
-        function whereName(obj)
-            obj.assertEqual(Path("one.two; three/four").whereName(["hree*", "*.two"]), Path("one.two"));
-            obj.assertEqual(Path("one.two; three/four").whereName(), Path.empty(1, 0));
-            obj.assertEqual(Path.empty.whereName(["hree*", "*.two"]), Path.empty(1, 0));
-        end
-        
         function hasNotName(obj)
             obj.assertEqual(Path("one.two; three/four").hasNotName(["hree*", "*.two"]), [false, true]);
             obj.assertEqual(Path("one.two; three/four").hasNotName(), [true, true]);
             obj.assertEqual(Path.empty.hasName(["hree*", "*.two"]), logical.empty);
+        end
+        
+        function whereName(obj)
+            obj.assertEqual(Path("one.two; three/four").whereName(["hree*", "*.two"]), Path("one.two"));
+            obj.assertEqual(Path("one.two; three/four").whereName(), Path.empty(1, 0));
+            obj.assertEqual(Path.empty.whereName(["hree*", "*.two"]), Path.empty(1, 0));
         end
         
         function whereNameNot(obj)
@@ -171,7 +171,43 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertEqual(Path.empty.whereNameNot(["hree*", "*.two"]), Path.empty(1, 0));
         end
         
-        %% Properties        
+        %% Extension
+        function extension(obj)
+            obj.assertEqual(Path("C:/one/two/three.ext").extension, ".ext");
+            obj.assertEqual(Path("one.two.three.ext").extension, ".ext");
+            obj.assertEqual(Path("one.").extension, ".");
+            obj.assertEqual(Path("one").extension, "");
+            obj.assertEqual(Path("..").extension, "");
+            obj.assertEqual(Path(".").extension, "");
+        end
+        
+        function hasExtension(obj)
+            obj.assertEqual(Path("one.two; three.four").hasExtension([".fo*", "asf"]), [false, true]);
+            obj.assertEqual(Path("one.two; three.four").hasExtension(), [false, false]);
+            obj.assertEqual(Path.empty.hasExtension([".fo*", "asf"]), logical.empty);
+        end
+        
+        function hasNotExtension(obj)
+            obj.assertEqual(Path("one.two; three.four").hasNotExtension([".fo*", "asf"]), [true, false]);
+            obj.assertEqual(Path("one.two; three.four").hasNotExtension(), [true, true]);
+            obj.assertEqual(Path.empty.hasNotExtension([".fo*", "asf"]), logical.empty);
+        end
+        
+        function whereExtensionIs(obj)
+            paths = Path("one.two; three.four");
+            obj.assertEqual(paths.whereExtensionIs([".fo*", "asf"]), paths(2));
+            obj.assertEqual(paths.whereExtensionIs(), Path.empty(1, 0));
+            obj.assertEqual(Path.empty.whereExtensionIs([".fo*", "asf"]), Path.empty(1, 0));
+        end 
+        
+        function whereExtensionIsNot(obj)
+            paths = Path("one.two; three.four");
+            obj.assertEqual(paths.whereExtensionIsNot([".fo*", "asf"]), paths(1));
+            obj.assertEqual(paths.whereExtensionIsNot(), paths);
+            obj.assertEqual(Path.empty.whereExtensionIsNot([".fo*", "asf"]), Path.empty(1, 0));
+        end
+        
+        %% Stem
         function stem(obj)
             obj.assertEqual(Path("C:/one/two/three.ext").stem, "three");
             obj.assertEqual(Path("one.two.three.ext").stem, "one.two.three");
@@ -182,15 +218,33 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertInstanceOf(Path.empty.stem, "string")
         end
         
-        function extension(obj)
-            obj.assertEqual(Path("C:/one/two/three.ext").extension, ".ext");
-            obj.assertEqual(Path("one.two.three.ext").extension, ".ext");
-            obj.assertEqual(Path("one.").extension, ".");
-            obj.assertEqual(Path("one").extension, "");
-            obj.assertEqual(Path("..").extension, "");
-            obj.assertEqual(Path(".").extension, "");
+        function hasStem(obj)
+            obj.assertEqual(Path("one.two; three.four").hasStem(["t*ee", "asf"]), [false, true]);
+            obj.assertEqual(Path("one.two; three.four").hasStem(), [false, false]);
+            obj.assertEqual(Path.empty.hasStem(["t*ee", "asf"]), logical.empty);
         end
         
+        function hasNotStem(obj)
+            obj.assertEqual(Path("one.two; three.four").hasNotStem(["t*ee", "asf"]), [true, false]);
+            obj.assertEqual(Path("one.two; three.four").hasNotStem(), [true, true]);
+            obj.assertEqual(Path.empty.hasNotStem(["t*ee", "asf"]), logical.empty);
+        end
+        
+        function whereStemIs(obj)
+            paths = Path("one.two; three.four");
+            obj.assertEqual(paths.whereStemIs(["t*ee", "asf"]), paths(2));
+            obj.assertEqual(paths.whereStemIs(), Path.empty(1, 0));
+            obj.assertEqual(Path.empty.whereStemIs(["t*ee", "asf"]), Path.empty(1, 0));
+        end 
+        
+        function whereStemIsNot(obj)
+            paths = Path("one.two; three.four");
+            obj.assertEqual(paths.whereStemIsNot(["t*ee", "asf"]), paths(1));
+            obj.assertEqual(paths.whereStemIsNot(), paths);
+            obj.assertEqual(Path.empty.whereStemIsNot(["t*ee", "asf"]), Path.empty(1, 0));
+        end
+        
+        %% Parent
         function parent(obj)
             obj.assertEqual(Path("C:/one/two/three.ext").parent, Path("C:/one/two"));
             obj.assertEqual(Path("../../one/three.ext").parent, Path("../../one"));
@@ -199,10 +253,67 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertEqual(Path(".").parent, Path("."));
         end
         
+        function hasParent(obj)
+            obj.assertEqual(Path("a/b/c; C:/d/e").hasParent(["*d", "asf"]), [false, true]);
+            obj.assertEqual(Path("a/b/c; C:/d/e").hasParent(), [false, false]);
+            obj.assertEqual(Path.empty.hasParent(["*d", "asf"]), logical.empty);
+        end
+        
+        function hasNotParent(obj)
+            obj.assertEqual(Path("a/b/c; C:/d/e").hasNotParent(["*d", "asf"]), [true, false]);
+            obj.assertEqual(Path("a/b/c; C:/d/e").hasNotParent(), [true, true]);
+            obj.assertEqual(Path.empty.hasNotParent(["*d", "asf"]), logical.empty);
+        end
+        
+        function whereParentIs(obj)
+            paths = Path("a/b/c; C:/d/e");
+            obj.assertEqual(paths.whereParentIs(["*d", "asf"]), paths(2));
+            obj.assertEqual(paths.whereParentIs(), Path.empty(1, 0));
+            obj.assertEqual(Path.empty.whereParentIs(["*d", "asf"]), Path.empty(1, 0));
+        end 
+        
+        function whereParentIsNot(obj)
+            paths = Path("a/b/c; C:/d/e");
+            obj.assertEqual(paths.whereParentIsNot(["*d", "asf"]), paths(1));
+            obj.assertEqual(paths.whereParentIsNot(), paths);
+            obj.assertEqual(Path.empty.whereParentIsNot(["*d", "asf"]), Path.empty(1, 0));
+        end
+        
+        %% Root
         function root(obj)
             obj.assertEqual(Path("C:/one/two.ext").root, "C:");
             obj.assertEqual(Path("one/two").root, "");
         end
+        
+        function hasRoot(obj)
+            obj.assertEqual(Path("a/b/c; C:/d/e").hasRoot(["C*", "asf"]), [false, true]);
+            obj.assertEqual(Path("a/b/c; C:/d/e").hasRoot(), [false, false]);
+            obj.assertEqual(Path.empty.hasRoot(["C*", "asf"]), logical.empty);
+        end
+        
+        function hasNotRoot(obj)
+            obj.assertEqual(Path("a/b/c; C:/d/e").hasNotRoot(["C*", "asf"]), [true, false]);
+            obj.assertEqual(Path("a/b/c; C:/d/e").hasNotRoot(), [true, true]);
+            obj.assertEqual(Path.empty.hasNotRoot(["C*", "asf"]), logical.empty);
+        end
+        
+        function whereRootIs(obj)
+            paths = Path("a/b/c; C:/d/e");
+            obj.assertEqual(paths.whereRootIs(["C*", "asf"]), paths(2));
+            obj.assertEqual(paths.whereRootIs(), Path.empty(1, 0));
+            obj.assertEqual(Path.empty.whereRootIs(["C*", "asf"]), Path.empty(1, 0));
+        end 
+        
+        function whereRootNot(obj)
+            paths = Path("a/b/c; C:/d/e");
+            obj.assertEqual(paths.whereRootIsNot(["C*", "asf"]), paths(1));
+            obj.assertEqual(paths.whereRootIsNot(), paths);
+            obj.assertEqual(Path.empty.whereRootIsNot(["C*", "asf"]), Path.empty(1, 0));
+        end
+        
+        %% Properties   
+        
+
         
         function isRelative(obj)
             obj.assertTrue(all(Path(".; ..; a/b.c; ../../a/b/c").isRelative));
