@@ -13,38 +13,38 @@ classdef Path
     end
     
     methods
-        function obj = Path(args)
+        function obj = Path(paths)
             arguments (Repeating)
-                args (1, :) string {mustBeNonmissing};
+                paths (1, :) string {mustBeNonmissing};
             end
             
             % Default constructor
-            if isempty(args)
+            if isempty(paths)
                 obj = Path(".");
                 return
             end
 
             % Convert to string vector.
-            args = [args{:}];
+            paths = [paths{:}];
             
             % Empty constructor
-            if isempty(args)
+            if isempty(paths)
                 obj = Path.empty();
                 return
             end
             
             % Resolve path separators.
-            args = args.join(pathsep).split(pathsep);          
-            pathCount = length(args);
+            paths = paths.join(pathsep).split(pathsep);          
+            pathCount = length(paths);
             
             obj(pathCount) = obj;
             fs = Path.FILE_SEPARATOR_REGEX;
             
             for i = 1 : pathCount
-                args(i) = Path.clean(args(i));
+                paths(i) = Path.clean(paths(i));
                 
                 % Extract parent directory and name.
-                match = regexp(args(i), "^(?<parent>.*?)(?<name>[^"+fs+"]+)$", "names");
+                match = regexp(paths(i), "^(?<parent>.*?)(?<name>[^"+fs+"]+)$", "names");
                 
                 % Extract stem and extension from name.
                 if match.name == ".." || match.name == "."
@@ -233,8 +233,7 @@ classdef Path
             result = objects.where(@(obj) matchesWildcardPattern(obj.root, pattern, false));
         end
         
-        %% Properties
-        
+        %% Properties        
         function result = isRelative(objects)
             result = [objects.root] == "";
         end
@@ -249,6 +248,11 @@ classdef Path
         
         function result = ne(objects, others)
             result = ~objects.eq(others);
+        end
+        
+        %% List
+        function result = count(objects)
+            result = numel(objects);
         end
         
         %% Manipulation
@@ -293,6 +297,33 @@ classdef Path
             result = arrayfun(@(obj) isfolder(obj.string), objects);
         end            
         
+        function mustExist(objects)
+            for obj = objects
+                if ~obj.fileExists && ~obj.folderExists
+                    exception = MException("Path:mustExist:Failed", "File or folder ""%s"" not found.", obj.string);
+                    throwAsCaller(exception);
+                end
+            end
+        end 
+        
+        function fileMustExist(objects)
+            for obj = objects
+                if ~obj.fileExists
+                    exception = MException("Path:fileMustExist:Failed", "File ""%s"" not found.", obj.string);
+                    throwAsCaller(exception);
+                end
+            end
+        end
+        
+        function folderMustExist(objects)
+            for obj = objects
+                if ~obj.folderExists
+                    exception = MException("Path:folderMustExist:Failed", "Folder ""%s"" not found.", obj.string);
+                    throwAsCaller(exception);
+                end
+            end
+        end
+        
         function mkdir(objects)
             for obj = objects
                 if obj.folderExists
@@ -301,19 +332,45 @@ classdef Path
                 try
                     mkdir(obj.string);
                 catch exception
-                    if startsWith(string(exception.identifier), 'MATLAB:MKDIR')
-                        error(exception.identifier, "Error while creating folder ""%s"".\n%s", obj, exception.message); end
+                    handle(exception, "MATLAB:MKDIR", "Error while creating folder ""%s"".", obj);
                 end
             end
         end
         
-        function writeEmptyFile(objects)
+        function createEmptyFile(objects)
             for obj = objects
                 obj.parent.mkdir;
                 fileId = fopen(obj.string, 'w');
                 fclose(fileId);
             end
         end
+        
+        function copyToFolder(objects, targetFolder)
+            arguments
+                objects
+                targetFolder (1, 1) Path
+            end
+            for i = 1 : objects.count
+                obj = objects(i);
+                obj.mustExist;
+                if obj.fileExists
+                    sourceType = "file";
+                else
+                    sourceType = "folder";
+                end
+                if targetFolder.fileExists
+                    error("Path:copyToFolder:TargetFolderIsFile", "The target folder ""%s"" is an existing file.", targetFolder); end
+                try                    
+                    targetFolder.mkdir;
+                    target = targetFolder \ obj.name;
+                    copyfile(obj.string, target.string);
+                catch exception
+                    handle(exception, ["MATLAB:COPYFILE:", "MATLAB:MKDIR:"], "Unable to copy %s ""%s"" to folder ""%s"".", sourceType, obj, targetFolder);
+                end
+            end
+        end
+        
+%         function copyTo
         
         %% Save and load        
         function save(obj, variables)
@@ -473,6 +530,27 @@ classdef Path
 
     end
 end
+    
+function handle(exception, identifiers, messageFormat, messageArguments)
+arguments
+    exception
+    identifiers
+    messageFormat (1, 1) string
+end
+arguments (Repeating)
+    messageArguments
+end
+if any(startsWith(exception.identifier, identifiers))
+    messageFormat = messageFormat + "\nCaused by: %s";
+    messageArguments{end+1} = exception.message;
+    message = sprintf(messageFormat, messageArguments{:});
+    exception = MException(exception.identifier, "%s", message);
+    throwAsCaller(exception);
+else
+    exception.rethrow;
+end
+end
+
 
 function result = matchesWildcardPattern(s, patterns, mode)
 result = ~mode;

@@ -312,9 +312,6 @@ classdef PathTest < matlab.unittest.TestCase
         end
         
         %% Properties   
-        
-
-        
         function isRelative(obj)
             obj.assertTrue(all(Path(".; ..; a/b.c; ../../a/b/c").isRelative));
             obj.assertFalse(any(Path("C:\; D:\a\b.c; \\test\; \\test\a\b").isRelative));
@@ -331,6 +328,11 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertEqual(paths(1:2) ~= paths(3:4), [true, false]);
             obj.assertEqual(paths(2) == paths(3:4), [false, true]);
             obj.assertEqual(paths(3:4) ~= paths(2), [true, false]);
+        end
+        
+        %% List 
+        function count(obj)
+            obj.assertEqual(Path("a; b").count, 2);
         end
         
         %% Manipulation
@@ -359,24 +361,45 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertFolderExists(obj.testFolder / "a; b/a");
         end
         
-        function writeEmptyFile(obj)
-            obj.testFolder.append("a.b; c/d").writeEmptyFile;
+        function createEmptyFile(obj)
+            obj.testFolder.append("a.b; c/d").createEmptyFile;
             obj.assertFileExists(obj.testFolder / "a.b; c/d");
         end
         
         function fileExistsAndFolderExists(obj)
+            
             paths = obj.testFolder / "a.b; c/d";
             obj.assertFalse(any(paths.fileExists));
-            paths.writeEmptyFile;
+            obj.assertFalse(any(paths.folderExists));
+            obj.assertError(@() paths.mustExist, "Path:mustExist:Failed");            
+            obj.assertError(@() paths.fileMustExist, "Path:fileMustExist:Failed");            
+            obj.assertError(@() paths.folderMustExist, "Path:folderMustExist:Failed");
+            
+            paths.createEmptyFile;
             obj.assertFalse(any(paths.folderExists));
             obj.assertTrue(all(paths.fileExists));   
+            paths.mustExist;
+            paths.fileMustExist;
+            obj.assertError(@() paths.folderMustExist, "Path:folderMustExist:Failed");
             
-            delete(paths(1).string, paths(2).string);
-            
-            obj.assertFalse(any(paths.folderExists));
+            delete(paths(1).string, paths(2).string);            
             paths.mkdir;
+            
             obj.assertFalse(any(paths.fileExists));
             obj.assertTrue(all(paths.folderExists));
+            paths.mustExist;
+            paths.folderMustExist;
+            obj.assertError(@() paths.fileMustExist, "Path:fileMustExist:Failed");
+        end
+        
+        function copyFile(obj)
+            sources = obj.testFolder / "a.b; c/d.e";
+            targets = obj.testFolder / "f/g.h; i.j";
+            sources.createEmptyFile;
+            sources.copyFile(targets);
+            targets.fileMustExist;
+            
+            Path.empty.copyFile(Path.empty);
         end
         
         %% Matlab files

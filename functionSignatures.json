@@ -1,0 +1,16 @@
+{
+  "Path":
+  {
+     "inputs":
+     [
+        {"name":"paths",  "kind":"required", "type":[["string"], ["file"]], "repeating":true, "purpose":"Path strings"}
+     ]
+  },
+  "Path.ofMatlabElement":
+  {
+	"inputs":
+	[
+		{"name":"element", "kind":"required", "type":["matlabpathfile=*.mat,*.m,*.mdl,*.slx"]}
+	]
+  }
+}

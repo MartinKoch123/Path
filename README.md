@@ -3,9 +3,9 @@
  
  The `Path` class represents filesystem paths and provides functionality for extracting path properties, manipulate and combine paths and interact with the filesystem.
  
- ## Examples Usage
+ ## Example Usage
  
- ### Constructor
+ ### Construct
  ```Matlab
 >> path = Path("C:\folder\file.txt")
 
@@ -14,7 +14,7 @@ path =
      Path("C:\folder\file.txt")
 ```
 
-### Path properties
+### Inspect
 ```
 >> path.parent
 
