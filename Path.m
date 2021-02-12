@@ -20,28 +20,25 @@ classdef Path
             
             % Default constructor
             if isempty(paths)
-                obj = Path(".");
-                return
+                paths = ".";
+            else
+                paths = [paths{:}];
             end
-
-            % Convert to string vector.
-            paths = [paths{:}];
             
             % Empty constructor
             if isempty(paths)
-                obj = Path.empty();
+                obj = obj.empty(1, 0);
                 return
             end
             
             % Resolve path separators.
-            paths = paths.join(pathsep).split(pathsep);          
+            paths = Path.clean(paths);
             pathCount = length(paths);
             
             obj(pathCount) = obj;
             fs = Path.FILE_SEPARATOR_REGEX;
             
             for i = 1 : pathCount
-                paths(i) = Path.clean(paths(i));
                 
                 % Extract parent directory and name.
                 match = regexp(paths(i), "^(?<parent>.*?)(?<name>[^"+fs+"]+)$", "names");
@@ -56,23 +53,22 @@ classdef Path
                     stem = match2.stem;
                 end
                 
-
                 obj(i).parent_ = match.parent;
                 obj(i).stem_ = stem;
                 obj(i).extension_ = extension;
             end
         end
         
-        function disp(objects)        
+        function disp(objects)
             if isscalar(objects)
-                fprintf("     Path(""%s"")\n", objects.string);
+                fprintf("     %s(""%s"")\n", class(objects), objects.string);
                 return
             end
-            fprintf("  %i×%i Path array\n\n", size(objects, 1), size(objects, 2));            
+            fprintf("  %i×%i %s array\n\n", size(objects, 1), size(objects, 2), class(objects));
             if isempty(objects)
                 return; end
             for obj = objects
-                fprintf("     Path(""%s"")\n", obj.string);
+                fprintf("     %s(""%s"")\n", class(objects), obj.string);
             end
             fprintf("\n");
         end
@@ -95,108 +91,53 @@ classdef Path
         end
         
         %% Name
-        function result = name(objects)
-            result = objects.selectPath(@(obj) Path(obj.stem_ + obj.extension));
-        end
-        
         function result = hasName(objects, pattern)
             arguments; objects; pattern (1, :) string = strings(0); end
-            result = objects.selectLogical(@(obj) matchesWildcardPattern(obj.stem_ + obj.extension_, pattern, true));
+            result = objects.selectLogical(@(obj) Path.matchesWildcardPattern(obj.stem_ + obj.extension_, pattern, true));
         end
         
         function result = whereName(objects, pattern)
             arguments; objects; pattern (1, :) string = strings(0); end
-            result = objects.where(@(obj) matchesWildcardPattern(obj.stem_ + obj.extension_, pattern, true));
+            result = objects.where(@(obj) Path.matchesWildcardPattern(obj.stem_ + obj.extension_, pattern, true));
         end
         
         function result = hasNotName(objects, pattern)
             arguments; objects; pattern (1, :) string = strings(0); end
-            result = objects.selectLogical(@(obj) matchesWildcardPattern(obj.stem_ + obj.extension_, pattern, false));
+            result = objects.selectLogical(@(obj) Path.matchesWildcardPattern(obj.stem_ + obj.extension_, pattern, false));
         end
         
         function result = whereNameNot(objects, pattern)
             arguments; objects; pattern (1, :) string = strings(0); end
-            result = objects.where(@(obj) matchesWildcardPattern(obj.stem_ + obj.extension_, pattern, false));
+            result = objects.where(@(obj) Path.matchesWildcardPattern(obj.stem_ + obj.extension_, pattern, false));
         end
-        
-        %% Stem
-        function result = stem(objects)
-            result = objects.selectString(@(obj) obj.stem_);
-        end
-        
-        function result = hasStem(objects, pattern)
-            arguments; objects; pattern (1, :) string = strings(0); end
-            result = objects.selectLogical(@(obj) matchesWildcardPattern(obj.stem_, pattern, true));
-        end
-        
-        function result = whereStemIs(objects, pattern)
-            arguments; objects; pattern (1, :) string = strings(0); end
-            result = objects.where(@(obj) matchesWildcardPattern(obj.stem_, pattern, true));
-        end
-        
-        function result = hasNotStem(objects, pattern)
-            arguments; objects; pattern (1, :) string = strings(0); end
-            result = objects.selectLogical(@(obj) matchesWildcardPattern(obj.stem_, pattern, false));
-        end
-        
-        function result = whereStemIsNot(objects, pattern)
-            arguments; objects; pattern (1, :) string = strings(0); end
-            result = objects.where(@(obj) matchesWildcardPattern(obj.stem_, pattern, false));
-        end
-        
-        %% Extension
-        function result = extension(objects)
-            result = objects.selectString(@(obj) obj.extension_);
-        end
-        
-        function result = hasExtension(objects, pattern)
-            arguments; objects; pattern (1, :) string = strings(0); end
-            result = objects.selectLogical(@(obj) matchesWildcardPattern(obj.extension_, pattern, true));
-        end
-        
-        function result = whereExtensionIs(objects, pattern)
-            arguments; objects; pattern (1, :) string = strings(0); end
-            result = objects.where(@(obj) matchesWildcardPattern(obj.extension_, pattern, true));
-        end
-        
-        function result = hasNotExtension(objects, pattern)
-            arguments; objects; pattern (1, :) string = strings(0); end
-            result = objects.selectLogical(@(obj) matchesWildcardPattern(obj.extension_, pattern, false));
-        end
-        
-        function result = whereExtensionIsNot(objects, pattern)
-            arguments; objects; pattern (1, :) string = strings(0); end
-            result = objects.where(@(obj) matchesWildcardPattern(obj.extension_, pattern, false));
-        end
-
         
         %% Parent
         function result = parent(objects)
-            result = objects.selectPath(@(obj) Path(obj.parent_));
+            result = objects.selectFolder(@(obj) Folder(obj.parent_));
         end
         
         function result = hasParent(objects, pattern)
             arguments; objects; pattern (1, :) string = strings(0); end
             pattern = Path.clean(pattern) + "\";
-            result = objects.selectLogical(@(obj) matchesWildcardPattern(obj.parent_, pattern, true));
+            result = objects.selectLogical(@(obj) Path.matchesWildcardPattern(obj.parent_, pattern, true));
         end
         
         function result = whereParentIs(objects, pattern)
             arguments; objects; pattern (1, :) string = strings(0); end
             pattern = Path.clean(pattern) + "\";
-            result = objects.where(@(obj) matchesWildcardPattern(obj.parent_, pattern, true));
+            result = objects.where(@(obj) Path.matchesWildcardPattern(obj.parent_, pattern, true));
         end
         
         function result = hasNotParent(objects, pattern)
             arguments; objects; pattern (1, :) string = strings(0); end
             pattern = Path.clean(pattern) + "\";
-            result = objects.selectLogical(@(obj) matchesWildcardPattern(obj.parent_, pattern, false));
+            result = objects.selectLogical(@(obj) Path.matchesWildcardPattern(obj.parent_, pattern, false));
         end
         
         function result = whereParentIsNot(objects, pattern)
             arguments; objects; pattern (1, :) string = strings(0); end
             pattern = Path.clean(pattern) + "\";
-            result = objects.where(@(obj) matchesWildcardPattern(obj.parent_, pattern, false));
+            result = objects.where(@(obj) Path.matchesWildcardPattern(obj.parent_, pattern, false));
         end
         
         %% Root
@@ -212,28 +153,28 @@ classdef Path
         function result = hasRoot(objects, pattern)
             arguments; objects; pattern (1, :) string = strings(0); end
             pattern = Path.clean(pattern);
-            result = objects.selectLogical(@(obj) matchesWildcardPattern(obj.root, pattern, true));
+            result = objects.selectLogical(@(obj) Path.matchesWildcardPattern(obj.root, pattern, true));
         end
         
         function result = whereRootIs(objects, pattern)
             arguments; objects; pattern (1, :) string = strings(0); end
             pattern = Path.clean(pattern);
-            result = objects.where(@(obj) matchesWildcardPattern(obj.root, pattern, true));
+            result = objects.where(@(obj) Path.matchesWildcardPattern(obj.root, pattern, true));
         end
         
         function result = hasNotRoot(objects, pattern)
             arguments; objects; pattern (1, :) string = strings(0); end
             pattern = Path.clean(pattern);
-            result = objects.selectLogical(@(obj) matchesWildcardPattern(obj.root, pattern, false));
+            result = objects.selectLogical(@(obj) Path.matchesWildcardPattern(obj.root, pattern, false));
         end
         
         function result = whereRootIsNot(objects, pattern)
             arguments; objects; pattern (1, :) string = strings(0); end
             pattern = Path.clean(pattern);
-            result = objects.where(@(obj) matchesWildcardPattern(obj.root, pattern, false));
+            result = objects.where(@(obj) Path.matchesWildcardPattern(obj.root, pattern, false));
         end
         
-        %% Properties        
+        %% Properties
         function result = isRelative(objects)
             result = [objects.root] == "";
         end
@@ -256,95 +197,9 @@ classdef Path
         end
         
         %% Manipulation
-        function result = append(objects, appendage)
-            arguments
-                objects(1, :)
-            end
-            arguments (Repeating)
-                appendage
-            end
-            
-            appendagePath = Path(appendage{:});
-            
-            if isempty(objects) || isempty(appendagePath)
-                result = objects;
-                return 
-            elseif isscalar(objects) || isscalar(appendagePath) || length(objects) == length(appendagePath)
-                result = Path(objects.string + filesep + appendagePath.string);
-            else
-                error("Path:append:LengthMismatch", "Length of object array, %i, and length of appendage array, %i, must either match or one of them must be scalar.", length(objects), length(appendage));
-            end
-        end
         
-        function result = mrdivide(objects, appendage)
-            result = objects.append(appendage);
-        end
         
-        function result = mldivide(objects, appendage)
-            result = objects.append(appendage);
-        end
-                
-        %% File system interaction        
-        function result = exists(objects)
-            result = objects.fileExists & objects.folderExists;
-        end
-        
-        function result = fileExists(objects)
-            result = arrayfun(@(obj) isfile(obj.string), objects);
-        end
-        
-        function result = folderExists(objects)
-            result = arrayfun(@(obj) isfolder(obj.string), objects);
-        end            
-        
-        function mustExist(objects)
-            for obj = objects
-                if ~obj.fileExists && ~obj.folderExists
-                    exception = MException("Path:mustExist:Failed", "File or folder ""%s"" not found.", obj.string);
-                    throwAsCaller(exception);
-                end
-            end
-        end 
-        
-        function fileMustExist(objects)
-            for obj = objects
-                if ~obj.fileExists
-                    exception = MException("Path:fileMustExist:Failed", "File ""%s"" not found.", obj.string);
-                    throwAsCaller(exception);
-                end
-            end
-        end
-        
-        function folderMustExist(objects)
-            for obj = objects
-                if ~obj.folderExists
-                    exception = MException("Path:folderMustExist:Failed", "Folder ""%s"" not found.", obj.string);
-                    throwAsCaller(exception);
-                end
-            end
-        end
-        
-        function mkdir(objects)
-            for obj = objects
-                if obj.folderExists
-                    return;
-                end
-                try
-                    mkdir(obj.string);
-                catch exception
-                    handle(exception, "MATLAB:MKDIR", "Error while creating folder ""%s"".", obj);
-                end
-            end
-        end
-        
-        function createEmptyFile(objects)
-            for obj = objects
-                obj.parent.mkdir;
-                fileId = fopen(obj.string, 'w');
-                fclose(fileId);
-            end
-        end
-        
+        %% File system interaction
         function copyToFolder(objects, targetFolder)
             arguments
                 objects
@@ -360,7 +215,7 @@ classdef Path
                 end
                 if targetFolder.fileExists
                     error("Path:copyToFolder:TargetFolderIsFile", "The target folder ""%s"" is an existing file.", targetFolder); end
-                try                    
+                try
                     targetFolder.mkdir;
                     target = targetFolder \ obj.name;
                     copyfile(obj.string, target.string);
@@ -370,9 +225,7 @@ classdef Path
             end
         end
         
-%         function copyTo
-        
-        %% Save and load        
+        %% Save and load
         function save(obj, variables)
             arguments
                 obj (1, 1)
@@ -397,7 +250,7 @@ classdef Path
             arguments (Repeating)
                 variables (1, 1) string {mustBeValidVariableName}
             end
-
+            
             if nargout ~= length(variables)
                 error("Path:load:InputOutputMismatch", "The number of outputs, %i, must match the number of variables to load, %i.", nargout, length(variables)); end
             data = load(obj.string, variables{:});
@@ -410,7 +263,7 @@ classdef Path
         end
     end
     
-    methods (Access = private)     
+    methods (Access = protected)
         function result = selectString(objects, fun)
             result = strings(size(objects));
             for i = 1 : numel(objects)
@@ -425,13 +278,23 @@ classdef Path
             end
         end
         
-        function result = selectPath(objects, fun)
+        function result = selectFolder(objects, fun)
             if ~isempty(objects)
                 for i = numel(objects) : -1 : 1
                     result(i) = fun(objects(i));
                 end
             else
-                result = Path.empty(size(objects));
+                result = Folder.empty(size(objects));
+            end
+        end
+        
+        function result = selectFile(objects, fun)
+            if ~isempty(objects)
+                for i = numel(objects) : -1 : 1
+                    result(i) = fun(objects(i));
+                end
+            else
+                result = File.empty(size(objects));
             end
         end
         
@@ -444,50 +307,13 @@ classdef Path
         end
     end
     
-    methods (Static)
-        function result = ofMatlabElement(elements)
-            arguments
-                elements (1, :) string {mustBeNonmissing}
-            end
-            result = Path.empty;
-            for element = elements
-                path = string(which(element));
-                
-                % If the queried element happens to have the name of a
-                % variable in this function, temporarily rename that
-                % variable.
-                if path == "variable"
-                    temp = eval(element);
-                    clearvars(element);
-                    path = string(which(element));
-                    eval(element + " = temp");
-                end
-                
-                if path.startsWith("built")
-                    
-                    % Remove "build in" and brackets.
-                    path = regexprep(path, ["^[^\(]*\(", "\)$"], "");
-                elseif path == ""
-                    error("Path:ofMatlabElement:NotFound", "Element ""%s"" is not on the search path.", element);
-                end
-                result(end+1) = Path(path);
-            end
-        end
-        
-        function result = ofCaller
-            stack = dbstack;
-            if length(stack) == 1
-                error("Path:ofCaller:NoCaller", "This method was not called from another file."); end
-            callingFile = stack(2).file;
-            result = Path.ofMatlabElement(callingFile);
-        end 
-    end
-    
-    methods (Static, Access = private)
+    methods (Static, Access = protected)
         function result = clean(paths)
             fs = Path.FILE_SEPARATOR_REGEX;
-            
             result = paths;
+            if ~isempty(paths)
+                paths = paths.join(pathsep).split(pathsep);
+            end
             for i = 1 : length(paths)
                 s = paths(i);
                 
@@ -527,37 +353,43 @@ classdef Path
             end
         end
         
-
+        function handle(exception, identifiers, messageFormat, messageArguments)
+            arguments
+                exception
+                identifiers
+                messageFormat (1, 1) string
+            end
+            arguments (Repeating)
+                messageArguments
+            end
+            if any(startsWith(exception.identifier, identifiers))
+                messageFormat = messageFormat + "\nCaused by: %s";
+                messageArguments{end+1} = exception.message;
+                message = sprintf(messageFormat, messageArguments{:});
+                exception = MException(exception.identifier, "%s", message);
+                throwAsCaller(exception);
+            else
+                exception.rethrow;
+            end
+        end
+        
+        
+        function result = matchesWildcardPattern(s, patterns, mode)
+            result = ~mode;
+            for pattern = regexptranslate("wildcard", patterns)
+                if ~isempty(regexp(s, "^"+pattern+"$", 'once'))
+                    result = mode;
+                    return
+                end
+            end
+        end
+        
+        
     end
-end
     
-function handle(exception, identifiers, messageFormat, messageArguments)
-arguments
-    exception
-    identifiers
-    messageFormat (1, 1) string
-end
-arguments (Repeating)
-    messageArguments
-end
-if any(startsWith(exception.identifier, identifiers))
-    messageFormat = messageFormat + "\nCaused by: %s";
-    messageArguments{end+1} = exception.message;
-    message = sprintf(messageFormat, messageArguments{:});
-    exception = MException(exception.identifier, "%s", message);
-    throwAsCaller(exception);
-else
-    exception.rethrow;
-end
-end
-
-
-function result = matchesWildcardPattern(s, patterns, mode)
-result = ~mode;
-for pattern = regexptranslate("wildcard", patterns)
-    if ~isempty(regexp(s, "^"+pattern+"$", 'once'))
-        result = mode;
-        return
+    methods (Abstract)
+        result = exists(objects);
+        mustExist(objects);
     end
 end
-end
+

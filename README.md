@@ -1,43 +1,45 @@
 # Path
- MATLAB Class for handling filesystem paths
+ MATLAB Classes for handling filesystem paths
  
- The `Path` class represents filesystem paths and provides functionality for extracting path properties, manipulate and combine paths and interact with the filesystem.
+ The `File` and `Folder` classes represents filesystem paths and provide functionality for extracting path properties, manipulate and combine paths and interact with the filesystem.
  
  ## Example Usage
  
  ### Construct
  ```Matlab
->> path = Path("C:\folder\file.txt")
+>> file = File("C:\essentials\WriteJournalPaper.exe")
 
-path = 
+     File("C:\essentials\WriteJournalPaper.exe")
 
-     Path("C:\folder\file.txt")
+>> folder = Folder("..\Rocket Science\Data")
+
+     Folder("..\Rocket Science\Data")
 ```
 
 ### Inspect
 ```
->> path.parent
+>> file.parent
 
-     Path("C:\folder")
+     Folder("C:\essentials")
+     
+>> file.extension
 
->> path.extension
-
-    ".txt"
+    ".exe"
  ```
  
 ### Concatenate
 ```
->> path.parent / "data.mat"
+>> folder.parent / "LauchSchedule.xlsx"
 
-     Path("C:\folder\data.mat")
+     File("..\Rocket Science\LauchSchedule.xlsx")
 ```
 
 ### Filter
 ```
->> Path("cats.txt; dogs.dat; donkeys.csv").whereStemIs("do*")
+>> File("cats.txt; dogs.dat; donkeys.csv").whereStemIs("do*")
 
-     Path("dogs.dat")
-     Path("donkeys.csv")
+     File("dogs.dat")
+     File("donkeys.csv")
 ```
  
  
