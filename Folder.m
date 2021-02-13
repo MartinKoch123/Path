@@ -9,8 +9,8 @@ classdef Folder < Path
             result = objects.selectFolder(@(obj) Folder(obj.stem_ + obj.extension_));
         end
         
-        function result = setName(objects, names)
-            result = objects.parent.appendFolder(names);
+        function result = setName(objects, varargin)
+            result = objects.parent.appendFolder(varargin{:});
         end
         
         %% Append         
@@ -22,9 +22,7 @@ classdef Folder < Path
                 appendage (1, :) string {mustBeNonmissing}
             end
             
-            appendage = [appendage{:}];
-            appendage = Path.clean(appendage);
-            
+            appendage = Path.clean(appendage{:});            
             extension = regexp(appendage, "(?<!\.|^)\.[^\.]*$", "once", "match");
             if all(ismissing(extension))
                 result = objects.appendFolder(appendage);
@@ -42,7 +40,7 @@ classdef Folder < Path
             arguments (Repeating)
                 appendage (1, :) string {mustBeNonmissing}
             end            
-            appendage = File(appendage{:});            
+            appendage = Path.clean(appendage{:});                  
             result = objects.appendFile_(appendage);
         end
         
@@ -53,7 +51,7 @@ classdef Folder < Path
             arguments (Repeating)
                 appendage (1, :) string {mustBeNonmissing}
             end            
-            appendage = Folder(appendage{:});      
+            appendage = Path.clean(appendage{:});               
             result = objects.appendFolder_(appendage);
         end
         
@@ -164,13 +162,14 @@ end
 function result = listFiles(folder)    
     result = strings(0);    
     folderContents = dir(folder)';    
-    for folderContent = folderContents        
+    for folderContent = folderContents
+        path = fullfile(folder, folderContent.name);
         if folderContent.isdir
             if folderContent.name == "." || folderContent.name == ".."
                 continue; end
-            result = [result, listFiles(folder + "\" + folderContent.name)];
+            result = [result, listFiles(path)];
         else
-            result(end+1) = folder + "\" + folderContent.name;
+            result(end+1) = path;
         end        
     end    
 end

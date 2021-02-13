@@ -9,13 +9,26 @@ classdef File < Path
             result = objects.selectFile(@(obj) File(obj.stem_ + obj.extension_));
         end
         
-        function result = setName(objects, names)
-            result = objects.parent.appendFile(names);
+        function result = setName(objects, varargin)
+            result = objects.parent.appendFile(varargin{:});
         end
         
         %% Stem
         function result = stem(objects)
             result = objects.selectString(@(obj) obj.stem_);
+        end
+        
+        function objects = setStem(objects, stems)
+            arguments
+                objects(1, :)
+                stems (1, :) string {mustBeNonmissing, Path.mustBeValidName, Path.mustBeEqualSizeOrScalar(stems, objects)}
+            end
+            if isscalar(stems)
+                stems = repmat(stems, 1, objects.count);
+            end
+            for i = 1 : length(objects)
+                objects(i).stem_ = stems(i);
+            end
         end
         
         function result = hasStem(objects, pattern)

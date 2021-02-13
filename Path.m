@@ -11,7 +11,7 @@ classdef Path
     
     properties (Constant, Access = protected, Hidden)
         FILE_SEPARATOR_REGEX = regexptranslate("escape", filesep);
-        isWindows = true;
+        isWindows = ispc;
     end
     
     methods
@@ -22,20 +22,17 @@ classdef Path
             
             % Default constructor
             if isempty(paths)
-                paths = ".";
-            else
-                paths = [paths{:}];
+                paths = {"."};
             end
+            
+            paths = Path.clean(paths{:});
+            pathCount = length(paths);
             
             % Empty constructor
             if isempty(paths)
                 obj = obj.empty(1, 0);
                 return
             end
-            
-            % Resolve path separators.
-            paths = Path.clean(paths);
-            pathCount = length(paths);
             
             obj(pathCount) = obj;
             fs = Path.FILE_SEPARATOR_REGEX;
@@ -119,27 +116,41 @@ classdef Path
             result = objects.selectFolder(@(obj) Folder(obj.parent_));
         end
         
+        function objects = setParent(objects, parents)
+            arguments
+                objects(1, :)
+                parents (1, :) Folder {Path.mustBeEqualSizeOrScalar(parents, objects)}
+            end
+            if isscalar(parents)
+                parents = repmat(parents, 1, objects.count);
+            end
+            for i = 1 : length(objects)
+                objects(i).parent_ = parents(i).string + filesep;
+            end
+            
+        end
+        
         function result = hasParent(objects, pattern)
             arguments; objects; pattern (1, :) string = strings(0); end
-            pattern = Path.clean(pattern) + "\";
+            pattern = Path.clean(pattern) + filesep;
             result = objects.selectLogical(@(obj) Path.matchesWildcardPattern(obj.parent_, pattern, true));
         end
         
         function result = whereParentIs(objects, pattern)
             arguments; objects; pattern (1, :) string = strings(0); end
-            pattern = Path.clean(pattern) + "\";
+            pattern = Path.clean(pattern) + filesep;
             result = objects.where(@(obj) Path.matchesWildcardPattern(obj.parent_, pattern, true));
         end
         
         function result = hasNotParent(objects, pattern)
             arguments; objects; pattern (1, :) string = strings(0); end
-            pattern = Path.clean(pattern) + "\";
+            pattern = Path.clean(pattern) + filesep;
             result = objects.selectLogical(@(obj) Path.matchesWildcardPattern(obj.parent_, pattern, false));
         end
         
         function result = whereParentIsNot(objects, pattern)
             arguments; objects; pattern (1, :) string = strings(0); end
-            pattern = Path.clean(pattern) + "\";
+            pattern = Path.clean(pattern) + filesep;
             result = objects.where(@(obj) Path.matchesWildcardPattern(obj.parent_, pattern, false));
         end
         
@@ -148,7 +159,7 @@ classdef Path
             if Path.isWindows
                 expression = "^(\\\\[^\\]+|[A-Za-z]:|)";
             else
-                error("Not implemented.");
+                expression = "^(/[^/]*|)";
             end
             result = objects.selectString(@(obj) regexp(obj.string, expression, "match", "emptymatch"));
         end
@@ -312,12 +323,14 @@ classdef Path
     end
     
     methods (Static, Access = protected)
-        function result = clean(paths)
+        function result = clean(varargin)
             fs = Path.FILE_SEPARATOR_REGEX;
+            paths = [varargin{:}];
             result = paths;
-            if ~isempty(paths)
-                paths = paths.join(pathsep).split(pathsep);
-            end
+            if isempty(paths)
+                return
+            end            
+            paths = paths.join(pathsep).split(pathsep);
             for i = 1 : length(paths)
                 s = paths(i);
                 
@@ -388,6 +401,17 @@ classdef Path
             end
         end
         
+        function mustBeEqualSizeOrScalar(value, objects)
+            if ~isscalar(value) && ~isequal(numel(value), numel(objects))
+                throwAsCaller(MException("Path:Validation:InvalidSize", "Value must be scalar or size must equal size of the object array."));
+            end
+        end
+        
+        function mustBeValidName(values)
+            if any(values.strlength == 0) || any(values.contains(["\", "/", pathsep]))
+                throwAsCaller(MException("Path:Validation:InvalidName", "Value must be a valid file name."));
+            end
+        end
     end
     
     methods (Abstract)
