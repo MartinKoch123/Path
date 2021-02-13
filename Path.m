@@ -1,13 +1,15 @@
 classdef Path
+    % Path Base class for representing filesystem paths.
+    %       Type 'Path.help' to see the documentation.
     
-    properties
+    properties (Access = protected)
         extension_
         stem_
         parent_
         root_
     end
     
-    properties (Constant, Hidden)
+    properties (Constant, Access = protected, Hidden)
         FILE_SEPARATOR_REGEX = regexptranslate("escape", filesep);
         isWindows = true;
     end
@@ -111,6 +113,7 @@ classdef Path
             result = objects.where(@(obj) Path.matchesWildcardPattern(obj.stem_ + obj.extension_, pattern, false));
         end
         
+        
         %% Parent
         function result = parent(objects)
             result = objects.selectFolder(@(obj) Folder(obj.parent_));
@@ -198,6 +201,13 @@ classdef Path
                 result = [result; dir(obj.string)];
             end
         end
+        
+        function result = modificationDate(objects)
+            result(objects.count) = datetime;
+            for i = 1 : objects.count
+                result(i) = datetime(objects(i).dir.datenum, "ConvertFrom", "datenum");
+            end
+        end
                 
         %% List
         function result = count(objects)
@@ -248,6 +258,12 @@ classdef Path
                     error("Path:load:VariableNotFound", "Variable ""%s"" not found in file ""%s"".", variable, obj); end
                 varargout{end+1} = data.(variable);
             end
+        end
+    end
+    
+    methods (Static)
+        function help
+            web("https://github.com/MartinKoch123/Path");
         end
     end
     
@@ -341,7 +357,7 @@ classdef Path
             end
         end
         
-        function handle(exception, identifiers, messageFormat, messageArguments)
+        function extendError(exception, identifiers, messageFormat, messageArguments)
             arguments
                 exception
                 identifiers
@@ -372,12 +388,12 @@ classdef Path
             end
         end
         
-        
     end
     
     methods (Abstract)
         result = exists(objects);
         mustExist(objects);
+        result = setName(objects, names)
     end
 end
 

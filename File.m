@@ -1,10 +1,16 @@
 classdef File < Path
+    % File Represents a file path.    
+    %       Type 'Path.help' to see the documentation.
     
     methods
         
         %% Name
         function result = name(objects)
             result = objects.selectFile(@(obj) File(obj.stem_ + obj.extension_));
+        end
+        
+        function result = setName(objects, names)
+            result = objects.parent.appendFile(names);
         end
         
         %% Stem
@@ -143,7 +149,7 @@ classdef File < Path
                     target = targetFolder \ obj.name;
                     copyfile(obj.string, target.string);
                 catch exception
-                    handle(exception, ["MATLAB:COPYFILE:", "MATLAB:MKDIR:"], "Unable to copy file ""%s"" to folder ""%s"".", obj, targetFolder);
+                    extendError(exception, ["MATLAB:COPYFILE:", "MATLAB:MKDIR:"], "Unable to copy file ""%s"" to folder ""%s"".", obj, targetFolder);
                 end
             end
         end
@@ -187,6 +193,8 @@ classdef File < Path
             callingFile = stack(2).file;
             result = File.ofMatlabElement(callingFile);
         end 
+        
+
     end
     
 end

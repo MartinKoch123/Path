@@ -38,7 +38,7 @@ classdef PathTest < matlab.unittest.TestCase
         end
         
         function closeFiles(testCase)
-            fclose all
+            fclose all;
         end
     end
         
@@ -174,6 +174,17 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertEqual(Folder("one.two; three/four").whereNameNot(["hree*", "*.two"]), Folder("three/four"));
             obj.assertEqual(File("one.two; three/four").whereNameNot(), File("one.two; three/four"));
             obj.assertEqual(Folder.empty.whereNameNot(["hree*", "*.two"]), Folder.empty(1, 0));
+        end
+        
+        function setName(obj)
+            files = File("a.b; c/d");
+            obj.assertEqual(files.setName("f.g"), File("f.g; c/f.g"));
+            obj.assertEqual(files.setName("f.g; h/i"), File("f.g; c/h/i"));
+            obj.assertError(@() files.setName("f; g; h"), "Folder:append:LengthMismatch");
+            folders = Folder("a.b; c/d");
+            obj.assertEqual(folders.setName("f.g"), Folder("f.g; c/f.g"));
+            obj.assertEqual(folders.setName("f.g; h/i"), Folder("f.g; c/h/i"));
+            obj.assertError(@() folders.setName("f; g; h"), "Folder:append:LengthMismatch");
         end
         
         %% Extension

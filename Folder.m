@@ -1,10 +1,16 @@
 classdef Folder < Path
+    % Folder Represents a folder path.
+    %       Type 'Path.help' to see the documentation.
     
     methods
         
         %% Name
         function result = name(objects)
             result = objects.selectFolder(@(obj) Folder(obj.stem_ + obj.extension_));
+        end
+        
+        function result = setName(objects, names)
+            result = objects.parent.appendFolder(names);
         end
         
         %% Append         
@@ -81,7 +87,7 @@ classdef Folder < Path
                 try
                     mkdir(obj.string);
                 catch exception
-                    handle(exception, "MATLAB:MKDIR", "Error while creating folder ""%s"".", obj);
+                    extendError(exception, "MATLAB:MKDIR", "Error while creating folder ""%s"".", obj);
                 end
             end
         end
@@ -146,7 +152,8 @@ classdef Folder < Path
             elseif isscalar(objects) || isscalar(folders) || length(objects) == length(folders)
                 result = Folder(objects.string + filesep + folders.string);
             else
-                error("Folder:append:LengthMismatch", "Length of object array, %i, and length of appendage array, %i, must either match or one of them must be scalar.", length(objects), length(folders));
+                exception = MException("Folder:append:LengthMismatch", "Length of object array, %i, and length of appendage array, %i, must either match or one of them must be scalar.", length(objects), length(folders));
+                throwAsCaller(exception);
             end
         end
     end
