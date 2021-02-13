@@ -79,27 +79,71 @@ classdef File < Path
             end
         end
         
+        function varargout = fopen(obj, varargin)
+            arguments; obj (1, 1); end
+            arguments (Repeating); varargin; end
+            [varargout{1:nargout}] = fopen(obj.string, varargin{:});
+        end
+        
+        function [id, closer] = open(obj, permission, varargin)
+            arguments
+                obj (1, 1)
+                permission (1, 1) string = "r";
+            end
+            arguments (Repeating); varargin; end
+            
+            if permission.startsWith("r")
+                obj.mustExist;
+            else
+                obj.parent.mkdir;
+            end                
+            [id, errorMessage] = obj.fopen(permission, varargin{:});
+            if id == -1
+                error(errorMessage); end
+            if nargout == 2
+                closer = onCleanup(@() fclose(id)); end
+        end
+        
+        function [id, closer] = openForReading(obj)
+            id = obj.open;
+            if nargout == 2
+                closer = onCleanup(@() fclose(id)); end
+        end
+        
+        function [id, closer] = openForWriting(obj)
+            id = obj.open("w");
+            if nargout == 2
+                closer = onCleanup(@() fclose(id)); end
+        end
+        
+        function [id, closer] = openForWritingText(obj)
+            id = obj.open("wt");
+            if nargout == 2
+                closer = onCleanup(@() fclose(id)); end
+        end
+        
+        function [id, closer] = openForAppendingText(obj)
+            id = obj.open("at");
+            if nargout == 2
+                closer = onCleanup(@() fclose(id)); end
+        end
+        
         function copyToFolder(objects, targetFolder)
             arguments
                 objects
-                targetFolder (1, 1) Path
+                targetFolder (1, 1) Folder
             end
             for i = 1 : objects.count
                 obj = objects(i);
                 obj.mustExist;
-                if obj.fileExists
-                    sourceType = "file";
-                else
-                    sourceType = "folder";
-                end
-                if targetFolder.fileExists
+                if isfile(targetFolder.string)
                     error("Path:copyToFolder:TargetFolderIsFile", "The target folder ""%s"" is an existing file.", targetFolder); end
                 try                    
                     targetFolder.mkdir;
                     target = targetFolder \ obj.name;
                     copyfile(obj.string, target.string);
                 catch exception
-                    handle(exception, ["MATLAB:COPYFILE:", "MATLAB:MKDIR:"], "Unable to copy %s ""%s"" to folder ""%s"".", sourceType, obj, targetFolder);
+                    handle(exception, ["MATLAB:COPYFILE:", "MATLAB:MKDIR:"], "Unable to copy file ""%s"" to folder ""%s"".", obj, targetFolder);
                 end
             end
         end

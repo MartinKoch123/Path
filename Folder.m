@@ -85,6 +85,28 @@ classdef Folder < Path
                 end
             end
         end
+        
+        function result = containedFiles(objects)
+            filePaths = strings(1, 0);
+            objects.mustExist;
+            for obj = objects.unique_
+                contentInfo = obj.dir;
+                fileInfo = contentInfo(~[contentInfo.isdir]);
+                for i = 1 : length(fileInfo)
+                    filePaths(end+1) = obj.string + "\" + fileInfo(i).name;
+                end
+            end
+            result = File(filePaths);
+        end
+        
+        function result = containedSubfiles(objects)
+            filePaths = strings(1, 0);
+            objects.mustExist;
+            for obj = objects.unique_
+                filePaths = [filePaths, listFiles(obj.string)];
+            end
+            result = File(filePaths);
+        end
     end
     
     methods (Static)
@@ -128,4 +150,20 @@ classdef Folder < Path
             end
         end
     end
+    
+    
+end
+
+function result = listFiles(folder)    
+    result = strings(0);    
+    folderContents = dir(folder)';    
+    for folderContent = folderContents        
+        if folderContent.isdir
+            if folderContent.name == "." || folderContent.name == ".."
+                continue; end
+            result = [result, listFiles(folder + "\" + folderContent.name)];
+        else
+            result(end+1) = folder + "\" + folderContent.name;
+        end        
+    end    
 end

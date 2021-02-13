@@ -29,7 +29,7 @@
  
 ### Concatenate
 ```
->> folder.parent / "LauchSchedule.xlsx"
+>> folder.parent / "LaunchSchedule.xlsx"
 
      File("..\Rocket Science\LauchSchedule.xlsx")
 ```

@@ -36,6 +36,10 @@ classdef PathTest < matlab.unittest.TestCase
                 rmdir(testCase.testFolder.string, "s");
             end
         end
+        
+        function closeFiles(testCase)
+            fclose all
+        end
     end
         
     
@@ -100,37 +104,37 @@ classdef PathTest < matlab.unittest.TestCase
         end
         
         %% Clean
-        function assertStripsWhitespace(obj)
+        function clean_stripWhitespace(obj)
             obj.assertEqual("test", File(sprintf("\n \ttest  \r")).string);
         end
         
-        function assertRemovesRepeatingSeparators(obj)
+        function clean_removesRepeatingSeparators(obj)
             s = filesep;
             actual = Folder("one" + s + s + s + "two" + s + s + "three").string;
             expected = adjustSeparators("one/two/three");
             obj.assertEqual(actual, expected);
         end
         
-        function assertRemovesOuterSeparators(obj)
+        function clean_removesOuterSeparators(obj)
             s = filesep;
             actual = File([s 'one/two/three' s]).string;
             expected = adjustSeparators("one/two/three");
             obj.assertEqual(actual, expected);
         end
         
-        function assertRemovesCurrentDirDots(obj)
+        function clean_removesCurrentDirDots(obj)
             actual = Folder("\.\.\one\.\two.three\.\.four\.\.\").string;
             expected = adjustSeparators("one\two.three\.four");
             obj.assertEqual(actual, expected);
         end
         
-        function assertReplacesSeparatorVariations(obj)
+        function clean_replacesSeparatorVariations(obj)
             actual = File("one/two\three").string;
             expected = adjustSeparators("one/two/three");
             obj.assertEqual(actual, expected);
         end
         
-        function assertResolvesParentDirDots(obj)
+        function clean_resolvesParentDirDots(obj)
             actual = File("one/two/three/../../four");
             expected = File("one/four");
             obj.assertEqual(actual, expected);
@@ -337,6 +341,21 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertEqual(File("a; b").count, 2);
         end
         
+        function sort(obj)
+            [sortedFiles, indices] = File("a; c; b").sort;
+            obj.assertEqual(sortedFiles, File("a; b; c"));
+            obj.assertEqual(indices, [1, 3, 2]);
+            
+            [sortedFiles, indices] = File("a; c; b").sort("descend");
+            obj.assertEqual(sortedFiles, File("c; b; a"));
+            obj.assertEqual(indices, [2, 3, 1]);
+        end
+        
+        function unique(obj)
+            obj.assertEqual(File("a; b; a").unique_, File("a; b"));
+            obj.assertEqual(File.empty(1, 0).unique_, File.empty(1, 0));
+        end
+        
         %% Manipulation
         function append(obj)
             obj.assertEqual(Folder("one").append(""), Folder("one"));
@@ -361,6 +380,13 @@ classdef PathTest < matlab.unittest.TestCase
         function mkdir(obj)
             obj.testFolder.append(["a", "b/a"]).mkdir;
             obj.assertFolderExists(obj.testFolder / "a; b/a");
+        end
+        
+        function dir(obj)
+            obj.assertEqual(Folder("sadfs(/%634ihsfd").dir, dir("sadfs(/%634ihsfd"));
+            obj.testFolder.append("a.b; a2.b; c/d.e").createEmptyFile;
+            obj.assertEqual(obj.testFolder.dir, dir(obj.testFolder.string));
+            obj.assertEqual(obj.testFolder.appendFile("c/d.e").dir, dir(obj.testFolder.string + "\c\d.e"));
         end
         
         function createEmptyFile(obj)
@@ -392,15 +418,65 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertError(@() files.mustExist, "File:mustExist:Failed");
         end
         
-%         function copyFile(obj)
-%             sources = obj.testFolder / "a.b; c/d.e";
-%             targets = obj.testFolder / "f/g.h; i.j";
-%             sources.createEmptyFile;
-%             sources.copyFile(targets);
-%             targets.fileMustExist;
-%             
-%             Path.empty.copyFile(Path.empty);
-%         end
+        function fopen(obj)
+            file = obj.testFolder / "a.b";
+            file.parent.mkdir;
+            [id, errorMessage] = file.fopen("w", "n", "UTF-8");
+            obj.assertFalse(id == -1);
+            obj.assertEqual(errorMessage, '');
+            fclose(id);
+            obj.assertError(@() fopen([file, file]), "MATLAB:validation:IncompatibleSize");
+        end
+        
+        function open(obj)
+            file = obj.testFolder / "a.b";
+            obj.assertError(@() open([file, file]), "MATLAB:validation:IncompatibleSize");
+            obj.assertError(@() file.open, "File:mustExist:Failed");
+            id = file.open("w");
+            obj.assertFalse(id == -1);
+            fclose(id);
+            
+            id = openWithCleaner(file);
+            obj.assertFalse(id == -1);
+            obj.assertError(@() fclose(id), "MATLAB:badfid_mx");
+            
+            function id = openWithCleaner(file)
+                [id, cleanup] = file.openForReading;
+            end
+            
+        end
+        
+        function copyFile(obj) 
+            sources = obj.testFolder / "a.b; c/d.e";
+            target = obj.testFolder / "target";
+            sources.createEmptyFile;
+            sources.copyToFolder(target);
+            target.append(sources.name).mustExist;
+            
+            File.empty.copyToFolder(target);
+        end
+        
+        function containedFiles(obj)
+            files = obj.testFolder / "a.b; c.d; e/f.g";
+            files.createEmptyFile;
+            folders = [obj.testFolder, obj.testFolder];
+            obj.assertEqual(folders.containedFiles, obj.testFolder / "a.b; c.d");
+            obj.assertError(@() Folder("klajsdfoi67w3pi47n").containedFiles, "Folder:mustExist:Failed");
+            emptyFolder = obj.testFolder.appendFolder("empty");
+            emptyFolder.mkdir;
+            obj.assertEqual(emptyFolder.containedFiles, File.empty(1, 0));
+        end
+        
+        function containedSubfiles(obj)
+            files = obj.testFolder / "a.b; c.d; e/f/g.h";
+            files.createEmptyFile;
+            folders = [obj.testFolder, obj.testFolder];
+            obj.assertEqual(folders.containedSubfiles, obj.testFolder / "a.b; c.d; e/f/g.h");
+            obj.assertError(@() Folder("klajsdfoi67w3pi47n").containedSubfiles, "Folder:mustExist:Failed");
+            emptyFolder = obj.testFolder.appendFolder("empty");
+            emptyFolder.mkdir;
+            obj.assertEqual(emptyFolder.containedSubfiles, File.empty(1, 0));
+        end
         
         %% Matlab files
         function fileOfMatlabElement(obj)
@@ -457,12 +533,14 @@ classdef PathTest < matlab.unittest.TestCase
             end
             obj.assertTrue(raisedError);
             raisedError = false;
+            warning("off", "MATLAB:load:variableNotFound");
             try
                 c = file.load("c");
             catch exception
                 obj.assertEqual(string(exception.identifier), "Path:load:VariableNotFound");
                 raisedError = true;
             end
+            warning("on", "MATLAB:load:variableNotFound");
             obj.assertTrue(raisedError);
         end
     end

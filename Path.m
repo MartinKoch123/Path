@@ -67,8 +67,8 @@ classdef Path
             fprintf("  %i×%i %s array\n\n", size(objects, 1), size(objects, 2), class(objects));
             if isempty(objects)
                 return; end
-            for obj = objects
-                fprintf("     %s(""%s"")\n", class(objects), obj.string);
+            for i = 1 : numel(objects)
+                fprintf("     %s(""%s"")\n", class(objects), objects(i).string);
             end
             fprintf("\n");
         end
@@ -191,38 +191,26 @@ classdef Path
             result = ~objects.eq(others);
         end
         
+        %% File systen interaction
+        function result = dir(objects)
+            result = struct("name", {}, "folder", {}, "date", {}, "bytes", {}, "isdir", {}, "datenum", {});
+            for obj = objects
+                result = [result; dir(obj.string)];
+            end
+        end
+                
         %% List
         function result = count(objects)
             result = numel(objects);
         end
         
-        %% Manipulation
+        function [result, indices] = sort(objects, varargin)
+            [~, indices] = sort(objects.string, varargin{:});
+            result = objects(indices);
+        end
         
-        
-        %% File system interaction
-        function copyToFolder(objects, targetFolder)
-            arguments
-                objects
-                targetFolder (1, 1) Path
-            end
-            for i = 1 : objects.count
-                obj = objects(i);
-                obj.mustExist;
-                if obj.fileExists
-                    sourceType = "file";
-                else
-                    sourceType = "folder";
-                end
-                if targetFolder.fileExists
-                    error("Path:copyToFolder:TargetFolderIsFile", "The target folder ""%s"" is an existing file.", targetFolder); end
-                try
-                    targetFolder.mkdir;
-                    target = targetFolder \ obj.name;
-                    copyfile(obj.string, target.string);
-                catch exception
-                    handle(exception, ["MATLAB:COPYFILE:", "MATLAB:MKDIR:"], "Unable to copy %s ""%s"" to folder ""%s"".", sourceType, obj, targetFolder);
-                end
-            end
+        function varargout = unique_(objects, varargin)
+            [varargout{1:nargout}] = unique(objects, varargin{:});
         end
         
         %% Save and load
