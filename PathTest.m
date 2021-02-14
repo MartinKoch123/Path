@@ -5,6 +5,10 @@ classdef PathTest < matlab.unittest.TestCase
     end
     
     methods
+        function assertAllFalse(obj, values)
+            obj.assertFalse(any(values));
+        end
+        
         function assertFileExists(obj, files)
             for file = files
                 obj.assertTrue(isfile(string(file)));
@@ -405,7 +409,7 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertEqual(File.empty(1, 0).unique_, File.empty(1, 0));
         end
         
-        %% Manipulation
+        %% Join
         function append(obj)
             obj.assertEqual(Folder("one").append(""), Folder("one"));
             obj.assertEqual(Folder("one").append(["one", "two"]), Folder("one/one", "one/two"));
@@ -504,14 +508,26 @@ classdef PathTest < matlab.unittest.TestCase
             
         end
         
-        function copyFile(obj)
+        function copyToFolder(obj)
             sources = obj.testFolder / ["a.b", "c/d.e"];
             target = obj.testFolder / "target";
             sources.createEmptyFile;
             sources.copyToFolder(target);
             target.append(sources.name).mustExist;
+            sources.mustExist;
             
             File.empty.copyToFolder(target);
+        end
+        
+        function moveToFolder(obj)
+            sources = obj.testFolder / ["a.b", "c/d.e"];
+            target = obj.testFolder / "target";
+            sources.createEmptyFile;
+            sources.moveToFolder(target);
+            target.append(sources.name).mustExist;
+            obj.assertAllFalse(sources.exists);
+            
+            File.empty.moveToFolder(target);
         end
         
         function containedFiles(obj)
@@ -534,6 +550,17 @@ classdef PathTest < matlab.unittest.TestCase
             emptyFolder = obj.testFolder.appendFolder("empty");
             emptyFolder.mkdir;
             obj.assertEqual(emptyFolder.containedSubfiles, File.empty(1, 0));
+        end
+        
+        function delete_(obj)
+            files = obj.testFolder / ["a.b", "c/d.e"];
+            files.createEmptyFile;
+            files(3) = obj.testFolder / "e/f";
+            files.delete;
+            obj.assertFalse(any(files.exists));
+            
+            File(obj.testFolder.string).delete;
+            obj.assertTrue(obj.testFolder.exists);
         end
         
         %% Matlab files

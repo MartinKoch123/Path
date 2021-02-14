@@ -167,8 +167,35 @@ classdef File < Path
             end
         end
         
+        function moveToFolder(objects, targetFolder)
+            arguments
+                objects
+                targetFolder (1, 1) Folder
+            end
+            for i = 1 : objects.count
+                obj = objects(i);
+                obj.mustExist;
+                if isfile(targetFolder.string)
+                    error("Path:moveToFolder:TargetFolderIsFile", "The target folder ""%s"" is an existing file.", targetFolder); end
+                try                    
+                    targetFolder.mkdir;
+                    target = targetFolder \ obj.name;
+                    movefile(obj.string, target.string);
+                catch exception
+                    extendError(exception, ["MATLAB:MOVEFILE:", "MATLAB:MKDIR:"], "Unable to move file ""%s"" to folder ""%s"".", obj, targetFolder);
+                end
+            end
+        end
+        
+        function delete(objects)
+            for obj = objects
+                if obj.exists
+                    delete(obj.string)
+                end
+            end
+        end
+        
         %% Save and load
-                %% Save and load
         function save(obj, variables)
             arguments
                 obj (1, 1)
