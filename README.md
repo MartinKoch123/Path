@@ -3,6 +3,15 @@
  
  The `File` and `Folder` classes represents filesystem paths and provide functionality for extracting path properties, manipulate and combine paths and interact with the filesystem.
  
+ ## Requirements
+ Code was tested on Windows and Linux with MATLAB R2020b. It will definitely not work with MATLAB versions older than R2019b.
+ 
+ ## Documentation
+ Find the documentation in the [wiki](https://www.github.com/MartinKoch123/Path/wiki).
+ 
+ ## Installation
+ Download this repository and add it to your MATLAB search path.
+ 
  ## Example Usage
  
  ### Construct
@@ -31,7 +40,7 @@
 ```
 >> folder.parent / "LaunchSchedule.xlsx"
 
-     File("..\Rocket Science\LauchSchedule.xlsx")
+     File("..\Rocket Science\LaunchSchedule.xlsx")
 ```
 
 ### Filter

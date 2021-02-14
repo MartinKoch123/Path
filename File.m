@@ -166,6 +166,44 @@ classdef File < Path
                 end
             end
         end
+        
+        %% Save and load
+                %% Save and load
+        function save(obj, variables)
+            arguments
+                obj (1, 1)
+            end
+            arguments (Repeating)
+                variables (1, 1) string {mustBeValidVariableName}
+            end
+            if isempty(variables)
+                error("Path:load:MissingArgument", "Not enough inputs arguments.");
+            end
+            for variable = [variables{:}]
+                saveStruct.(variable) = evalin("caller", variable);
+            end
+            obj.parent.mkdir;
+            save(obj.string, "-struct", "saveStruct");
+        end
+        
+        function varargout = load(obj, variables)
+            arguments
+                obj (1, 1)
+            end
+            arguments (Repeating)
+                variables (1, 1) string {mustBeValidVariableName}
+            end
+            
+            if nargout ~= length(variables)
+                error("Path:load:InputOutputMismatch", "The number of outputs, %i, must match the number of variables to load, %i.", nargout, length(variables)); end
+            data = load(obj.string, variables{:});
+            varargout = {};
+            for variable = string(variables)
+                if ~isfield(data, variable)
+                    error("Path:load:VariableNotFound", "Variable ""%s"" not found in file ""%s"".", variable, obj); end
+                varargout{end+1} = data.(variable);
+            end
+        end
     end
     
     methods (Static)

@@ -75,7 +75,21 @@ classdef Folder < Path
                     throwAsCaller(exception);
                 end
             end
-        end 
+        end
+        
+        function varargout = cd(obj)
+            arguments
+                obj (1, 1)
+            end
+            if nargout == 1
+                varargout = {Folder(pwd)};
+            end
+            try
+                cd(obj.string);
+            catch exception
+                throwAsCaller(exception); 
+            end
+        end
         
         function mkdir(objects)
             for obj = objects
@@ -118,7 +132,6 @@ classdef Folder < Path
         function result = ofMatlabElement(elements)
             result = File.ofMatlabElement(elements).parent;
         end
-
         
         function result = ofCaller
             stack = dbstack;
@@ -127,7 +140,6 @@ classdef Folder < Path
             callingFile = stack(2).file;
             result = File.ofMatlabElement(callingFile).parent;
         end 
-        
 
     end
     

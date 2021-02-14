@@ -95,7 +95,7 @@ classdef Path
             result = objects.selectLogical(@(obj) Path.matchesWildcardPattern(obj.stem_ + obj.extension_, pattern, true));
         end
         
-        function result = whereName(objects, pattern)
+        function result = whereNameIs(objects, pattern)
             arguments; objects; pattern (1, :) string = strings(0); end
             result = objects.where(@(obj) Path.matchesWildcardPattern(obj.stem_ + obj.extension_, pattern, true));
         end
@@ -105,7 +105,7 @@ classdef Path
             result = objects.selectLogical(@(obj) Path.matchesWildcardPattern(obj.stem_ + obj.extension_, pattern, false));
         end
         
-        function result = whereNameNot(objects, pattern)
+        function result = whereNameIsNot(objects, pattern)
             arguments; objects; pattern (1, :) string = strings(0); end
             result = objects.where(@(obj) Path.matchesWildcardPattern(obj.stem_ + obj.extension_, pattern, false));
         end
@@ -234,42 +234,7 @@ classdef Path
             [varargout{1:nargout}] = unique(objects, varargin{:});
         end
         
-        %% Save and load
-        function save(obj, variables)
-            arguments
-                obj (1, 1)
-            end
-            arguments (Repeating)
-                variables (1, 1) string {mustBeValidVariableName}
-            end
-            if isempty(variables)
-                error("Path:load:MissingArgument", "Not enough inputs arguments.");
-            end
-            for variable = [variables{:}]
-                saveStruct.(variable) = evalin("caller", variable);
-            end
-            obj.parent.mkdir;
-            save(obj.string, "-struct", "saveStruct");
-        end
-        
-        function varargout = load(obj, variables)
-            arguments
-                obj (1, 1)
-            end
-            arguments (Repeating)
-                variables (1, 1) string {mustBeValidVariableName}
-            end
-            
-            if nargout ~= length(variables)
-                error("Path:load:InputOutputMismatch", "The number of outputs, %i, must match the number of variables to load, %i.", nargout, length(variables)); end
-            data = load(obj.string, variables{:});
-            varargout = {};
-            for variable = string(variables)
-                if ~isfield(data, variable)
-                    error("Path:load:VariableNotFound", "Variable ""%s"" not found in file ""%s"".", variable, obj); end
-                varargout{end+1} = data.(variable);
-            end
-        end
+
     end
     
     methods (Static)
@@ -389,7 +354,6 @@ classdef Path
                 exception.rethrow;
             end
         end
-        
         
         function result = matchesWildcardPattern(s, patterns, mode)
             result = ~mode;

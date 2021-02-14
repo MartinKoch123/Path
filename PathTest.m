@@ -199,16 +199,16 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertEqual(Folder.empty.hasName(["hree*", "*.two"]), logical.empty);
         end
         
-        function whereName(obj)
-            obj.assertEqual(File("one.two", "three/four").whereName(["hree*", "*.two"]), File("one.two"));
-            obj.assertEqual(Folder("one.two", "three/four").whereName(), Folder.empty(1, 0));
-            obj.assertEqual(File.empty.whereName(["hree*", "*.two"]), File.empty(1, 0));
+        function whereNameIs(obj)
+            obj.assertEqual(File("one.two", "three/four").whereNameIs(["hree*", "*.two"]), File("one.two"));
+            obj.assertEqual(Folder("one.two", "three/four").whereNameIs(), Folder.empty(1, 0));
+            obj.assertEqual(File.empty.whereNameIs(["hree*", "*.two"]), File.empty(1, 0));
         end
         
-        function whereNameNot(obj)
-            obj.assertEqual(Folder("one.two", "three/four").whereNameNot(["hree*", "*.two"]), Folder("three/four"));
-            obj.assertEqual(File("one.two", "three/four").whereNameNot(), File("one.two", "three/four"));
-            obj.assertEqual(Folder.empty.whereNameNot(["hree*", "*.two"]), Folder.empty(1, 0));
+        function whereNameIsNot(obj)
+            obj.assertEqual(Folder("one.two", "three/four").whereNameIsNot(["hree*", "*.two"]), Folder("three/four"));
+            obj.assertEqual(File("one.two", "three/four").whereNameIsNot(), File("one.two", "three/four"));
+            obj.assertEqual(Folder.empty.whereNameIsNot(["hree*", "*.two"]), Folder.empty(1, 0));
         end
         
         %% Extension
@@ -426,6 +426,15 @@ classdef PathTest < matlab.unittest.TestCase
         
         
         %% File system interaction
+        function cd(obj)
+            obj.testFolder.mkdir;
+            actual = pwd;
+            expected = obj.testFolder.cd.char;
+            obj.assertEqual(actual, expected);
+            obj.assertEqual(pwd, obj.testFolder.char);
+            cd(actual);
+        end
+        
         function mkdir(obj)
             obj.testFolder.append(["a", "b/a"]).mkdir;
             obj.assertFolderExists(obj.testFolder / ["a", "b/a"]);
