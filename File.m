@@ -195,6 +195,24 @@ classdef File < Path
             end
         end
         
+        function result = readText(obj)
+            arguments
+                obj (1, 1)
+            end
+            obj.mustExist;
+            result = string(fileread(obj.string));
+            result = result.replace(sprintf("\r\n"), newline);
+        end
+        
+        function writeText(obj, text)
+            arguments
+                obj (1, 1)
+                text (1, 1) string
+            end
+            [fileId, cleanUp] = obj.openForWritingText;
+            fprintf(fileId, "%s", text);            
+        end
+        
         %% Save and load
         function save(obj, variables)
             arguments

@@ -11,6 +11,7 @@ classdef Path
     
     properties (Constant, Access = protected, Hidden)
         FILE_SEPARATOR_REGEX = regexptranslate("escape", filesep);
+        DOCUMENTATION_WEB_PAGE = "https://github.com/MartinKoch123/Path/wiki";
         isWindows = ispc;
     end
     
@@ -70,8 +71,7 @@ classdef Path
                 fprintf("     %s(""%s"")\n", class(objects), objects(i).string);
             end
             fprintf("\n");
-        end
-        
+        end        
         
         %% Conversion
         function result = string(objects)
@@ -234,12 +234,19 @@ classdef Path
             [varargout{1:nargout}] = unique(objects, varargin{:});
         end
         
+        function varargout = deal(objects)
+            if nargout ~= objects.count
+                error("Path:deal:InvalidNumberOfOutputs", "Object array length does not match the number of output arguments."); end
+            for i = 1:nargout
+                varargout{i} = objects(i);
+            end
+        end        
 
     end
     
     methods (Static)
         function help
-            web("https://github.com/MartinKoch123/Path");
+            web(Path.DOCUMENTATION_WEB_PAGE);
         end
     end
     
@@ -381,7 +388,8 @@ classdef Path
     methods (Abstract)
         result = exists(objects);
         mustExist(objects);
-        result = setName(objects, names)
+        result = name(objects);
+        result = setName(objects, names)        
     end
 end
 

@@ -389,7 +389,7 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertTrue(File("one/two") == Folder("one/two"));
         end
         
-        %% List
+        %% Array
         function count(obj)
             obj.assertEqual(File("a", "b").count, 2);
         end
@@ -409,6 +409,18 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertEqual(File.empty(1, 0).unique_, File.empty(1, 0));
         end
         
+        function deal(obj)
+            files = File("a.b", "c.d");
+            [file1, file2] = files.deal;
+            obj.assertEqual(file1, files(1));
+            obj.assertEqual(file2, files(2));
+            
+            obj.assertError(@testFun, "Path:deal:InvalidNumberOfOutputs");            
+            function testFun
+                [file1, file2, file3] = files.deal;
+            end
+        end
+        
         %% Join
         function append(obj)
             obj.assertEqual(Folder("one").append(""), Folder("one"));
@@ -418,14 +430,39 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertEqual(Folder("one").append(strings(0)), Folder("one"));
             obj.assertError(@() Folder("one", "two", "three").append(["one", "two"]), "Folder:append:LengthMismatch");
             obj.assertEqual(Folder("a").append("b", 'c', {'d', "e", "f"}), Folder("a/b", "a/c", "a/d", "a/e", "a/f"));
+            
+            [file1, file2] = Folder("a").append("b.c", "d.e");
+            obj.assertEqual(file1, File("a/b.c"));
+            obj.assertEqual(file2, File("a/d.e"));
+            
+            obj.assertError(@testFun, "Path:deal:InvalidNumberOfOutputs");            
+            function testFun
+                [file1, file2, file3] = files.deal;
+            end
         end
         
         function mrdivide(obj)
             obj.assertEqual(Folder("one") / "two", Folder("one/two"));
+            [file1, file2] = Folder("a").append("b.c", "d.e");
+            obj.assertEqual(file1, File("a/b.c"));
+            obj.assertEqual(file2, File("a/d.e"));
+            
+            obj.assertError(@testFun, "Path:deal:InvalidNumberOfOutputs");            
+            function testFun
+                [file1, file2, file3] = files.deal;
+            end
         end
         
         function mldivide(obj)
             obj.assertEqual(Folder("one") \ "two", Folder("one/two"));
+            [file1, file2] = Folder("a").append("b.c", "d.e");
+            obj.assertEqual(file1, File("a/b.c"));
+            obj.assertEqual(file2, File("a/d.e"));
+            
+            obj.assertError(@testFun, "Path:deal:InvalidNumberOfOutputs");            
+            function testFun
+                [file1, file2, file3] = files.deal;
+            end
         end
         
         
@@ -561,6 +598,25 @@ classdef PathTest < matlab.unittest.TestCase
             
             File(obj.testFolder.string).delete;
             obj.assertTrue(obj.testFolder.exists);
+        end
+        
+        function readText(obj)
+            expected = sprintf("line1\nline2\n");
+            file = obj.testFolder / "a.txt";
+            fileId = file.openForWritingText;
+            fprintf(fileId, "%s", expected);
+            fclose(fileId);            
+            actual = file.readText;            
+            obj.assertEqual(actual, expected);
+        end
+        
+        function writeText(obj)
+            expected = sprintf("line1\nline2\n");
+            file = obj.testFolder / "a.txt";
+            file.writeText(expected);
+            actual = string(fileread(file.string));
+            actual = actual.replace(sprintf("\r\n"), newline);
+            obj.assertEqual(actual, expected);
         end
         
         %% Matlab files

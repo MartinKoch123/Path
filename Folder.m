@@ -14,7 +14,7 @@ classdef Folder < Path
         end
         
         %% Append         
-        function result = append(objects, appendage)
+        function varargout = append(objects, appendage)
             arguments
                 objects(1, :)
             end
@@ -31,9 +31,10 @@ classdef Folder < Path
             else
                 error("Folder:append:Ambiguous", "Could not determine if file or folder. Occurence of extensions is ambiguous. Use methods ""appendFile"" or ""appendFolder"" instead.");
             end
+            varargout = deal_(result, nargout);
         end
         
-        function result = appendFile(objects, appendage)
+        function varargout = appendFile(objects, appendage)
             arguments
                 objects(1, :)
             end
@@ -42,9 +43,10 @@ classdef Folder < Path
             end            
             appendage = Path.clean(appendage{:});                  
             result = objects.appendFile_(appendage);
+            varargout = deal_(result, nargout);
         end
         
-        function result = appendFolder(objects, appendage)
+        function varargout = appendFolder(objects, appendage)
             arguments
                 objects(1, :)
             end
@@ -53,14 +55,17 @@ classdef Folder < Path
             end            
             appendage = Path.clean(appendage{:});               
             result = objects.appendFolder_(appendage);
+            varargout = deal_(result, nargout);
         end
         
-        function result = mrdivide(objects, appendage)
+        function varargout = mrdivide(objects, appendage)
             result = objects.append(appendage);
+            varargout = deal_(result, nargout);
         end
         
-        function result = mldivide(objects, appendage)
+        function varargout = mldivide(objects, appendage)
             result = objects.append(appendage);
+            varargout = deal_(result, nargout);
         end
         
         %% File system interaction                
@@ -184,4 +189,19 @@ function result = listFiles(folder)
             result(end+1) = path;
         end        
     end    
+end
+
+function result = deal_(paths, outputCount)
+if outputCount > 1
+    try
+        [result{1:outputCount}] = paths.deal;
+    catch exception
+        if exception.identifier == "Path:deal:InvalidNumberOfOutputs"
+            throwAsCaller(exception)
+        end
+        rethrow(exception);
+    end
+else
+    result{1} = paths;
+end
 end
