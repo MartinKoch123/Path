@@ -225,6 +225,12 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertEqual(File(".").extension, "");
         end
         
+        function setExtension(obj)
+            obj.assertEqual(File("a.b", "c.d", "e").setExtension(".f"), File("a.f", "c.f", "e.f"));
+            obj.assertEqual(File("a.b", "c.d", "e").setExtension([".f", "", "g"]), File("a.f", "c", "e.g"));
+            obj.assertEqual(File.empty.setExtension(".a"), File.empty(1, 0));
+        end
+        
         function hasExtension(obj)
             obj.assertEqual(File("one.two", "three.four").hasExtension([".fo*", "asf"]), [false, true]);
             obj.assertEqual(File("one.two", "three.four").hasExtension(), [false, false]);

@@ -180,7 +180,7 @@ function result = listFiles(folder)
     result = strings(0);    
     folderContents = dir(folder)';    
     for folderContent = folderContents
-        path = fullfile(folder, folderContent.name);
+        path = folder + filesep + folderContent.name;
         if folderContent.isdir
             if folderContent.name == "." || folderContent.name == ".."
                 continue; end

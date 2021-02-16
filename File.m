@@ -56,6 +56,16 @@ classdef File < Path
             result = objects.selectString(@(obj) obj.extension_);
         end
         
+        function results = setExtension(objects, extension)
+            arguments
+                objects (1, :)
+                extension (1, :) string {mustBeNonmissing, File.mustBeValidExtension, Path.mustBeEqualSizeOrScalar(extension, objects)}
+            end
+            missesDotAndIsNonEmpty = ~extension.startsWith(".") & strlength(extension) > 0;
+            extension(missesDotAndIsNonEmpty) = "." + extension(missesDotAndIsNonEmpty);
+            results = File([objects.parent_] + [objects.stem_] + extension);
+        end
+        
         function result = hasExtension(objects, pattern)
             arguments; objects; pattern (1, :) string = strings(0); end
             result = objects.selectLogical(@(obj) Path.matchesWildcardPattern(obj.extension_, pattern, true));
@@ -301,8 +311,14 @@ classdef File < Path
             callingFile = stack(2).file;
             result = File.ofMatlabElement(callingFile);
         end 
-        
-
+    end
+    
+    methods (Static, Access = private)        
+        function mustBeValidExtension(values)
+            if any(values.contains(["\", "/", pathsep]))
+                throwAsCaller(MException("Path:Validation:InvalidExtension", "Value must be a valid extension."));
+            end
+        end
     end
     
 end

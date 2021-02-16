@@ -383,6 +383,7 @@ classdef Path
                 throwAsCaller(MException("Path:Validation:InvalidName", "Value must be a valid file name."));
             end
         end
+        
     end
     
     methods (Abstract)
