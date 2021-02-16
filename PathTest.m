@@ -437,31 +437,31 @@ classdef PathTest < matlab.unittest.TestCase
             
             obj.assertError(@testFun, "Path:deal:InvalidNumberOfOutputs");            
             function testFun
-                [file1, file2, file3] = files.deal;
+                [file1, file2, file3] = Folder("a").append("b.c", "d.e");
             end
         end
         
         function mrdivide(obj)
             obj.assertEqual(Folder("one") / "two", Folder("one/two"));
-            [file1, file2] = Folder("a").append("b.c", "d.e");
+            [file1, file2] = Folder("a") / ["b.c", "d.e"];
             obj.assertEqual(file1, File("a/b.c"));
             obj.assertEqual(file2, File("a/d.e"));
             
             obj.assertError(@testFun, "Path:deal:InvalidNumberOfOutputs");            
             function testFun
-                [file1, file2, file3] = files.deal;
+                [file1, file2, file3] = Folder("a") / ["b.c", "d.e"];
             end
         end
         
         function mldivide(obj)
             obj.assertEqual(Folder("one") \ "two", Folder("one/two"));
-            [file1, file2] = Folder("a").append("b.c", "d.e");
+            [file1, file2] = Folder("a") \ ["b.c", "d.e"];
             obj.assertEqual(file1, File("a/b.c"));
             obj.assertEqual(file2, File("a/d.e"));
             
             obj.assertError(@testFun, "Path:deal:InvalidNumberOfOutputs");            
             function testFun
-                [file1, file2, file3] = files.deal;
+                [file1, file2, file3] = Folder("a") \ ["b.c", "d.e"];
             end
         end
         
@@ -617,6 +617,15 @@ classdef PathTest < matlab.unittest.TestCase
             actual = string(fileread(file.string));
             actual = actual.replace(sprintf("\r\n"), newline);
             obj.assertEqual(actual, expected);
+        end
+        
+        function bytes(obj)
+            oldDir = Folder.ofCaller.cd;
+            fileInfo(1) = dir("File.m");
+            fileInfo(2) = dir("Folder.m");
+            obj.assertEqual(File("File.m", "Folder.m").bytes, [fileInfo(1).bytes, fileInfo(2).bytes]);
+            obj.assertEqual(File.empty.bytes, []);
+            oldDir.cd;
         end
         
         %% Matlab files

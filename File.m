@@ -213,6 +213,10 @@ classdef File < Path
             fprintf(fileId, "%s", text);            
         end
         
+        function result = bytes(objects)
+            result = [objects.dir.bytes];
+        end
+        
         %% Save and load
         function save(obj, variables)
             arguments
@@ -248,6 +252,14 @@ classdef File < Path
                     error("Path:load:VariableNotFound", "Variable ""%s"" not found in file ""%s"".", variable, obj); end
                 varargout{end+1} = data.(variable);
             end
+        end
+        
+        function result = mrdivide(~, ~)
+            error("Not supported for objects of class File");
+        end
+        
+        function result = mldivide(~, ~)
+            error("Not supported for objects of class File");
         end
     end
     
