@@ -114,7 +114,7 @@ classdef File < Path
             [varargout{1:nargout}] = fopen(obj.string, varargin{:});
         end
         
-        function [id, closer] = open(obj, permission, varargin)
+        function [id, autoClose] = open(obj, permission, varargin)
             arguments
                 obj (1, 1)
                 permission (1, 1) string = "r";
@@ -130,31 +130,31 @@ classdef File < Path
             if id == -1
                 error(errorMessage); end
             if nargout == 2
-                closer = onCleanup(@() fclose(id)); end
+                autoClose = onCleanup(@() tryToClose(id)); end
         end
         
-        function [id, closer] = openForReading(obj)
+        function [id, autoClose] = openForReading(obj)
             id = obj.open;
             if nargout == 2
-                closer = onCleanup(@() fclose(id)); end
+                autoClose = onCleanup(@() tryToClose(id)); end
         end
         
-        function [id, closer] = openForWriting(obj)
+        function [id, autoClose] = openForWriting(obj)
             id = obj.open("w");
             if nargout == 2
-                closer = onCleanup(@() fclose(id)); end
+                autoClose = onCleanup(@() tryToClose(id)); end
         end
         
-        function [id, closer] = openForWritingText(obj)
+        function [id, autoClose] = openForWritingText(obj)
             id = obj.open("wt");
             if nargout == 2
-                closer = onCleanup(@() fclose(id)); end
+                autoClose = onCleanup(@() tryToClose(id)); end
         end
         
-        function [id, closer] = openForAppendingText(obj)
+        function [id, autoClose] = openForAppendingText(obj)
             id = obj.open("at");
             if nargout == 2
-                closer = onCleanup(@() fclose(id)); end
+                autoClose = onCleanup(@() tryToClose(id)); end
         end
         
         function copyToFolder(objects, targetFolder)
@@ -219,7 +219,7 @@ classdef File < Path
                 obj (1, 1)
                 text (1, 1) string
             end
-            [fileId, cleanUp] = obj.openForWritingText;
+            [fileId, autoClose] = obj.openForWritingText;
             fprintf(fileId, "%s", text);            
         end
         
@@ -321,4 +321,10 @@ classdef File < Path
         end
     end
     
+end
+
+function tryToClose(fileId)
+try
+    fclose(fileId);
+end
 end

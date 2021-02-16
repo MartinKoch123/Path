@@ -541,12 +541,22 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertFalse(id == -1);
             fclose(id);
             
+            % Assert that auto clean closes the file.
             id = openWithCleaner(file);
             obj.assertFalse(id == -1);
             obj.assertError(@() fclose(id), "MATLAB:badfid_mx");
             
+            % Assert that auto clean does not raise an error if the file
+            % has already been closed.
+            openWithCleaner(file);
+                        
             function id = openWithCleaner(file)
-                [id, cleanup] = file.openForReading;
+                [id, autoClean] = file.openForReading;
+            end
+            
+            function openWithCleaner2(file)
+                [id, autoClean] = file.openForReading;
+                fclose(id);
             end
             
         end
