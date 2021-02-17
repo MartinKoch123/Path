@@ -460,6 +460,8 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertEqual(Folder("one").append(strings(0)), Folder("one"));
             obj.assertError(@() Folder("one", "two", "three").append(["one", "two"]), "Folder:append:LengthMismatch");
             obj.assertEqual(Folder("a").append("b", 'c', {'d', "e", "f"}), Folder("a/b", "a/c", "a/d", "a/e", "a/f"));
+            obj.assertEqual(Folder("one").append(["one.a", "two.b"]), File("one/one.a", "one/two.b"));
+            obj.assertError(@() Folder("one").append(["one.a", "two"]), "Folder:append:Ambiguous");
             
             [file1, file2] = Folder("a").append("b.c", "d.e");
             obj.assertEqual(file1, File("a/b.c"));
@@ -469,6 +471,14 @@ classdef PathTest < matlab.unittest.TestCase
             function testFun
                 [file1, file2, file3] = Folder("a").append("b.c", "d.e");
             end
+        end
+        
+        function appendFile(obj)
+            obj.assertEqual(Folder("a").appendFile("b.c", "d"), File("a/b.c", "a/d"));
+        end
+        
+        function appendFolder(obj)
+            obj.assertEqual(Folder("a").appendFolder("b.c", "d"), Folder("a/b.c", "a/d"));
         end
         
         function mrdivide(obj)
