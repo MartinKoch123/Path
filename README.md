@@ -3,6 +3,22 @@
  
  The `File` and `Folder` classes represents filesystem paths and provide functionality for extracting path properties, manipulate and combine paths and interact with the filesystem.
  
+ ```Matlab
+>> launchDataFolders = Folder("LaunchPreparations") / ["Fuel", "Food", "Towels"]
+
+    Folder("LaunchPreparations\Fuel")
+    Folder("LaunchPreparations\Food")
+    Folder("LaunchPreparations\Towels")
+     
+>> launchDataFolders.append("DONT_PANIC.txt").createEmptyFile;
+ 
+>> File.ofCaller
+  
+    Folder("C:\Users\marti\MATLAB Drive\YesIMadeAScriptJustToDemonstrateThis.m")
+ 
+>> Folder("C:").containedFiles.whereStemIs(["*Virus*", "*Worm*"]).whereExtensionIsNot(".pdf").copyToFolder("D:\Quarantine");
+ ```
+ 
  ## Requirements
  Code was tested on Windows and Linux with MATLAB R2020b. It will definitely not work with MATLAB versions older than R2019b.
  
