@@ -310,7 +310,12 @@ classdef File < Path
                 error("File:ofCaller:NoCaller", "This method was not called from another file."); end
             callingFile = stack(2).file;
             result = File.ofMatlabElement(callingFile);
-        end 
+        end
+        
+        function result = empty
+            result = File;
+            result = result(double.empty(1, 0));
+        end
     end
     
     methods (Static, Access = private)        

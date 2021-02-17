@@ -145,6 +145,11 @@ classdef Folder < Path
             callingFile = stack(2).file;
             result = File.ofMatlabElement(callingFile).parent;
         end 
+        
+        function result = empty
+            result = Folder;
+            result = result(double.empty(1, 0));
+        end
 
     end
     

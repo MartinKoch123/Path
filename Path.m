@@ -31,7 +31,7 @@ classdef Path
             
             % Empty constructor
             if isempty(paths)
-                obj = obj.empty(1, 0);
+                obj = obj.empty;
                 return
             end
             
@@ -220,7 +220,7 @@ classdef Path
             end
         end
                 
-        %% List
+        %% Array
         function result = count(objects)
             result = numel(objects);
         end
@@ -241,6 +241,17 @@ classdef Path
                 varargout{i} = objects(i);
             end
         end        
+        
+        function result = vertcat(obj, varargin)
+            error("Path:vertcat:NotAllowed", "Vertical concatenation is not allowed. This is necessary to guarentee the functionality of the class methods. Consider using horizontal concatenation instead.");
+        end
+        
+        function result = subsasgn(obj, s, varargin)
+            indices = s(end).subs;
+            if (length(indices) == 2 && indices{1} ~= 1) || length(indices) > 2
+                error("Path:subsasgn:MultiRowsNotAllowed", "Arrays with multiple rows and arrays with more than two dimensions are not allowed. This is necessary to guarentee the functionality of the class methods. Consider using only one indexing dimension instead (""linear indexing""). Example: ""a(2:4) = b""."); end
+            result = builtin("subsasgn", obj, s, varargin{:});
+        end
 
     end
     
@@ -271,7 +282,7 @@ classdef Path
                     result(i) = fun(objects(i));
                 end
             else
-                result = Folder.empty(size(objects));
+                result = Folder.empty;
             end
         end
         
@@ -281,7 +292,7 @@ classdef Path
                     result(i) = fun(objects(i));
                 end
             else
-                result = File.empty(size(objects));
+                result = File.empty;
             end
         end
         

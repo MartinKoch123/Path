@@ -111,7 +111,7 @@ classdef PathTest < matlab.unittest.TestCase
         %% Conversion
         function string(obj)
             obj.assertEqual(File(["one", "two"]).string, ["one", "two"]);
-            obj.assertEqual(File.empty.string, strings(0));
+            obj.assertEqual(File.empty.string, strings(1, 0));
         end
         
         function char(obj)
@@ -194,25 +194,25 @@ classdef PathTest < matlab.unittest.TestCase
         function hasName(obj)
             obj.assertEqual(File("one.two", "three/four").hasName(["hree*", "*.two"]), [true, false]);
             obj.assertEqual(Folder("one.two", "three/four").hasName(), [false, false]);
-            obj.assertEqual(File.empty.hasName(["hree*", "*.two"]), logical.empty);
+            obj.assertEqual(File.empty.hasName(["hree*", "*.two"]), logical.empty(1, 0));
         end
         
         function hasNotName(obj)
             obj.assertEqual(Folder("one.two", "three/four").hasNotName(["hree*", "*.two"]), [false, true]);
             obj.assertEqual(File("one.two", "three/four").hasNotName(), [true, true]);
-            obj.assertEqual(Folder.empty.hasName(["hree*", "*.two"]), logical.empty);
+            obj.assertEqual(Folder.empty.hasName(["hree*", "*.two"]), logical.empty(1, 0));
         end
         
         function whereNameIs(obj)
             obj.assertEqual(File("one.two", "three/four").whereNameIs(["hree*", "*.two"]), File("one.two"));
-            obj.assertEqual(Folder("one.two", "three/four").whereNameIs(), Folder.empty(1, 0));
-            obj.assertEqual(File.empty.whereNameIs(["hree*", "*.two"]), File.empty(1, 0));
+            obj.assertEqual(Folder("one.two", "three/four").whereNameIs(), Folder.empty);
+            obj.assertEqual(File.empty.whereNameIs(["hree*", "*.two"]), File.empty);
         end
         
         function whereNameIsNot(obj)
             obj.assertEqual(Folder("one.two", "three/four").whereNameIsNot(["hree*", "*.two"]), Folder("three/four"));
             obj.assertEqual(File("one.two", "three/four").whereNameIsNot(), File("one.two", "three/four"));
-            obj.assertEqual(Folder.empty.whereNameIsNot(["hree*", "*.two"]), Folder.empty(1, 0));
+            obj.assertEqual(Folder.empty.whereNameIsNot(["hree*", "*.two"]), Folder.empty);
         end
         
         %% Extension
@@ -228,33 +228,33 @@ classdef PathTest < matlab.unittest.TestCase
         function setExtension(obj)
             obj.assertEqual(File("a.b", "c.d", "e").setExtension(".f"), File("a.f", "c.f", "e.f"));
             obj.assertEqual(File("a.b", "c.d", "e").setExtension([".f", "", "g"]), File("a.f", "c", "e.g"));
-            obj.assertEqual(File.empty.setExtension(".a"), File.empty(1, 0));
+            obj.assertEqual(File.empty.setExtension(".a"), File.empty);
         end
         
         function hasExtension(obj)
             obj.assertEqual(File("one.two", "three.four").hasExtension([".fo*", "asf"]), [false, true]);
             obj.assertEqual(File("one.two", "three.four").hasExtension(), [false, false]);
-            obj.assertEqual(File.empty.hasExtension([".fo*", "asf"]), logical.empty);
+            obj.assertEqual(File.empty.hasExtension([".fo*", "asf"]), logical.empty(1, 0));
         end
         
         function hasNotExtension(obj)
             obj.assertEqual(File("one.two", "three.four").hasNotExtension([".fo*", "asf"]), [true, false]);
             obj.assertEqual(File("one.two", "three.four").hasNotExtension(), [true, true]);
-            obj.assertEqual(File.empty.hasNotExtension([".fo*", "asf"]), logical.empty);
+            obj.assertEqual(File.empty.hasNotExtension([".fo*", "asf"]), logical.empty(1, 0));
         end
         
         function whereExtensionIs(obj)
             files = File("one.two", "three.four");
             obj.assertEqual(files.whereExtensionIs([".fo*", "asf"]), files(2));
-            obj.assertEqual(files.whereExtensionIs(), File.empty(1, 0));
-            obj.assertEqual(File.empty.whereExtensionIs([".fo*", "asf"]), File.empty(1, 0));
+            obj.assertEqual(files.whereExtensionIs(), File.empty);
+            obj.assertEqual(File.empty.whereExtensionIs([".fo*", "asf"]), File.empty);
         end
         
         function whereExtensionIsNot(obj)
             files = File("one.two", "three.four");
             obj.assertEqual(files.whereExtensionIsNot([".fo*", "asf"]), files(1));
             obj.assertEqual(files.whereExtensionIsNot(), files);
-            obj.assertEqual(File.empty.whereExtensionIsNot([".fo*", "asf"]), File.empty(1, 0));
+            obj.assertEqual(File.empty.whereExtensionIsNot([".fo*", "asf"]), File.empty);
         end
         
         %% Stem
@@ -280,13 +280,13 @@ classdef PathTest < matlab.unittest.TestCase
         function hasStem(obj)
             obj.assertEqual(File("one.two", "three.four").hasStem(["t*ee", "asf"]), [false, true]);
             obj.assertEqual(File("one.two", "three.four").hasStem(), [false, false]);
-            obj.assertEqual(File.empty.hasStem(["t*ee", "asf"]), logical.empty);
+            obj.assertEqual(File.empty.hasStem(["t*ee", "asf"]), logical.empty(1, 0));
         end
         
         function hasNotStem(obj)
             obj.assertEqual(File("one.two", "three.four").hasNotStem(["t*ee", "asf"]), [true, false]);
             obj.assertEqual(File("one.two", "three.four").hasNotStem(), [true, true]);
-            obj.assertEqual(File.empty.hasNotStem(["t*ee", "asf"]), logical.empty);
+            obj.assertEqual(File.empty.hasNotStem(["t*ee", "asf"]), logical.empty(1, 0));
         end
         
         function whereStemIs(obj)
@@ -320,27 +320,27 @@ classdef PathTest < matlab.unittest.TestCase
         function hasParent(obj)
             obj.assertEqual(File("a/b/c", obj.testRoot + "/d/e").hasParent(["*d", "asf"]), [false, true]);
             obj.assertEqual(Folder("a/b/c", obj.testRoot + "/d/e").hasParent(), [false, false]);
-            obj.assertEqual(File.empty.hasParent(["*d", "asf"]), logical.empty);
+            obj.assertEqual(File.empty.hasParent(["*d", "asf"]), logical.empty(1, 0));
         end
         
         function hasNotParent(obj)
             obj.assertEqual(Folder("a/b/c", obj.testRoot + "/d/e").hasNotParent(["*d", "asf"]), [true, false]);
             obj.assertEqual(File("a/b/c", obj.testRoot + "/d/e").hasNotParent(), [true, true]);
-            obj.assertEqual(Folder.empty.hasNotParent(["*d", "asf"]), logical.empty);
+            obj.assertEqual(Folder.empty.hasNotParent(["*d", "asf"]), logical.empty(1, 0));
         end
         
         function whereParentIs(obj)
             files = File("a/b/c", obj.testRoot + "/d/e");
             obj.assertEqual(files.whereParentIs(["*d", "asf"]), files(2));
-            obj.assertEqual(files.whereParentIs(), File.empty(1, 0));
-            obj.assertEqual(File.empty.whereParentIs(["*d", "asf"]), File.empty(1, 0));
+            obj.assertEqual(files.whereParentIs(), File.empty);
+            obj.assertEqual(File.empty.whereParentIs(["*d", "asf"]), File.empty);
         end
         
         function whereParentIsNot(obj)
             folders = Folder("a/b/c", obj.testRoot + "/d/e");
             obj.assertEqual(folders.whereParentIsNot(["*d", "asf"]), folders(1));
             obj.assertEqual(folders.whereParentIsNot(), folders);
-            obj.assertEqual(Folder.empty.whereParentIsNot(["*d", "asf"]), Folder.empty(1, 0));
+            obj.assertEqual(Folder.empty.whereParentIsNot(["*d", "asf"]), Folder.empty);
         end
         
         %% Root
@@ -352,27 +352,27 @@ classdef PathTest < matlab.unittest.TestCase
         function hasRoot(obj)
             obj.assertEqual(File("a/b/c", obj.testRoot + "/d/e").hasRoot([obj.testRootPattern, "asf"]), [false, true]);
             obj.assertEqual(Folder("a/b/c", obj.testRoot + "/d/e").hasRoot(), [false, false]);
-            obj.assertEqual(File.empty.hasRoot([obj.testRootPattern, "asf"]), logical.empty);
+            obj.assertEqual(File.empty.hasRoot([obj.testRootPattern, "asf"]), logical.empty(1, 0));
         end
         
         function hasNotRoot(obj)
             obj.assertEqual(Folder("a/b/c", obj.testRoot + "/d/e").hasNotRoot([obj.testRootPattern, "asf"]), [true, false]);
             obj.assertEqual(File("a/b/c", obj.testRoot + "/d/e").hasNotRoot(), [true, true]);
-            obj.assertEqual(Folder.empty.hasNotRoot([obj.testRootPattern, "asf"]), logical.empty);
+            obj.assertEqual(Folder.empty.hasNotRoot([obj.testRootPattern, "asf"]), logical.empty(1, 0));
         end
         
         function whereRootIs(obj)
             files = File("a/b/c", obj.testRoot + "/d/e");
             obj.assertEqual(files.whereRootIs([obj.testRootPattern, "asf"]), files(2));
-            obj.assertEqual(files.whereRootIs(), File.empty(1, 0));
-            obj.assertEqual(File.empty.whereRootIs([obj.testRootPattern, "asf"]), File.empty(1, 0));
+            obj.assertEqual(files.whereRootIs(), File.empty);
+            obj.assertEqual(File.empty.whereRootIs([obj.testRootPattern, "asf"]), File.empty);
         end
         
         function whereRootNot(obj)
             folder = Folder("a/b/c", obj.testRoot + "/d/e");
             obj.assertEqual(folder.whereRootIsNot([obj.testRootPattern, "asf"]), folder(1));
             obj.assertEqual(folder.whereRootIsNot(), folder);
-            obj.assertEqual(Folder.empty.whereRootIsNot([obj.testRootPattern, "asf"]), Folder.empty(1, 0));
+            obj.assertEqual(Folder.empty.whereRootIsNot([obj.testRootPattern, "asf"]), Folder.empty);
         end
         
         %% Properties
@@ -412,7 +412,7 @@ classdef PathTest < matlab.unittest.TestCase
         
         function unique(obj)
             obj.assertEqual(File("a", "b", "a").unique_, File("a", "b"));
-            obj.assertEqual(File.empty(1, 0).unique_, File.empty(1, 0));
+            obj.assertEqual(File.empty.unique_, File.empty);
         end
         
         function deal(obj)
@@ -424,6 +424,30 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertError(@testFun, "Path:deal:InvalidNumberOfOutputs");            
             function testFun
                 [file1, file2, file3] = files.deal;
+            end
+        end
+        
+        function vertcat_(obj)
+            obj.assertError(@() [File("a"); File("b")], "Path:vertcat:NotAllowed");
+            [File, File];
+        end
+        
+        function subsasgn_(obj)
+            
+            obj.assertError(@() makeColumn, "Path:subsasgn:MultiRowsNotAllowed");
+            obj.assertError(@() make3dArray, "Path:subsasgn:MultiRowsNotAllowed");
+            files = File;
+            files(2) = File;
+            files(1, 3) = File;
+            
+            function makeColumn()
+                files = File("a");
+                files(2, 1) = File("b");
+            end
+            
+            function make3dArray()
+                files = File("a");
+                files(1, 1, 1) = File("b");
             end
         end
         
@@ -591,7 +615,7 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertError(@() Folder("klajsdfoi67w3pi47n").containedFiles, "Folder:mustExist:Failed");
             emptyFolder = obj.testFolder.appendFolder("empty");
             emptyFolder.mkdir;
-            obj.assertEqual(emptyFolder.containedFiles, File.empty(1, 0));
+            obj.assertEqual(emptyFolder.containedFiles, File.empty);
         end
         
         function containedSubfiles(obj)
@@ -602,7 +626,7 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertError(@() Folder("klajsdfoi67w3pi47n").containedSubfiles, "Folder:mustExist:Failed");
             emptyFolder = obj.testFolder.appendFolder("empty");
             emptyFolder.mkdir;
-            obj.assertEqual(emptyFolder.containedSubfiles, File.empty(1, 0));
+            obj.assertEqual(emptyFolder.containedSubfiles, File.empty);
         end
         
         function delete_(obj)
