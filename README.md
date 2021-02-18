@@ -11,16 +11,18 @@
      Folder("astronauts\Sniffels")
      
 >> personalFolders.append("DONT_PANIC.txt").createEmptyFile;
- 
+``` 
+```Matlab
 >> suspicousFiles = Folder("Sketchy Folder").containedFiles
 
     File("Sketchy Folder\DeleteStuffVirus.exe")
     File("Sketchy Folder\nastyworm.dll")
     File("Sketchy Folder\half_a_sandwich.dat")
     File("Sketchy Folder\WormholeResearch.pdf")
-    
->> suspicousFiles.whereStemIs(["*Virus*", "*Worm*"]).whereExtensionIsNot(".pdf").copyToFolder("D:\Quarantine");
 
+>> suspicousFiles.whereStemIs(["*Virus*", "*Worm*"]).whereExtensionIsNot(".pdf").copyToFolder("D:\Quarantine");
+```
+```Matlab
 >> script = File.ofCaller
   
     Folder("C:\Users\marti\MATLAB Drive\YesIMadeAScriptJustToDemonstrateThis.m")
