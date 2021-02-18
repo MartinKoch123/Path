@@ -4,19 +4,28 @@
  The `File` and `Folder` classes represents filesystem paths and provide functionality for extracting path properties, manipulate and combine paths and interact with the filesystem.
  
  ```Matlab
->> launchDataFolders = Folder("LaunchPreparations") / ["Fuel", "Food", "Towels"]
+>> personalFolders = Folder("astronauts") / ["Andrew", "Trudy", "Sniffels"]
 
-    Folder("LaunchPreparations\Fuel")
-    Folder("LaunchPreparations\Food")
-    Folder("LaunchPreparations\Towels")
+     Folder("astronauts\Andrew")
+     Folder("astronauts\Trudy")
+     Folder("astronauts\Sniffels")
      
->> launchDataFolders.append("DONT_PANIC.txt").createEmptyFile;
+>> personalFolders.append("DONT_PANIC.txt").createEmptyFile;
  
->> File.ofCaller
+>> suspicousFiles = Folder("Sketchy Folder").containedFiles
+
+    File("Sketchy Folder\DeleteStuffVirus.exe")
+    File("Sketchy Folder\nastyworm.dll")
+    File("Sketchy Folder\half_a_sandwich.dat")
+    File("Sketchy Folder\WormholeResearch.pdf")
+    
+>> suspicousFiles.whereStemIs(["*Virus*", "*Worm*"]).whereExtensionIsNot(".pdf").copyToFolder("D:\Quarantine");
+
+>> script = File.ofCaller
   
     Folder("C:\Users\marti\MATLAB Drive\YesIMadeAScriptJustToDemonstrateThis.m")
- 
->> Folder("C:").containedFiles.whereStemIs(["*Virus*", "*Worm*"]).whereExtensionIsNot(".pdf").copyToFolder("D:\Quarantine");
+    
+>> script.parent.cd;
  ```
  
  ## Requirements
