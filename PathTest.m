@@ -41,6 +41,14 @@ classdef PathTest < matlab.unittest.TestCase
             end
         end
         
+        function result = testRoot2(obj)
+            if ispc
+                result = "D:";
+            else
+                result = "/tmp2";
+            end
+        end
+        
         function result = testRootPattern(obj)
             if ispc
                 result = "C*";
@@ -107,7 +115,7 @@ classdef PathTest < matlab.unittest.TestCase
             expected = File(["a" "b" "c" "d" "e" "f" "g", "h"]);
             obj.assertEqual(actual, expected);
         end
-        
+                
         %% Conversion
         function string(obj)
             obj.assertEqual(File(["one", "two"]).string, ["one", "two"]);
@@ -393,6 +401,54 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertEqual(files(2) == files(3:4), [false, true]);
             obj.assertEqual(files(3:4) ~= files(2), [true, false]);
             obj.assertTrue(File("one/two") == Folder("one/two"));
+        end
+        
+        function parts(obj)
+            testRootWithoutLeadingSeparator = regexprep(obj.testRoot, "^" + regexptranslate("escape", filesep), "");
+            obj.assertEqual(File(obj.testRoot + "/a/b\\c.e\").parts, [testRootWithoutLeadingSeparator, "a", "b", "c.e"]);
+            obj.assertEqual(Folder(".\..\/\../a/b\\c.e\").parts, ["..", "..", "a", "b", "c.e"]);
+            obj.assertEqual(File().parts, ".");
+            obj.assertError(@() Folder.empty.parts, "MATLAB:validation:IncompatibleSize");
+            obj.assertError(@() File("a", "b").parts, "MATLAB:validation:IncompatibleSize");
+            
+        end
+        
+        %% Absolute/Relative        
+        function absolute(obj)
+            obj.assertEqual(File("a.b", obj.testRoot + "/c/d.e").absolute, [Folder(pwd).appendFile("a.b"), File(obj.testRoot + "/c/d.e")]);
+            obj.assertEqual(Folder("a.b", obj.testRoot + "/c/d.e").absolute, [Folder(pwd).appendFolder("a.b"), Folder(obj.testRoot + "/c/d.e")]);
+            obj.assertEqual(File(obj.testRoot).absolute, File(obj.testRoot));
+            obj.assertEqual(File.empty.absolute, File.empty);
+            obj.assertEqual(Folder.empty.absolute, Folder.empty);
+        end
+        
+        function relative(obj)
+            referencePath = Folder(obj.testRoot + "/a/b/c");
+            file1 = File(obj.testRoot + "/a/d/e.f");
+            obj.assertEqual(file1.relative(referencePath), File("..\..\d\e.f"));
+            
+            folder1 = Folder(obj.testRoot);
+            obj.assertEqual(folder1.relative(referencePath), Folder("..\..\.."));
+            
+            obj.assertEqual(referencePath.relative(referencePath), Folder("."));
+            
+            obj.assertEqual(File.empty.relative(referencePath), File.empty);
+            obj.assertEqual(Folder.empty.relative(referencePath), Folder.empty);
+            
+            file2 = File(obj.testRoot2 + "/a.b");
+            obj.assertError(@() file2.relative(referencePath), "Path:relative:RootsDiffer"); 
+            
+            folder2 = Folder("a/b");
+            obj.assertEqual(folder2.relative, folder2.relative(pwd));
+            
+            file3 = File("a.b");
+            referenceFolder2 = Folder("b/c").absolute;
+            obj.assertEqual(file3.relative(referenceFolder2), File("..\..\a.b"));
+            
+            obj.assertError(@() file3.relative([Folder, Folder]), "MATLAB:validation:IncompatibleSize");
+            
+            obj.assertEqual(file3.relative("."), file3);
+            obj.assertEqual(File("a.b", "c/d").relative, File("a.b", "c/d"));
         end
         
         %% Array
@@ -743,6 +799,7 @@ classdef PathTest < matlab.unittest.TestCase
             warning("on", "MATLAB:load:variableNotFound");
             obj.assertTrue(raisedError);
         end
+        
     end
 end
 

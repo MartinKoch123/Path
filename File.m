@@ -85,7 +85,7 @@ classdef File < Path
             arguments; objects; pattern (1, :) string = strings(0); end
             result = objects.where(@(obj) Path.matchesWildcardPattern(obj.extension_, pattern, false));
         end
-        
+                
         %% File system interaction
         function result = exists(objects)
             result = arrayfun(@(obj) isfile(obj.string), objects);
@@ -102,9 +102,7 @@ classdef File < Path
         
         function createEmptyFile(objects)
             for obj = objects
-                obj.parent.mkdir;
-                fileId = fopen(obj.string, 'w');
-                fclose(fileId);
+                [~, autoClose] = obj.openForWriting;
             end
         end
         
@@ -270,9 +268,10 @@ classdef File < Path
         
         function result = mldivide(~, ~)
             error("Not supported for objects of class File");
-        end
+        end     
+
     end
-    
+       
     methods (Static)
         
         function result = ofMatlabElement(elements)

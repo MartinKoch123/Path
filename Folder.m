@@ -130,6 +130,7 @@ classdef Folder < Path
             end
             result = File(filePaths);
         end
+        
     end
     
     methods (Static)

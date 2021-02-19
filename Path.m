@@ -205,6 +205,46 @@ classdef Path
             result = ~objects.eq(others);
         end
         
+        function result = parts(obj)
+            arguments
+                obj (1, 1)
+            end
+            result = regexp(obj.string, Path.FILE_SEPARATOR_REGEX, "split");
+            result(strlength(result) == 0) = [];
+        end
+        
+        %% Absolute/Relative  
+        
+        function result = absolute(objects)
+            result = objects;
+            hasNoRoot = result.hasNotRoot("*");
+            result(hasNoRoot) = objects.new(string(pwd) + filesep + objects(hasNoRoot).string);
+        end
+        
+        function result = relative(objects, referenceFolder)
+            arguments
+                objects
+                referenceFolder (1, 1) Folder = Folder(pwd)
+            end
+            paths = objects.absolute;            
+            referenceFolder = referenceFolder.absolute;
+            referenceParts = referenceFolder.parts;
+            nReferenceParts = length(referenceParts);
+            result = objects.new(strings(0));
+            for path = paths
+                parts = path.parts;
+                nParts = length(parts);
+                nLower = min([nParts, nReferenceParts]);
+                nEqualParts = find([parts(1:nLower) ~= referenceParts(1:nLower), true], 1) - 1;
+                if nEqualParts == 0
+                    error("Path:relative:RootsDiffer", "Roots of path ""%s"" and reference folder ""%s"" differ.", path, referenceFolder); end
+                folderUps = join([repmat("..", 1, nReferenceParts - nEqualParts), "."], filesep);
+                keptTail = join([".", parts(nEqualParts+1 : end)], filesep);
+                result(end+1) = objects.new(folderUps + filesep + keptTail);
+            end
+            
+        end
+                
         %% File systen interaction
         function result = dir(objects)
             result = struct("name", {}, "folder", {}, "date", {}, "bytes", {}, "isdir", {}, "datenum", {});
@@ -302,6 +342,10 @@ classdef Path
                 keep(iObject) = filterFun(objects(iObject));
             end
             result = objects(keep);
+        end
+        
+        function result = new(obj, varargin)
+            result = eval(class(obj) + "(varargin{:});");
         end
     end
     
