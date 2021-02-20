@@ -1,10 +1,10 @@
 # Path
  MATLAB Classes for handling filesystem paths
+
+ Path operations in MATLAB tend to be cumbersome. This package aims so make everything you ever needed to do with a path less annoying and produce highly readable code in the process. It consists of the `File` and `Folder` classes, which represents filesystem paths and provide functionality for extracting path properties, manipulate and combine paths and interact with the filesystem. 
  [![View Path on File Exchange](https://www.mathworks.com/matlabcentral/images/matlab-file-exchange.svg)](https://www.mathworks.com/matlabcentral/fileexchange/87552-path)
- 
- The `File` and `Folder` classes represents filesystem paths and provide functionality for extracting path properties, manipulate and combine paths and interact with the filesystem.
- 
- 
+  
+ ## Examples
  ```Matlab
 >> personalFolders = Folder("astronauts") / ["Andrew", "Trudy", "Sniffels"]
 
@@ -40,44 +40,5 @@
  
  ## Installation
  Download this repository and add it to your MATLAB search path.
- 
- ## Example Usage
- 
- ### Construct
- ```Matlab
->> file = File("C:\essentials\WriteJournalPaper.exe")
 
-     File("C:\essentials\WriteJournalPaper.exe")
-
->> folder = Folder("..\Rocket Science\Data")
-
-     Folder("..\Rocket Science\Data")
-```
-
-### Inspect
-```
->> file.parent
-
-     Folder("C:\essentials")
-     
->> file.extension
-
-    ".exe"
- ```
- 
-### Concatenate
-```
->> folder.parent / "LaunchSchedule.xlsx"
-
-     File("..\Rocket Science\LaunchSchedule.xlsx")
-```
-
-### Filter
-```
->> File("cats.txt; dogs.dat; donkeys.csv").whereStemIs("do*")
-
-     File("dogs.dat")
-     File("donkeys.csv")
-```
- 
  
