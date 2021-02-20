@@ -673,26 +673,26 @@ classdef PathTest < matlab.unittest.TestCase
             File.empty.moveToFolder(target);
         end
         
-        function containedFiles(obj)
+        function listFiles(obj)
             files = obj.testFolder / ["a.b", "c.d", "e/f.g"];
             files.createEmptyFile;
             folders = [obj.testFolder, obj.testFolder];
-            obj.assertEqual(folders.containedFiles, obj.testFolder / ["a.b", "c.d"]);
-            obj.assertError(@() Folder("klajsdfoi67w3pi47n").containedFiles, "Folder:mustExist:Failed");
+            obj.assertEqual(folders.listFiles, obj.testFolder / ["a.b", "c.d"]);
+            obj.assertError(@() Folder("klajsdfoi67w3pi47n").listFiles, "Folder:mustExist:Failed");
             emptyFolder = obj.testFolder.appendFolder("empty");
             emptyFolder.mkdir;
-            obj.assertEqual(emptyFolder.containedFiles, File.empty);
+            obj.assertEqual(emptyFolder.listFiles, File.empty);
         end
         
-        function containedSubfiles(obj)
+        function listDeepFiles(obj)
             files = obj.testFolder.appendFile("a.b", "c.d", "e/f/g.h");
             files.createEmptyFile;
             folders = [obj.testFolder, obj.testFolder];
-            obj.assertEqual(folders.containedSubfiles, obj.testFolder.appendFile("a.b", "c.d", "e/f/g.h"));
-            obj.assertError(@() Folder("klajsdfoi67w3pi47n").containedSubfiles, "Folder:mustExist:Failed");
+            obj.assertEqual(folders.listDeepFiles, obj.testFolder.appendFile("a.b", "c.d", "e/f/g.h"));
+            obj.assertError(@() Folder("klajsdfoi67w3pi47n").listDeepFiles, "Folder:mustExist:Failed");
             emptyFolder = obj.testFolder.appendFolder("empty");
             emptyFolder.mkdir;
-            obj.assertEqual(emptyFolder.containedSubfiles, File.empty);
+            obj.assertEqual(emptyFolder.listDeepFiles, File.empty);
         end
         
         function delete_(obj)

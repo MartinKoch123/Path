@@ -1,7 +1,9 @@
 # Path
  MATLAB Classes for handling filesystem paths
+ [![View Path on File Exchange](https://www.mathworks.com/matlabcentral/images/matlab-file-exchange.svg)](https://www.mathworks.com/matlabcentral/fileexchange/87552-path)
  
  The `File` and `Folder` classes represents filesystem paths and provide functionality for extracting path properties, manipulate and combine paths and interact with the filesystem.
+ 
  
  ```Matlab
 >> personalFolders = Folder("astronauts") / ["Andrew", "Trudy", "Sniffels"]
@@ -13,11 +15,11 @@
 >> personalFolders.append("DONT_PANIC.txt").createEmptyFile;
 ``` 
 ```Matlab
->> files = Folder("Sketchy Folder").containedFiles
+>> files = Folder("Sketchy Folder").listDeepFiles
 
     File("Sketchy Folder\DeleteStuffVirus.exe")
-    File("Sketchy Folder\nastyworm.dll")
-    File("Sketchy Folder\half_a_sandwich.dat")
+    File("Sketchy Folder\System32\nastyworm.dll")
+    File("Sketchy Folder\dark_corner\half_a_sandwich.dat")
     File("Sketchy Folder\WormholeResearch.pdf")
 
 >> files.whereStemIs(["*Virus*", "*Worm*"]).whereExtensionIsNot(".pdf").copyToFolder("D:\Quarantine");

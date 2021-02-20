@@ -118,7 +118,7 @@ classdef Folder < Path
             end
         end
         
-        function result = containedFiles(objects)
+        function result = listFiles(objects)
             filePaths = strings(1, 0);
             objects.mustExist;
             for obj = objects.unique_
@@ -131,7 +131,7 @@ classdef Folder < Path
             result = File(filePaths);
         end
         
-        function result = containedSubfiles(objects)
+        function result = listDeepFiles(objects)
             filePaths = strings(1, 0);
             objects.mustExist;
             for obj = objects.unique_
