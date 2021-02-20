@@ -147,36 +147,36 @@ classdef Path < matlab.mixin.CustomDisplay
             else
                 expression = "^(/[^/]*|)";
             end
-            result = objects.selectString(@(obj) regexp(obj.string, expression, "match", "emptymatch"));
+            result = objects.selectFolder(@(obj) Folder(regexp(obj.string, expression, "match", "emptymatch")));
         end
         
         function result = hasRoot(objects, pattern)
             arguments; objects; pattern (1, :) string = strings(0); end
             pattern = Path.clean(pattern);
-            result = objects.selectLogical(@(obj) Path.matchesWildcardPattern(obj.root, pattern, true));
+            result = objects.selectLogical(@(obj) Path.matchesWildcardPattern(obj.root.string, pattern, true));
         end
         
         function result = whereRootIs(objects, pattern)
             arguments; objects; pattern (1, :) string = strings(0); end
             pattern = Path.clean(pattern);
-            result = objects.where(@(obj) Path.matchesWildcardPattern(obj.root, pattern, true));
+            result = objects.where(@(obj) Path.matchesWildcardPattern(obj.root.string, pattern, true));
         end
         
         function result = hasNotRoot(objects, pattern)
             arguments; objects; pattern (1, :) string = strings(0); end
             pattern = Path.clean(pattern);
-            result = objects.selectLogical(@(obj) Path.matchesWildcardPattern(obj.root, pattern, false));
+            result = objects.selectLogical(@(obj) Path.matchesWildcardPattern(obj.root.string, pattern, false));
         end
         
         function result = whereRootIsNot(objects, pattern)
             arguments; objects; pattern (1, :) string = strings(0); end
             pattern = Path.clean(pattern);
-            result = objects.where(@(obj) Path.matchesWildcardPattern(obj.root, pattern, false));
+            result = objects.where(@(obj) Path.matchesWildcardPattern(obj.root.string, pattern, false));
         end
         
         %% Properties
         function result = isRelative(objects)
-            result = [objects.root] == "";
+            result = [objects.root] == ".";
         end
         
         function result = isAbsolute(objects)
@@ -203,8 +203,8 @@ classdef Path < matlab.mixin.CustomDisplay
         
         function result = absolute(objects)
             result = objects;
-            hasNoRoot = result.hasNotRoot("*");
-            result(hasNoRoot) = objects.new(string(pwd) + filesep + objects(hasNoRoot).string);
+            isRelative = result.isRelative;
+            result(isRelative) = objects.new(string(pwd) + filesep + objects(isRelative).string);
         end
         
         function result = relative(objects, referenceFolder)
