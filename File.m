@@ -100,6 +100,14 @@ classdef File < Path
             end
         end 
         
+        function result = modificationDate(objects)
+            objects.mustExist;
+            result(objects.count) = datetime;
+            for i = 1 : objects.count
+                result(i) = datetime(objects(i).dir.datenum, "ConvertFrom", "datenum");
+            end
+        end
+        
         function createEmptyFile(objects)
             for obj = objects
                 [~, autoClose] = obj.openForWriting;

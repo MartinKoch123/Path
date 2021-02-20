@@ -734,6 +734,18 @@ classdef PathTest < matlab.unittest.TestCase
             oldDir.cd;
         end
         
+        function modificationDate(obj)
+            files = obj.testFolder.append("a.b", "c.d");
+            files.createEmptyFile;
+            content = dir(obj.testFolder.string);
+            actual(1) = datetime(content({content.name} == "a.b").datenum, "ConvertFrom", "datenum");
+            actual(2) = datetime(content({content.name} == "c.d").datenum, "ConvertFrom", "datenum");
+            obj.assertEqual(actual, files.modificationDate);
+            
+            actual = datetime(content({content.name} == ".").datenum, "ConvertFrom", "datenum");
+            obj.assertEqual(actual, obj.testFolder.modificationDate)
+        end
+        
         %% Matlab files
         function fileOfMatlabElement(obj)
             actual = File.ofMatlabElement(["mean", "PathTest"]).string;

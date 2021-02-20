@@ -1,4 +1,4 @@
-classdef Path
+classdef Path < matlab.mixin.CustomDisplay
     % Path Base class for representing filesystem paths.
     %       Type 'Path.help' to see the documentation.
     
@@ -58,20 +58,6 @@ classdef Path
                 obj(i).extension_ = extension;
             end
         end
-        
-        function disp(objects)
-            if isscalar(objects)
-                fprintf("     %s(""%s"")\n", class(objects), objects.string);
-                return
-            end
-            fprintf("  %i×%i %s array\n\n", size(objects, 1), size(objects, 2), class(objects));
-            if isempty(objects)
-                return; end
-            for i = 1 : numel(objects)
-                fprintf("     %s(""%s"")\n", class(objects), objects(i).string);
-            end
-            fprintf("\n");
-        end        
         
         %% Conversion
         function result = string(objects)
@@ -253,12 +239,7 @@ classdef Path
             end
         end
         
-        function result = modificationDate(objects)
-            result(objects.count) = datetime;
-            for i = 1 : objects.count
-                result(i) = datetime(objects(i).dir.datenum, "ConvertFrom", "datenum");
-            end
-        end
+
                 
         %% Array
         function result = count(objects)
@@ -292,7 +273,7 @@ classdef Path
                 error("Path:subsasgn:MultiRowsNotAllowed", "Arrays with multiple rows and arrays with more than two dimensions are not allowed. This is necessary to guarentee the functionality of the class methods. Consider using only one indexing dimension instead (""linear indexing""). Example: ""a(2:4) = b""."); end
             result = builtin("subsasgn", obj, s, varargin{:});
         end
-
+        
     end
     
     methods (Static)
@@ -346,6 +327,24 @@ classdef Path
         
         function result = new(obj, varargin)
             result = eval(class(obj) + "(varargin{:});");
+        end
+        
+        function displayScalarObject(obj)
+            fprintf("    %s(""%s"")\n\n", class(obj), obj.string);
+        end
+        
+        function displayNonScalarObject(objects)
+            fprintf("  %s <a href=""matlab:Path.help"">%s</a> array\n\n", matlab.mixin.CustomDisplay.convertDimensionsToString(objects), class(objects));
+            if isempty(objects)
+                return; end
+            for obj = objects
+                fprintf("     %s(""%s"")\n", class(obj), obj.string);
+            end
+            fprintf("\n");
+        end
+        
+        function displayEmptyObject(obj)
+            obj.displayNonScalarObject;
         end
     end
     
@@ -438,7 +437,6 @@ classdef Path
                 throwAsCaller(MException("Path:Validation:InvalidName", "Value must be a valid file name."));
             end
         end
-        
     end
     
     methods (Abstract)

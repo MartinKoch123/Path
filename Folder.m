@@ -82,6 +82,15 @@ classdef Folder < Path
             end
         end
         
+        function result = modificationDate(objects)
+            objects.mustExist
+            result(objects.count) = datetime;
+            for i = 1 : objects.count
+                content = objects(i).dir;
+                result(i) = datetime(content({content.name} == ".").datenum, "ConvertFrom", "datenum");
+            end
+        end
+        
         function varargout = cd(obj)
             arguments
                 obj (1, 1)
