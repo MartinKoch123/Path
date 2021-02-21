@@ -4,11 +4,7 @@ classdef Folder < Path
     
     methods
         
-        %% Name
-        function result = name(objects)
-            result = objects.selectFolder(@(obj) Folder(obj.stem_ + obj.extension_));
-        end
-        
+        %% Name        
         function result = setName(objects, varargin)
             result = objects.parent.appendFolder(varargin{:});
         end
@@ -82,7 +78,7 @@ classdef Folder < Path
             end
         end
         
-        function result = modificationDate(objects)
+        function result = modifiedDate(objects)
             objects.mustExist
             result(objects.count) = datetime;
             for i = 1 : objects.count
@@ -140,8 +136,15 @@ classdef Folder < Path
             result = File(filePaths);
         end
         
-        function result = tempname(objects)
-            result = objects.selectFile(@(obj) File(tempname(obj.string)));
+        function result = tempFile(obj, n)
+            arguments
+                obj (1, 1)
+                n (1, 1) {mustBeInteger, mustBeNonnegative} = 1
+            end
+            result = File.empty;
+            for i = n : -1 : 1
+                result(i) = File(tempname(obj.string));
+            end
         end
         
     end
@@ -167,8 +170,20 @@ classdef Folder < Path
             result = result(double.empty(1, 0));
         end
         
-        function result = tempdir
+        function result = temp
             result = Folder(tempdir);
+        end
+        
+        function result = current
+            result = Folder(pwd);
+        end
+        
+        function result = home
+            if Path.IS_WINDOWS
+                result = Folder(getenv("USERPROFILE"));
+            else
+                result = Folder(getenv("HOME"));
+            end
         end
 
     end

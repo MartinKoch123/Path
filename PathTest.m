@@ -115,6 +115,42 @@ classdef PathTest < matlab.unittest.TestCase
             expected = File(["a" "b" "c" "d" "e" "f" "g", "h"]);
             obj.assertEqual(actual, expected);
         end
+        
+        %% Factories
+        
+        function fileOfMatlabElement(obj)
+            actual = File.ofMatlabElement(["mean", "PathTest"]).string;
+            expected = string({which("mean") which("PathTest")});
+            obj.assertEqual(actual, expected);
+            obj.assertError(@() File.ofMatlabElement("npofas&/"), "File:ofMatlabElement:NotFound");
+        end
+        
+        function folderOfMatlabElement(obj)
+            actual = Folder.ofMatlabElement(["mean", "PathTest"]);
+            expected = File.ofMatlabElement(["mean", "PathTest"]).parent;
+            obj.assertEqual(actual, expected);
+            obj.assertError(@() Folder.ofMatlabElement("npofas&/"), "File:ofMatlabElement:NotFound");
+        end
+        
+        function fileOfCaller(obj)
+            obj.assertEqual(File.ofCaller, File(which("PathTest")));
+        end
+        
+        function folderOfCaller(obj)
+            obj.assertEqual(Folder.ofCaller, File(which("PathTest")).parent);
+        end
+        
+        function current(obj)
+            obj.assertEqual(Folder.current, Folder(pwd));
+        end
+        
+        function home(obj)
+            if ispc
+                obj.assertEqual(Folder.home, Folder(getenv("USERPROFILE")));
+            else
+                obj.assertEqual(Folder.home, Folder(getenv("HOME")));
+            end
+        end
                 
         %% Conversion
         function string(obj)
@@ -223,6 +259,15 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertEqual(Folder.empty.whereNameIsNot(["hree*", "*.two"]), Folder.empty);
         end
         
+        function addSuffix(obj)
+            obj.assertEqual(File("a/b.c").addSuffix("_s"), File("a/b.c_s"))
+            obj.assertEqual(Folder("a/b.c", "d/e").addSuffix("_s"), Folder("a/b.c_s", "d/e_s"));
+            obj.assertEqual(File("a/b.c", "d/e").addSuffix(["_s1", "_s2"]), File("a/b.c_s1", "d/e_s2"));
+            obj.assertEqual(Folder.empty.addSuffix("s"), Folder.empty);
+            obj.assertError(@() Folder("a/b.c", "d/e").addSuffix(["_s1", "_s2", "_s3"]), "Path:Validation:InvalidSize");
+            obj.assertError(@() File("a/b.c", "d/e").addSuffix("/"), "Path:Validation:InvalidName");
+        end
+        
         %% Extension
         function extension(obj)
             obj.assertEqual(File(obj.testRoot + "/one/two/three.ext").extension, ".ext");
@@ -311,6 +356,15 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertSize(File.empty.whereStemIsNot(["t*ee", "asf"]), [1, 0]);
         end
         
+        function addStemSuffix(obj)
+            obj.assertEqual(File("a/b.c").addStemSuffix("_s"), File("a/b_s.c"))
+            obj.assertEqual(File("a/b.c", "d/e").addStemSuffix("_s"), File("a/b_s.c", "d/e_s"));
+            obj.assertEqual(File("a/b.c", "d/e").addStemSuffix(["_s1", "_s2"]), File("a/b_s1.c", "d/e_s2"));
+            obj.assertEqual(File.empty.addStemSuffix("s"), File.empty);
+            obj.assertError(@() File("a/b.c", "d/e").addStemSuffix(["_s1", "_s2", "_s3"]), "Path:Validation:InvalidSize");
+            obj.assertError(@() File("a/b.c", "d/e").addStemSuffix("/"), "Path:Validation:InvalidName");
+        end
+        
         %% Parent
         function parent(obj)
             obj.assertEqual(File(obj.testRoot + "/one/two/three.ext").parent, Folder(obj.testRoot + "/one/two"));
@@ -389,6 +443,9 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertEqual(folder.whereRootIsNot(), folder);
             obj.assertEqual(Folder.empty.whereRootIsNot([obj.testRootPattern, "asf"]), Folder.empty);
         end
+        
+        %% Suffix
+
         
         %% Properties
         function isRelative(obj)
@@ -746,49 +803,35 @@ classdef PathTest < matlab.unittest.TestCase
             oldDir.cd;
         end
         
-        function modificationDate(obj)
+        function modifiedDate(obj)
             files = obj.testFolder.append("a.b", "c.d");
             files.createEmptyFile;
             content = dir(obj.testFolder.string);
             actual(1) = datetime(content({content.name} == "a.b").datenum, "ConvertFrom", "datenum");
             actual(2) = datetime(content({content.name} == "c.d").datenum, "ConvertFrom", "datenum");
-            obj.assertEqual(actual, files.modificationDate);
+            obj.assertEqual(actual, files.modifiedDate);
             
             actual = datetime(content({content.name} == ".").datenum, "ConvertFrom", "datenum");
-            obj.assertEqual(actual, obj.testFolder.modificationDate)
+            obj.assertEqual(actual, obj.testFolder.modifiedDate)
         end
         
-        function tempname(obj)
-            obj.assertEqual(File.tempname(0), File.empty);
-            obj.assertLength(File.tempname(3), 3);
-            obj.assertEqual(File.tempname.parent, Folder(tempdir));
+        function File_temp(obj)
+            obj.assertEqual(File.temp(0), File.empty);
+            obj.assertLength(File.temp(3), 3);
+            obj.assertEqual(File.temp.parent, Folder(tempdir));
         end
         
-        function tempdir(obj)
-            obj.assertEqual(Folder.tempdir, Folder(tempdir));
+        function Folder_temp(obj)
+            obj.assertEqual(Folder.temp, Folder(tempdir));
         end
         
-        %% Matlab files
-        function fileOfMatlabElement(obj)
-            actual = File.ofMatlabElement(["mean", "PathTest"]).string;
-            expected = string({which("mean") which("PathTest")});
-            obj.assertEqual(actual, expected);
-            obj.assertError(@() File.ofMatlabElement("npofas&/"), "File:ofMatlabElement:NotFound");
-        end
-        
-        function folderOfMatlabElement(obj)
-            actual = Folder.ofMatlabElement(["mean", "PathTest"]);
-            expected = File.ofMatlabElement(["mean", "PathTest"]).parent;
-            obj.assertEqual(actual, expected);
-            obj.assertError(@() Folder.ofMatlabElement("npofas&/"), "File:ofMatlabElement:NotFound");
-        end
-        
-        function fileOfCaller(obj)
-            obj.assertEqual(File.ofCaller, File(which("PathTest")));
-        end
-        
-        function folderOfCaller(obj)
-            obj.assertEqual(Folder.ofCaller, File(which("PathTest")).parent);
+        function tempFile(obj)
+            obj.assertEqual(Folder("a").tempFile(0), File.empty);
+            files = Folder("a").tempFile(2);
+            obj.assertLength(files, 2);
+            obj.assertNotEqual(files(1), files(2));
+            obj.assertEqual(files(1).parent, Folder("a"));
+            
         end
         
         %% Save and load

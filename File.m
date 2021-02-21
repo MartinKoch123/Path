@@ -2,13 +2,9 @@ classdef File < Path
     % File Represents a file path.    
     %       Type 'Path.help' to see the documentation.
     
-    methods
+    methods        
         
         %% Name
-        function result = name(objects)
-            result = objects.selectFile(@(obj) File(obj.stem_ + obj.extension_));
-        end
-        
         function result = setName(objects, varargin)
             result = objects.parent.appendFile(varargin{:});
         end
@@ -49,6 +45,19 @@ classdef File < Path
         function result = whereStemIsNot(objects, pattern)
             arguments; objects; pattern (1, :) string = strings(0); end
             result = objects.where(@(obj) Path.matchesWildcardPattern(obj.stem_, pattern, false));
+        end
+        
+        function objects = addStemSuffix(objects, suffix)
+            arguments
+                objects(1, :)
+                suffix (1, :) string {mustBeNonmissing, Path.mustBeValidName, Path.mustBeEqualSizeOrScalar(suffix, objects)}
+            end
+            if isscalar(suffix)
+                suffix = repmat(suffix, 1, objects.count);
+            end
+            for i = 1 : length(objects)
+                objects(i).stem_ = objects(i).stem_ + suffix(i);
+            end
         end
         
         %% Extension
@@ -100,7 +109,7 @@ classdef File < Path
             end
         end 
         
-        function result = modificationDate(objects)
+        function result = modifiedDate(objects)
             objects.mustExist;
             result(objects.count) = datetime;
             for i = 1 : objects.count
@@ -326,7 +335,7 @@ classdef File < Path
             result = result(double.empty(1, 0));
         end
         
-        function result = tempname(n)
+        function result = temp(n)
             arguments
                 n (1, 1) {mustBeInteger, mustBeNonnegative} = 1
             end

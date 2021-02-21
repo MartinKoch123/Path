@@ -13,8 +13,8 @@ classdef Path < matlab.mixin.CustomDisplay
         FILE_SEPARATOR_REGEX = regexptranslate("escape", filesep);
         DOCUMENTATION_WEB_PAGE = "https://github.com/MartinKoch123/Path/wiki";
         ROOT_REGEX_WINDOWS = "^(\\\\[^\\]+|[A-Za-z]:|)";
-        ROOT_REGEX_LINUX = "^(/[^/]*|)";
-        isWindows = ispc;
+        ROOT_REGEX_POSIX = "^(/[^/]*|)";
+        IS_WINDOWS = ispc;
     end
     
     methods
@@ -78,6 +78,10 @@ classdef Path < matlab.mixin.CustomDisplay
         end
         
         %% Name
+        function result = name(objects)
+            result = objects.selectPath(@(obj) objects.new(obj.stem_ + obj.extension_), objects.empty);
+        end
+        
         function result = hasName(objects, pattern)
             arguments; objects; pattern (1, :) string = strings(0); end
             result = objects.selectLogical(@(obj) Path.matchesWildcardPattern(obj.stem_ + obj.extension_, pattern, true));
@@ -96,6 +100,14 @@ classdef Path < matlab.mixin.CustomDisplay
         function result = whereNameIsNot(objects, pattern)
             arguments; objects; pattern (1, :) string = strings(0); end
             result = objects.where(@(obj) Path.matchesWildcardPattern(obj.stem_ + obj.extension_, pattern, false));
+        end
+        
+        function result = addSuffix(objects, suffix)
+            arguments
+                objects(1, :)
+                suffix (1, :) string {mustBeNonmissing, Path.mustBeValidName, Path.mustBeEqualSizeOrScalar(suffix, objects)}
+            end            
+            result = objects.new(objects.string + suffix);            
         end
         
         
@@ -144,10 +156,10 @@ classdef Path < matlab.mixin.CustomDisplay
         
         %% Root
         function result = root(objects)
-            if Path.isWindows
+            if Path.IS_WINDOWS
                 expression = Path.ROOT_REGEX_WINDOWS;
             else
-                expression = Path.ROOT_REGEX_LINUX;
+                expression = Path.ROOT_REGEX_POSIX;
             end
             result = objects.selectFolder(@(obj) Folder(regexp(obj.string, expression, "match", "emptymatch")));
         end
@@ -157,10 +169,10 @@ classdef Path < matlab.mixin.CustomDisplay
                 objects
                 root (1, 1) string {Path.mustNotContainPathSeparator}
             end
-            if Path.isWindows
+            if Path.IS_WINDOWS
                 expression = Path.ROOT_REGEX_WINDOWS;
             else
-                expression = Path.ROOT_REGEX_LINUX;
+                expression = Path.ROOT_REGEX_POSIX;
             end
             root = root + filesep;
             result = objects.selectPath(@(obj) objects.new(regexprep(obj.string, expression, root, "emptymatch")), objects.empty);
@@ -189,6 +201,8 @@ classdef Path < matlab.mixin.CustomDisplay
             pattern = Path.clean(pattern);
             result = objects.where(@(obj) Path.matchesWildcardPattern(obj.root.string, pattern, false));
         end
+        
+
         
         %% Properties
         function result = isRelative(objects)
@@ -393,14 +407,14 @@ classdef Path < matlab.mixin.CustomDisplay
                 s = s.replace(["\", "/"], filesep);
                 
                 % Remove repeating separators.
-                if Path.isWindows
+                if Path.IS_WINDOWS
                     s = regexprep(s, "(?<!^)" + fs + "+", fs);
                 else
                     s = regexprep(s, fs + "+", fs);
                 end
                 
                 % Remove leading and trailing separators.
-                if Path.isWindows
+                if Path.IS_WINDOWS
                     expression = ["^"+fs+"(?!"+fs+")", fs+"+$"];
                 else
                     expression = fs+"+$";
@@ -475,7 +489,6 @@ classdef Path < matlab.mixin.CustomDisplay
     methods (Abstract)
         result = exists(objects);
         mustExist(objects);
-        result = name(objects);
         result = setName(objects, names)        
     end
 end
