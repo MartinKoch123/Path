@@ -155,7 +155,7 @@ classdef Path < matlab.mixin.CustomDisplay
         function result = setRoot(objects, root)
             arguments
                 objects
-                root (1, 1) string
+                root (1, 1) string {Path.mustNotContainPathSeparator}
             end
             if Path.isWindows
                 expression = Path.ROOT_REGEX_WINDOWS;
@@ -462,6 +462,12 @@ classdef Path < matlab.mixin.CustomDisplay
         function mustBeValidName(values)
             if any(values.strlength == 0) || any(values.contains(["\", "/", pathsep]))
                 throwAsCaller(MException("Path:Validation:InvalidName", "Value must be a valid file name."));
+            end
+        end
+        
+        function mustNotContainPathSeparator(values)
+            if any(values.contains(pathsep))
+                throwAsCaller(MException("Path:Validation:ContainsPathsep", "Value must not contain a path separator character."));
             end
         end
     end

@@ -361,6 +361,7 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertEqual(File(obj.testRoot + "/a/b.c", "e/f.g").setRoot(obj.testRoot2), File(obj.testRoot2 + "/a/b.c", obj.testRoot2 + "/e/f.g"));
             obj.assertEqual(Folder.empty.setRoot(obj.testRoot), Folder.empty);
             obj.assertEqual(Folder(obj.testRoot + "/a/b").setRoot("../c/d"), Folder("../c/d/a/b"));
+            obj.assertError(@() File("a").setRoot(pathsep), "Path:Validation:ContainsPathsep");
         end
         
         function hasRoot(obj)

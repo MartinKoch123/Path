@@ -152,7 +152,9 @@ classdef Folder < Path
             stack = dbstack;
             if length(stack) == 1
                 error("Folder:ofCaller:NoCaller", "This method was not called from another file."); end
-            callingFile = stack(2).file;
+            callingFile = string(stack(2).file);
+            if callingFile.startsWith("LiveEditorEvaluationHelper")
+                error("Folder:ofCaller:LiveScript", "Calling this method from a live script is not supported. Consider using 'Folder.ofMatlabElement' instead. Example: Folder.ofMatlabElement(""PathExamples.mlx"")."); end
             result = File.ofMatlabElement(callingFile).parent;
         end 
         
