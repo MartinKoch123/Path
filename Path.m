@@ -12,6 +12,8 @@ classdef Path < matlab.mixin.CustomDisplay
     properties (Constant, Access = protected, Hidden)
         FILE_SEPARATOR_REGEX = regexptranslate("escape", filesep);
         DOCUMENTATION_WEB_PAGE = "https://github.com/MartinKoch123/Path/wiki";
+        ROOT_REGEX_WINDOWS = "^(\\\\[^\\]+|[A-Za-z]:|)";
+        ROOT_REGEX_LINUX = "^(/[^/]*|)";
         isWindows = ispc;
     end
     
@@ -143,11 +145,25 @@ classdef Path < matlab.mixin.CustomDisplay
         %% Root
         function result = root(objects)
             if Path.isWindows
-                expression = "^(\\\\[^\\]+|[A-Za-z]:|)";
+                expression = Path.ROOT_REGEX_WINDOWS;
             else
-                expression = "^(/[^/]*|)";
+                expression = Path.ROOT_REGEX_LINUX;
             end
             result = objects.selectFolder(@(obj) Folder(regexp(obj.string, expression, "match", "emptymatch")));
+        end
+        
+        function result = setRoot(objects, root)
+            arguments
+                objects
+                root (1, 1) string
+            end
+            if Path.isWindows
+                expression = Path.ROOT_REGEX_WINDOWS;
+            else
+                expression = Path.ROOT_REGEX_LINUX;
+            end
+            root = root + filesep;
+            result = objects.selectPath(@(obj) objects.new(regexprep(obj.string, expression, root, "emptymatch")), objects.empty);
         end
         
         function result = hasRoot(objects, pattern)
@@ -314,6 +330,13 @@ classdef Path < matlab.mixin.CustomDisplay
                 end
             else
                 result = File.empty;
+            end
+        end
+        
+        function result = selectPath(objects, fun, emptyValue)
+            result = emptyValue;
+            for i = numel(objects) : -1 : 1
+                result(i) = fun(objects(i));
             end
         end
         

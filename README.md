@@ -1,7 +1,8 @@
 # Path
  MATLAB Classes for handling filesystem paths
 
- Path operations in MATLAB tend to be cumbersome. This package aims so make everything you ever needed to do with a path less annoying and produce highly readable code in the process. It consists of the `File` and `Folder` classes, which represents filesystem paths and provide functionality for extracting path properties, manipulate and combine paths and interact with the filesystem. 
+ Path operations in MATLAB tend to be cumbersome. This package aims so make everything you ever needed to do with a path less tedious and produce readable code in the process. It consists of the `File` and `Folder` classes, which represents filesystem paths and provide functionality for extracting path properties, manipulate and combine paths and interact with the filesystem.
+ 
  [![View Path on File Exchange](https://www.mathworks.com/matlabcentral/images/matlab-file-exchange.svg)](https://www.mathworks.com/matlabcentral/fileexchange/87552-path)
   
  ## Examples
@@ -25,11 +26,11 @@
 >> files.whereStemIs(["*Virus*", "*Worm*"]).whereExtensionIsNot(".pdf").copyToFolder("D:\Quarantine");
 ```
 ```Matlab
->> script = File.ofCaller
-  
-    Folder("C:\Users\marti\MATLAB Drive\YesIMadeAScriptJustToDemonstrateThis.m")
+>> scriptFile = File.ofCaller
+
+    File("/MATLAB Drive/YesIMadeAnExtraScriptToDemonstrateThis.m")
     
->> script.parent.cd;
+>> scriptFile.parent.cd;
  ```
  
  ## Requirements

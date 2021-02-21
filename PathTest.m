@@ -357,6 +357,12 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertEqual(Folder("one/two").root, Folder("."));
         end
         
+        function setRoot(obj)
+            obj.assertEqual(File(obj.testRoot + "/a/b.c", "e/f.g").setRoot(obj.testRoot2), File(obj.testRoot2 + "/a/b.c", obj.testRoot2 + "/e/f.g"));
+            obj.assertEqual(Folder.empty.setRoot(obj.testRoot), Folder.empty);
+            obj.assertEqual(Folder(obj.testRoot + "/a/b").setRoot("../c/d"), Folder("../c/d/a/b"));
+        end
+        
         function hasRoot(obj)
             obj.assertEqual(File("a/b/c", obj.testRoot + "/d/e").hasRoot([obj.testRootPattern, "asf"]), [false, true]);
             obj.assertEqual(Folder("a/b/c", obj.testRoot + "/d/e").hasRoot(), [false, false]);
