@@ -215,6 +215,10 @@ classdef Path < matlab.mixin.CustomDisplay
             result(strlength(result) == 0) = [];
         end
         
+        function result = strlength(obj)
+            result = obj.string.strlength;
+        end
+        
         %% Absolute/Relative  
         
         function result = absolute(objects)

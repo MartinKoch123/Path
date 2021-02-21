@@ -419,6 +419,11 @@ classdef PathTest < matlab.unittest.TestCase
             
         end
         
+        function strlength(obj)
+            obj.assertEqual(File("a/b.c", "d.e").strlength, [5, 3])
+            obj.assertEmpty(Folder.empty.strlength)
+        end
+        
         %% Absolute/Relative        
         function absolute(obj)
             obj.assertEqual(File("a.b", obj.testRoot + "/c/d.e").absolute, [Folder(pwd).appendFile("a.b"), File(obj.testRoot + "/c/d.e")]);
