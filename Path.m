@@ -73,8 +73,8 @@ classdef Path < matlab.mixin.CustomDisplay
             result = char(obj.string);
         end
         
-        function result = charCell(objects)
-            result = arrayfun(@char, objects, 'UniformOutput', false);
+        function result = cellstr(objects)
+            result = cellstr(objects.string);
         end
         
         %% Name

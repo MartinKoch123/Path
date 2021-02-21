@@ -126,9 +126,9 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertEqual('test', File("test").char);
         end
         
-        function charCell(obj)
-            obj.assertEqual(File("one").charCell, {'one'});
-            obj.assertEqual(Folder(["one", "two"]).charCell, {'one', 'two'});
+        function cellstr(obj)
+            obj.assertEqual(File("one").cellstr, {'one'});
+            obj.assertEqual(Folder(["one", "two"]).cellstr, {'one', 'two'});
         end
         
         %% Clean
