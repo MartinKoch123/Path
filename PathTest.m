@@ -758,6 +758,16 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertEqual(actual, obj.testFolder.modificationDate)
         end
         
+        function tempname(obj)
+            obj.assertEqual(File.tempname(0), File.empty);
+            obj.assertLength(File.tempname(3), 3);
+            obj.assertEqual(File.tempname.parent, Folder(tempdir));
+        end
+        
+        function tempdir(obj)
+            obj.assertEqual(Folder.tempdir, Folder(tempdir));
+        end
+        
         %% Matlab files
         function fileOfMatlabElement(obj)
             actual = File.ofMatlabElement(["mean", "PathTest"]).string;

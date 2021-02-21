@@ -140,6 +140,10 @@ classdef Folder < Path
             result = File(filePaths);
         end
         
+        function result = tempname(objects)
+            result = objects.selectFile(@(obj) File(tempname(obj.string)));
+        end
+        
     end
     
     methods (Static)
@@ -161,6 +165,10 @@ classdef Folder < Path
         function result = empty
             result = Folder;
             result = result(double.empty(1, 0));
+        end
+        
+        function result = tempdir
+            result = Folder(tempdir);
         end
 
     end

@@ -325,6 +325,16 @@ classdef File < Path
             result = File;
             result = result(double.empty(1, 0));
         end
+        
+        function result = tempname(n)
+            arguments
+                n (1, 1) {mustBeInteger, mustBeNonnegative} = 1
+            end
+            result = File.empty;
+            for i = 1:n
+                result(i) = File(tempname);
+            end
+        end
     end
     
     methods (Static, Access = private)        
