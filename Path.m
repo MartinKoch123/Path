@@ -15,7 +15,6 @@ classdef Path < matlab.mixin.CustomDisplay
         ROOT_REGEX_WINDOWS = "^(\\\\[^\\]+|[A-Za-z]:|)";
         ROOT_REGEX_POSIX = "^(/[^/]*|)";
         IS_WINDOWS = ispc;
-        VERSION_CHECK = Path.checkMatlabVersion;
     end
     
     methods
@@ -485,13 +484,7 @@ classdef Path < matlab.mixin.CustomDisplay
                 throwAsCaller(MException("Path:Validation:ContainsPathsep", "Value must not contain a path separator character."));
             end
         end
-        
-        function result = checkMatlabVersion
-            if verLessThan('matlab', '9.7')
-                throwAsCaller(MException('Path:IncompatibleVersion', 'Requires MATLAB R2019b or later.'))
-            end
-            result = true;
-        end
+
     end
     
     methods (Abstract)
