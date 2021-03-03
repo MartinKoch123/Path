@@ -444,8 +444,6 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertEqual(Folder.empty.whereRootIsNot([obj.testRootPattern, "asf"]), Folder.empty);
         end
         
-        %% Suffix
-
         
         %% Properties
         function isRelative(obj)
@@ -629,7 +627,6 @@ classdef PathTest < matlab.unittest.TestCase
                 [file1, file2, file3] = Folder("a") \ ["b.c", "d.e"];
             end
         end
-        
         
         %% File system interaction
         function cd(obj)
@@ -832,6 +829,15 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertNotEqual(files(1), files(2));
             obj.assertEqual(files(1).parent, Folder("a"));
             
+        end
+        
+        function rmdir(obj)
+            folders = obj.testFolder / ["a", "b"];
+            folders.mkdir;
+            folders(1).append("c.d").createEmptyFile;
+            obj.assertError(@() folders(1).rmdir, "MATLAB:RMDIR:NoDirectoriesRemoved");
+            folders.rmdir("s");
+            obj.assertFolderDoesNotExist(folders);
         end
         
         %% Save and load

@@ -147,6 +147,12 @@ classdef Folder < Path
             end
         end
         
+        function rmdir(objects, varargin)
+            for obj = objects
+                rmdir(obj.string, varargin{:});
+            end
+        end
+        
     end
     
     methods (Static)
