@@ -69,15 +69,6 @@ classdef Folder < Path
             result = arrayfun(@(obj) isfolder(obj.string), objects);
         end            
         
-        function mustExist(objects)
-            for obj = objects
-                if ~obj.exists
-                    exception = MException("Folder:mustExist:Failed", "Folder ""%s"" not found.", obj.string);
-                    throwAsCaller(exception);
-                end
-            end
-        end
-        
         function result = modifiedDate(objects)
             objects.mustExist
             result(objects.count) = datetime;

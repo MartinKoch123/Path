@@ -131,27 +131,43 @@ classdef Path < matlab.mixin.CustomDisplay
         end
         
         function result = hasParent(objects, pattern)
-            arguments; objects; pattern (1, :) string = strings(0); end
-            pattern = Path.clean(pattern) + filesep;
-            result = objects.selectLogical(@(obj) Path.matchesWildcardPattern(obj.parent_, pattern, true));
+            arguments; objects; pattern (1, :) string = missing; end
+            if ismissing(pattern)
+                result = objects.hasNotParent(".");
+                return
+            end
+            pattern = Path.clean(pattern);
+            result = objects.selectLogical(@(obj) Path.matchesWildcardPattern(obj.parent.string, pattern, true));
         end
         
         function result = whereParentIs(objects, pattern)
-            arguments; objects; pattern (1, :) string = strings(0); end
-            pattern = Path.clean(pattern) + filesep;
-            result = objects.where(@(obj) Path.matchesWildcardPattern(obj.parent_, pattern, true));
+            arguments; objects; pattern (1, :) string = missing; end
+            if ismissing(pattern)
+                result = objects.whereParentIsNot(".");
+                return
+            end
+            pattern = Path.clean(pattern);
+            result = objects.where(@(obj) Path.matchesWildcardPattern(obj.parent.string, pattern, true));
         end
         
         function result = hasNotParent(objects, pattern)
-            arguments; objects; pattern (1, :) string = strings(0); end
-            pattern = Path.clean(pattern) + filesep;
-            result = objects.selectLogical(@(obj) Path.matchesWildcardPattern(obj.parent_, pattern, false));
+            arguments; objects; pattern (1, :) string = missing; end
+            if ismissing(pattern)
+                result = objects.hasParent(".");
+                return
+            end
+            pattern = Path.clean(pattern);
+            result = objects.selectLogical(@(obj) Path.matchesWildcardPattern(obj.parent.string, pattern, false));
         end
         
         function result = whereParentIsNot(objects, pattern)
-            arguments; objects; pattern (1, :) string = strings(0); end
-            pattern = Path.clean(pattern) + filesep;
-            result = objects.where(@(obj) Path.matchesWildcardPattern(obj.parent_, pattern, false));
+            arguments; objects; pattern (1, :) string = missing; end
+            if ismissing(pattern)
+                result = objects.whereParentIs(".");
+                return
+            end
+            pattern = Path.clean(pattern);
+            result = objects.where(@(obj) Path.matchesWildcardPattern(obj.parent.string, pattern, false));
         end
         
         %% Root
@@ -273,7 +289,13 @@ classdef Path < matlab.mixin.CustomDisplay
             end
         end
         
-
+        function mustExist(objects)
+            for obj = objects
+                if ~obj.exists
+                    throwAsCaller(obj.notFoundException);
+                end
+            end
+        end 
                 
         %% Array
         function result = count(objects)
@@ -387,6 +409,25 @@ classdef Path < matlab.mixin.CustomDisplay
         function displayEmptyObject(obj)
             obj.displayNonScalarObject;
         end
+        
+        function result = notFoundException(obj)
+            
+            result = MException("Path:mustExist:Failed", "%s ""%s"" not found. ", class(obj), obj.string);
+            
+            if ~obj.hasParent || obj.parent.exists
+                return; end
+            
+            currentFolder = obj;            
+            while true
+                if ~currentFolder.hasParent || currentFolder.parent.exists
+                    causeException = currentFolder.notFoundException;
+                    result = Path.extendError(causeException, missing, "%s", result.message);
+                    return
+                end
+                currentFolder = currentFolder.parent;
+            end
+        end
+        
     end
     
     methods (Static, Access = protected)
@@ -437,7 +478,7 @@ classdef Path < matlab.mixin.CustomDisplay
             end
         end
         
-        function extendError(exception, identifiers, messageFormat, messageArguments)
+        function exception = extendError(exception, identifiers, messageFormat, messageArguments)
             arguments
                 exception
                 identifiers
@@ -446,12 +487,14 @@ classdef Path < matlab.mixin.CustomDisplay
             arguments (Repeating)
                 messageArguments
             end
-            if any(startsWith(exception.identifier, identifiers))
+            if ismissing(identifiers) || any(startsWith(exception.identifier, identifiers))
                 messageFormat = messageFormat + "\nCaused by: %s";
                 messageArguments{end+1} = exception.message;
                 message = sprintf(messageFormat, messageArguments{:});
                 exception = MException(exception.identifier, "%s", message);
-                throwAsCaller(exception);
+                if nargout == 0
+                    throwAsCaller(exception);
+                end
             else
                 exception.rethrow;
             end
@@ -489,7 +532,6 @@ classdef Path < matlab.mixin.CustomDisplay
     
     methods (Abstract)
         result = exists(objects);
-        mustExist(objects);
         result = setName(objects, names)        
     end
 end

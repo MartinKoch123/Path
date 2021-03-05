@@ -381,27 +381,27 @@ classdef PathTest < matlab.unittest.TestCase
         
         function hasParent(obj)
             obj.assertEqual(File("a/b/c", obj.testRoot + "/d/e").hasParent(["*d", "asf"]), [false, true]);
-            obj.assertEqual(Folder("a/b/c", obj.testRoot + "/d/e").hasParent(), [false, false]);
+            obj.assertEqual(Folder("a/b/c", obj.testRoot + "/d/e", "f").hasParent(), [true, true, false]);
             obj.assertEqual(File.empty.hasParent(["*d", "asf"]), logical.empty(1, 0));
         end
         
         function hasNotParent(obj)
             obj.assertEqual(Folder("a/b/c", obj.testRoot + "/d/e").hasNotParent(["*d", "asf"]), [true, false]);
-            obj.assertEqual(File("a/b/c", obj.testRoot + "/d/e").hasNotParent(), [true, true]);
+            obj.assertEqual(File("a/b/c", obj.testRoot + "/d/e", "f").hasNotParent(), [false, false, true]);
             obj.assertEqual(Folder.empty.hasNotParent(["*d", "asf"]), logical.empty(1, 0));
         end
         
         function whereParentIs(obj)
-            files = File("a/b/c", obj.testRoot + "/d/e");
+            files = File("a/b/c", obj.testRoot + "/d/e", "f");
             obj.assertEqual(files.whereParentIs(["*d", "asf"]), files(2));
-            obj.assertEqual(files.whereParentIs(), File.empty);
+            obj.assertEqual(files.whereParentIs(), files(1:2));
             obj.assertEqual(File.empty.whereParentIs(["*d", "asf"]), File.empty);
         end
         
         function whereParentIsNot(obj)
-            folders = Folder("a/b/c", obj.testRoot + "/d/e");
-            obj.assertEqual(folders.whereParentIsNot(["*d", "asf"]), folders(1));
-            obj.assertEqual(folders.whereParentIsNot(), folders);
+            folders = Folder("a/b/c", obj.testRoot + "/d/e", "f");
+            obj.assertEqual(folders.whereParentIsNot(["*d", "asf"]), folders([1, 3]));
+            obj.assertEqual(folders.whereParentIsNot(), folders(3));
             obj.assertEqual(Folder.empty.whereParentIsNot(["*d", "asf"]), Folder.empty);
         end
         
@@ -661,14 +661,14 @@ classdef PathTest < matlab.unittest.TestCase
             folders = Folder(files);
             obj.assertEqual(files.exists, [false, false]);
             obj.assertEqual(folders.exists, [false, false]);
-            obj.assertError(@() files.mustExist, "File:mustExist:Failed");
-            obj.assertError(@() folders.mustExist, "Folder:mustExist:Failed");
+            obj.assertError(@() files.mustExist, "Path:mustExist:Failed");
+            obj.assertError(@() folders.mustExist, "Path:mustExist:Failed");
             
             files.createEmptyFile;
             obj.assertEqual(files.exists, [true, true]);
             obj.assertEqual(folders.exists, [false, false]);
             files.mustExist;
-            obj.assertError(@() folders.mustExist, "Folder:mustExist:Failed");
+            obj.assertError(@() folders.mustExist, "Path:mustExist:Failed");
             
             delete(files(1).string, files(2).string);
             folders.mkdir;
@@ -676,7 +676,7 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertEqual(files.exists, [false, false]);
             obj.assertEqual(folders.exists, [true, true]);
             folders.mustExist;
-            obj.assertError(@() files.mustExist, "File:mustExist:Failed");
+            obj.assertError(@() files.mustExist, "Path:mustExist:Failed");
         end
         
         function fopen(obj)
@@ -692,7 +692,7 @@ classdef PathTest < matlab.unittest.TestCase
         function open(obj)
             file = obj.testFolder / "a.b";
             obj.assertError(@() open([file, file]), "MATLAB:validation:IncompatibleSize");
-            obj.assertError(@() file.open, "File:mustExist:Failed");
+            obj.assertError(@() file.open, "Path:mustExist:Failed");
             id = file.open("w");
             obj.assertFalse(id == -1);
             fclose(id);
@@ -744,7 +744,7 @@ classdef PathTest < matlab.unittest.TestCase
             files.createEmptyFile;
             folders = [obj.testFolder, obj.testFolder];
             obj.assertEqual(folders.listFiles, obj.testFolder / ["a.b", "c.d"]);
-            obj.assertError(@() Folder("klajsdfoi67w3pi47n").listFiles, "Folder:mustExist:Failed");
+            obj.assertError(@() Folder("klajsdfoi67w3pi47n").listFiles, "Path:mustExist:Failed");
             emptyFolder = obj.testFolder.appendFolder("empty");
             emptyFolder.mkdir;
             obj.assertEqual(emptyFolder.listFiles, File.empty);
@@ -755,7 +755,7 @@ classdef PathTest < matlab.unittest.TestCase
             files.createEmptyFile;
             folders = [obj.testFolder, obj.testFolder];
             obj.assertEqual(folders.listDeepFiles, obj.testFolder.appendFile("a.b", "c.d", "e/f/g.h"));
-            obj.assertError(@() Folder("klajsdfoi67w3pi47n").listDeepFiles, "Folder:mustExist:Failed");
+            obj.assertError(@() Folder("klajsdfoi67w3pi47n").listDeepFiles, "Path:mustExist:Failed");
             emptyFolder = obj.testFolder.appendFolder("empty");
             emptyFolder.mkdir;
             obj.assertEqual(emptyFolder.listDeepFiles, File.empty);

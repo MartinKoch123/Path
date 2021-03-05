@@ -100,15 +100,6 @@ classdef File < Path
             result = arrayfun(@(obj) isfile(obj.string), objects);
         end
                 
-        function mustExist(objects)
-            for obj = objects
-                if ~obj.exists
-                    exception = MException("File:mustExist:Failed", "File ""%s"" not found.", obj.string);
-                    throwAsCaller(exception);
-                end
-            end
-        end 
-        
         function result = modifiedDate(objects)
             objects.mustExist;
             result(objects.count) = datetime;
