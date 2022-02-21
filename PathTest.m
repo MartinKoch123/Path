@@ -519,6 +519,11 @@ classdef PathTest < matlab.unittest.TestCase
         end
         
         %% Array
+        function isEmpty(obj)
+            obj.assertFalse(File("a", "b").isEmpty)
+            obj.assertTrue(File.empty.isEmpty)
+        end
+
         function count(obj)
             obj.assertEqual(File("a", "b").count, 2);
         end

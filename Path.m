@@ -298,6 +298,10 @@ classdef Path < matlab.mixin.CustomDisplay
         end 
                 
         %% Array
+        function result = isEmpty(objects)
+            result = isempty(objects);
+        end
+
         function result = count(objects)
             result = numel(objects);
         end
