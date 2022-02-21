@@ -719,7 +719,6 @@ classdef PathTest < matlab.unittest.TestCase
                 [id, autoClean] = file.openForReading;
                 fclose(id);
             end
-            
         end
         
         function copyToFolder(obj)
@@ -732,12 +731,25 @@ classdef PathTest < matlab.unittest.TestCase
             
             File.empty.copyToFolder(target);
         end
+
+        function move(obj)
+            sources = obj.testFolder / ["a.b", "c/d.e"];
+            targets = obj.testFolder / ["f.g", "h/i.j"];
+
+            sources.createEmptyFile;
+            sources.move(targets);
+
+            targets.mustExist;
+            obj.assertAllFalse(sources.exists);
+        end
         
         function moveToFolder(obj)
             sources = obj.testFolder / ["a.b", "c/d.e"];
             target = obj.testFolder / "target";
+
             sources.createEmptyFile;
             sources.moveToFolder(target);
+
             target.append(sources.name).mustExist;
             obj.assertAllFalse(sources.exists);
             
