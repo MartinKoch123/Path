@@ -1,6 +1,8 @@
 classdef File < Path
-    % File Represents a file path.    
-    %       Type 'Path.help' to see the documentation.
+% File Represents a file path.    
+% 
+% For details, visit the <a href="matlab:
+% web('https://github.com/MartinKoch123/Path/wiki')">documentation on GitHub</a>.
     
     methods        
         

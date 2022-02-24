@@ -166,6 +166,11 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertEqual(File("one").cellstr, {'one'});
             obj.assertEqual(Folder(["one", "two"]).cellstr, {'one', 'two'});
         end
+
+        function quote(obj)
+            obj.assertEqual(File(["a/b.c", "d.e"]).quote, adjustSeparators(["""a/b.c""", """d.e"""]))
+            obj.assertEqual(File.empty.quote, strings(1, 0))
+        end
         
         %% Clean
         function clean_stripWhitespace(obj)

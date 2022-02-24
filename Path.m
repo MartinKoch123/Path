@@ -1,6 +1,8 @@
 classdef Path < matlab.mixin.CustomDisplay
-    % Path Base class for representing filesystem paths.
-    %       Type 'Path.help' to see the documentation.
+% Path Base class for representing filesystem paths.
+%
+% For details, visit the <a href="matlab:
+% web('https://github.com/MartinKoch123/Path/wiki')">documentation on GitHub</a>.
     
     properties (Access = protected)
         extension_
@@ -75,6 +77,10 @@ classdef Path < matlab.mixin.CustomDisplay
         
         function result = cellstr(objects)
             result = cellstr(objects.string);
+        end
+
+        function result = quote(objects)
+            result = """" + string(objects) + """";
         end
         
         %% Name
