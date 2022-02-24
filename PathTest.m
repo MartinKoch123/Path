@@ -665,8 +665,7 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertFileExists(obj.testFolder / ["a.b", "c/d.e"]);
         end
         
-        function fileExistsAndFolderExists(obj)
-            
+        function fileExistsAndFolderExists(obj)            
             files = obj.testFolder / ["a.b", "c/d.e"];
             folders = Folder(files);
             obj.assertEqual(files.exists, [false, false]);
@@ -724,6 +723,27 @@ classdef PathTest < matlab.unittest.TestCase
                 [id, autoClean] = file.openForReading;
                 fclose(id);
             end
+        end
+
+        function copy_(obj)
+            sources = obj.testFolder / ["a.b", "c/d.e"];
+            targets = obj.testFolder / ["f.g", "h/i.j"];
+
+            sources.createEmptyFile;
+            sources.copy(targets);
+
+            targets.mustExist;
+            sources.mustExist;
+
+            % Copy one file to multiple locations
+            source = obj.testFolder / "k.l";
+            targets = obj.testFolder / ["m.n", "o/p.q"];
+            
+            source.createEmptyFile;
+            source.copy(targets);
+            
+            source.mustExist;
+            targets.mustExist;
         end
         
         function copyToFolder(obj)

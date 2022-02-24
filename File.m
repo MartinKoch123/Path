@@ -164,6 +164,31 @@ classdef File < Path
             if nargout == 2
                 autoClose = onCleanup(@() tryToClose(id)); end
         end
+
+        function copy(objects, targets)
+            arguments
+                objects
+                targets (1, :) File
+            end
+            if objects.count == 1
+                objects = repmat(objects, 1, targets.count);
+            elseif objects.count ~= targets.count
+                error("Path:copy:InvalidNumberOfTargets", "Number of target paths must be equal the number of source paths.")
+            end
+            for i = 1 : objects.count
+                obj = objects(i);
+                obj.mustExist;
+                target = targets(i);
+                if isfolder(target.string)
+                    error("Path:copy:TargetFileIsFolder", "The target file ""%s"" is an existing folder.", target); end
+                try                    
+                    target.parent.mkdir;
+                    copyfile(obj.string, target.string);
+                catch exception
+                    extendError(exception, ["MATLAB:COPYFILE:", "MATLAB:MKDIR:"], "Unable to copy file ""%s"" to ""%s"".", obj, target);
+                end
+            end
+        end
         
         function copyToFolder(objects, targetFolder)
             arguments
@@ -198,7 +223,7 @@ classdef File < Path
                 obj.mustExist;
                 target = targets(i);
                 if isfolder(target.string)
-                    error("Path:moveToFolder:TargetFileIsFolder", "The target file ""%s"" is an existing folder.", target); end
+                    error("Path:move:TargetFileIsFolder", "The target file ""%s"" is an existing folder.", target); end
                 try                    
                     target.parent.mkdir;
                     movefile(obj.string, target.string);
