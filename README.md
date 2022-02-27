@@ -1,7 +1,7 @@
 # Path
 Classes for handling filesystem paths in MATLAB.
 
-The `File` and `Folder` make it simple to deal with filesystem paths using readable code.
+The `File` and `Folder` classes allow you to solve your path-related problems using short and readable code.
 
 [![View Path on File Exchange](https://www.mathworks.com/matlabcentral/images/matlab-file-exchange.svg)](https://www.mathworks.com/matlabcentral/fileexchange/87552-path)
 
