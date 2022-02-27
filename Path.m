@@ -257,10 +257,17 @@ classdef Path < matlab.mixin.CustomDisplay
         
         %% Absolute/Relative  
         
-        function result = absolute(objects)
+        function result = absolute(objects, referenceFolder)
+            arguments
+                objects
+                referenceFolder (1, 1) Folder = Folder(pwd)
+            end
+            if referenceFolder.isRelative
+                referenceFolder = referenceFolder.absolute;
+            end
+            isRelative = objects.isRelative;
             result = objects;
-            isRelative = result.isRelative;
-            result(isRelative) = objects.new(string(pwd) + filesep + objects(isRelative).string);
+            result(isRelative) = objects.new(referenceFolder.string + filesep + objects(isRelative).string);
         end
         
         function result = relative(objects, referenceFolder)
