@@ -17,7 +17,7 @@ classdef Folder < Path
                 objects(1, :)
             end
             arguments (Repeating)
-                appendage (1, :) string {mustBeNonmissing}
+                appendage (1, :) string {Path.mustBeNonmissing}
             end
             
             appendage = Path.clean(appendage{:});            
@@ -37,7 +37,7 @@ classdef Folder < Path
                 objects(1, :)
             end
             arguments (Repeating)
-                appendage (1, :) string {mustBeNonmissing}
+                appendage (1, :) string {Path.mustBeNonmissing}
             end            
             appendage = Path.clean(appendage{:});                  
             result = objects.appendFile_(appendage);
@@ -49,7 +49,7 @@ classdef Folder < Path
                 objects(1, :)
             end
             arguments (Repeating)
-                appendage (1, :) string {mustBeNonmissing}
+                appendage (1, :) string {Path.mustBeNonmissing}
             end            
             appendage = Path.clean(appendage{:});               
             result = objects.appendFolder_(appendage);

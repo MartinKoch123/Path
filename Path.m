@@ -22,7 +22,7 @@ classdef Path < matlab.mixin.CustomDisplay
     methods
         function obj = Path(paths)
             arguments (Repeating)
-                paths (1, :) string {mustBeNonmissing};
+                paths (1, :) string {Path.mustBeNonmissing};
             end
             
             % Default constructor
@@ -111,7 +111,7 @@ classdef Path < matlab.mixin.CustomDisplay
         function result = addSuffix(objects, suffix)
             arguments
                 objects(1, :)
-                suffix (1, :) string {mustBeNonmissing, Path.mustBeValidName, Path.mustBeEqualSizeOrScalar(suffix, objects)}
+                suffix (1, :) string {Path.mustBeValidName, Path.mustBeEqualSizeOrScalar(suffix, objects)}
             end            
             result = objects.new(objects.string + suffix);            
         end
@@ -527,7 +527,7 @@ classdef Path < matlab.mixin.CustomDisplay
         end
         
         function mustBeValidName(values)
-            if any(values.strlength == 0) || any(values.contains(["\", "/", pathsep]))
+            if any(ismissing(values)) || any(values.strlength == 0) || any(values.contains(["\", "/", pathsep]))
                 throwAsCaller(MException("Path:Validation:InvalidName", "Value must be a valid file name."));
             end
         end
@@ -535,6 +535,12 @@ classdef Path < matlab.mixin.CustomDisplay
         function mustNotContainPathSeparator(values)
             if any(values.contains(pathsep))
                 throwAsCaller(MException("Path:Validation:ContainsPathsep", "Value must not contain a path separator character."));
+            end
+        end
+        
+        function mustBeNonmissing(values)
+            if any(ismissing(values))
+                throwAsCaller(MException("Path:Validation:InvalidName", "Value must be non-missing."));
             end
         end
 

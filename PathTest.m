@@ -33,6 +33,18 @@ classdef PathTest < matlab.unittest.TestCase
             end
         end
         
+        function assertError2(obj, func, expected)
+            % Version of assertError which allows expecting one of multiple
+            % error IDs.
+            actual = "";
+            try
+                func()
+            catch exc
+                actual = exc.identifier;
+            end
+            obj.assertTrue(ismember(actual, expected));
+        end
+        
         function result = testRoot(obj)
             if ispc
                 result = "C:";
@@ -487,9 +499,9 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertEqual(File(obj.testRoot + "/a/b\\c.e\").parts, [testRootWithoutLeadingSeparator, "a", "b", "c.e"]);
             obj.assertEqual(Folder(".\..\/\../a/b\\c.e\").parts, ["..", "..", "a", "b", "c.e"]);
             obj.assertEqual(File().parts, ".");
-            obj.assertError(@() Folder.empty.parts, "MATLAB:validation:IncompatibleSize");
-            obj.assertError(@() File("a", "b").parts, "MATLAB:validation:IncompatibleSize");
             
+            obj.assertError2(@() Folder.empty.parts, ["MATLAB:validation:IncompatibleSize", "MATLAB:functionValidation:NotScalar"]);
+            obj.assertError2(@() File("a", "b").parts, ["MATLAB:validation:IncompatibleSize", "MATLAB:functionValidation:NotScalar"]);            
         end
         
         function strlength(obj)
@@ -529,7 +541,7 @@ classdef PathTest < matlab.unittest.TestCase
             referenceFolder2 = Folder("b/c").absolute;
             obj.assertEqual(file3.relative(referenceFolder2), File("..\..\a.b"));
             
-            obj.assertError(@() file3.relative([Folder, Folder]), "MATLAB:validation:IncompatibleSize");
+            obj.assertError2(@() file3.relative([Folder, Folder]), ["MATLAB:validation:IncompatibleSize", "MATLAB:functionValidation:NotScalar"]);
             
             obj.assertEqual(file3.relative("."), file3);
             obj.assertEqual(File("a.b", "c/d").relative, File("a.b", "c/d"));
@@ -707,12 +719,12 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertFalse(id == -1);
             obj.assertEqual(errorMessage, '');
             fclose(id);
-            obj.assertError(@() fopen([file, file]), "MATLAB:validation:IncompatibleSize");
+            obj.assertError2(@() fopen([file, file]), ["MATLAB:validation:IncompatibleSize", "MATLAB:functionValidation:NotScalar"]);
         end
         
         function open(obj)
             file = obj.testFolder / "a.b";
-            obj.assertError(@() open([file, file]), "MATLAB:validation:IncompatibleSize");
+            obj.assertError2(@() open([file, file]), ["MATLAB:validation:IncompatibleSize", "MATLAB:functionValidation:NotScalar"]);
             obj.assertError(@() file.open, "Path:mustExist:Failed");
             id = file.open("w");
             obj.assertFalse(id == -1);

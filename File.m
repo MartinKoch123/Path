@@ -19,7 +19,7 @@ classdef File < Path
         function objects = setStem(objects, stems)
             arguments
                 objects(1, :)
-                stems (1, :) string {mustBeNonmissing, Path.mustBeValidName, Path.mustBeEqualSizeOrScalar(stems, objects)}
+                stems (1, :) string {Path.mustBeValidName, Path.mustBeEqualSizeOrScalar(stems, objects)}
             end
             if isscalar(stems)
                 stems = repmat(stems, 1, objects.count);
@@ -52,7 +52,7 @@ classdef File < Path
         function objects = addStemSuffix(objects, suffix)
             arguments
                 objects(1, :)
-                suffix (1, :) string {mustBeNonmissing, Path.mustBeValidName, Path.mustBeEqualSizeOrScalar(suffix, objects)}
+                suffix (1, :) string {Path.mustBeValidName, Path.mustBeEqualSizeOrScalar(suffix, objects)}
             end
             if isscalar(suffix)
                 suffix = repmat(suffix, 1, objects.count);
@@ -70,7 +70,7 @@ classdef File < Path
         function results = setExtension(objects, extension)
             arguments
                 objects (1, :)
-                extension (1, :) string {mustBeNonmissing, File.mustBeValidExtension, Path.mustBeEqualSizeOrScalar(extension, objects)}
+                extension (1, :) string {File.mustBeValidExtension, Path.mustBeEqualSizeOrScalar(extension, objects)}
             end
             missesDotAndIsNonEmpty = ~extension.startsWith(".") & strlength(extension) > 0;
             extension(missesDotAndIsNonEmpty) = "." + extension(missesDotAndIsNonEmpty);
@@ -289,7 +289,7 @@ classdef File < Path
                 obj (1, 1)
             end
             arguments (Repeating)
-                variables (1, 1) string {mustBeValidVariableName}
+                variables (1, 1) string {File.mustBeValidVariableName}
             end
             if isempty(variables)
                 error("Path:load:MissingArgument", "Not enough inputs arguments.");
@@ -306,7 +306,7 @@ classdef File < Path
                 obj (1, 1)
             end
             arguments (Repeating)
-                variables (1, 1) string {mustBeValidVariableName}
+                variables (1, 1) string {File.mustBeValidVariableName}
             end
             
             if nargout ~= length(variables)
@@ -334,7 +334,7 @@ classdef File < Path
         
         function result = ofMatlabElement(elements)
             arguments
-                elements (1, :) string {mustBeNonmissing}
+                elements (1, :) string {Path.mustBeNonmissing}
             end
             result = File.empty;
             for element = elements
@@ -391,6 +391,12 @@ classdef File < Path
         function mustBeValidExtension(values)
             if any(values.contains(["\", "/", pathsep]))
                 throwAsCaller(MException("Path:Validation:InvalidExtension", "Value must be a valid extension."));
+            end
+        end
+        
+        function mustBeValidVariableName(values)
+            if any(arrayfun(@(x) ~isvarname(x), values))
+                throwAsCaller(MException("Path:Validation:InvalidVariableName", "Value must be a valid variable name."));
             end
         end
     end
