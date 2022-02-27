@@ -149,6 +149,8 @@ classdef Folder < Path
     end
     
     methods (Static)
+
+        %% Factory methods
         
         function result = ofMatlabElement(elements)
             result = File.ofMatlabElement(elements).parent;
@@ -183,6 +185,18 @@ classdef Folder < Path
             else
                 result = Folder(getenv("HOME"));
             end
+        end
+
+        function result = matlab
+            result = Folder(matlabroot);
+        end
+
+        function result = searchPath
+            result = Folder(path);
+        end
+
+        function result = userPath
+            result = Folder(userpath);
         end
 
     end

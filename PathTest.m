@@ -151,6 +151,18 @@ classdef PathTest < matlab.unittest.TestCase
                 obj.assertEqual(Folder.home, Folder(getenv("HOME")));
             end
         end
+
+        function matlab(obj)
+            obj.assertEqual(Folder.matlab, Folder(matlabroot));
+        end
+
+        function searchPath(obj)
+            obj.assertEqual(Folder.searchPath, Folder(path));
+        end
+
+        function userPath(obj)
+            obj.assertEqual(Folder.userPath, Folder(userpath));
+        end
                 
         %% Conversion
         function string(obj)
