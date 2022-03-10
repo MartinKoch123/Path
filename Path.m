@@ -223,7 +223,6 @@ classdef Path < matlab.mixin.CustomDisplay
             pattern = Path.clean(pattern);
             result = objects.where(@(obj) Path.matchesWildcardPattern(obj.root.string, pattern, false));
         end
-        
 
         
         %% Properties
@@ -504,7 +503,7 @@ classdef Path < matlab.mixin.CustomDisplay
             arguments (Repeating)
                 messageArguments
             end
-            if ismissing(identifiers) || any(startsWith(exception.identifier, identifiers))
+            if (isscalar(identifiers) && ismissing(identifiers)) || any(startsWith(exception.identifier, identifiers))
                 messageFormat = messageFormat + "\nCaused by: %s";
                 messageArguments{end+1} = exception.message;
                 message = sprintf(messageFormat, messageArguments{:});

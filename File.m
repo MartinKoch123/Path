@@ -185,7 +185,7 @@ classdef File < Path
                     target.parent.mkdir;
                     copyfile(obj.string, target.string);
                 catch exception
-                    extendError(exception, ["MATLAB:COPYFILE:", "MATLAB:MKDIR:"], "Unable to copy file ""%s"" to ""%s"".", obj, target);
+                    Path.extendError(exception, ["MATLAB:COPYFILE:", "MATLAB:MKDIR:"], "Unable to copy file ""%s"" to ""%s"".", obj, target);
                 end
             end
         end
@@ -205,7 +205,7 @@ classdef File < Path
                     target = targetFolder \ obj.name;
                     copyfile(obj.string, target.string);
                 catch exception
-                    extendError(exception, ["MATLAB:COPYFILE:", "MATLAB:MKDIR:"], "Unable to copy file ""%s"" to folder ""%s"".", obj, targetFolder);
+                    Path.extendError(exception, ["MATLAB:COPYFILE:", "MATLAB:MKDIR:"], "Unable to copy file ""%s"" to folder ""%s"".", obj, targetFolder);
                 end
             end
         end
@@ -228,7 +228,7 @@ classdef File < Path
                     target.parent.mkdir;
                     movefile(obj.string, target.string);
                 catch exception
-                    extendError(exception, ["MATLAB:MOVEFILE:", "MATLAB:MKDIR:"], "Unable to move file ""%s"" to ""%s"".", obj, target);
+                    Path.extendError(exception, ["MATLAB:MOVEFILE:", "MATLAB:MKDIR:"], "Unable to move file ""%s"" to ""%s"".", obj, target);
                 end
             end
         end
@@ -248,7 +248,7 @@ classdef File < Path
                     target = targetFolder \ obj.name;
                     movefile(obj.string, target.string);
                 catch exception
-                    extendError(exception, ["MATLAB:MOVEFILE:", "MATLAB:MKDIR:"], "Unable to move file ""%s"" to folder ""%s"".", obj, targetFolder);
+                    Path.extendError(exception, ["MATLAB:MOVEFILE:", "MATLAB:MKDIR:"], "Unable to move file ""%s"" to folder ""%s"".", obj, targetFolder);
                 end
             end
         end

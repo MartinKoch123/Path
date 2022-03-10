@@ -69,7 +69,7 @@ classdef Folder < Path
         %% File system interaction                
         function result = exists(objects)
             result = arrayfun(@(obj) isfolder(obj.string), objects);
-        end            
+        end     
         
         function result = modifiedDate(objects)
             objects.mustExist
@@ -102,7 +102,7 @@ classdef Folder < Path
                 try
                     mkdir(obj.string);
                 catch exception
-                    extendError(exception, "MATLAB:MKDIR", "Error while creating folder ""%s"".", obj);
+                    Path.extendError(exception, "MATLAB:MKDIR", "Error while creating folder ""%s"".", obj);
                 end
             end
         end
