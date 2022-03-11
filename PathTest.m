@@ -128,8 +128,7 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertEqual(actual, expected);
         end
         
-        %% Factories
-        
+        %% Factories        
         function fileOfMatlabElement(obj)
             actual = File.ofMatlabElement(["mean", "PathTest"]).string;
             expected = string({which("mean") which("PathTest")});
@@ -706,7 +705,7 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertFileExists(obj.testFolder / ["a.b", "c/d.e"]);
         end
         
-        function fileExistsAndFolderExists(obj)            
+        function fileExistsAndFolderExists(obj)
             files = obj.testFolder / ["a.b", "c/d.e"];
             folders = Folder(files);
             obj.assertEqual(files.exists, [false, false]);
@@ -766,7 +765,7 @@ classdef PathTest < matlab.unittest.TestCase
             end
         end
 
-        function copy_(obj)
+        function copy_File_n_to_n(obj)
             sources = obj.testFolder / ["a.b", "c/d.e"];
             targets = obj.testFolder / ["f.g", "h/i.j"];
 
@@ -775,8 +774,9 @@ classdef PathTest < matlab.unittest.TestCase
 
             targets.mustExist;
             sources.mustExist;
+        end
 
-            % Copy one file to multiple locations
+        function copy_File_1_to_n(obj)
             source = obj.testFolder / "k.l";
             targets = obj.testFolder / ["m.n", "o/p.q"];
             
@@ -785,6 +785,36 @@ classdef PathTest < matlab.unittest.TestCase
             
             source.mustExist;
             targets.mustExist;
+        end
+
+        function copy_Folder_n_to_n(obj)
+            files = obj.testFolder / ["a/b.c", "d/e/f.h"];
+            files.createEmptyFile;
+
+            sources = obj.testFolder / ["a", "d"];
+            targets = obj.testFolder / ["i", "j/k"];
+
+            sources.copy(targets);
+
+            targets.mustExist;
+            newFiles = obj.testFolder / ["i/b.c", "j/k/e/f.h"];
+            newFiles.mustExist;
+            sources.mustExist;
+        end
+
+        function copy_Folder_1_to_n(obj)
+            files = obj.testFolder / "a/b.c";
+            files.createEmptyFile;
+
+            sources = obj.testFolder / "a";
+            targets = obj.testFolder / ["i", "j/k"];
+
+            sources.copy(targets);
+
+            targets.mustExist;
+            newFiles = obj.testFolder / ["i/b.c", "j/k/b.c"];
+            newFiles.mustExist;
+            sources.mustExist;
         end
         
         function copyToFolder(obj)
@@ -798,7 +828,7 @@ classdef PathTest < matlab.unittest.TestCase
             File.empty.copyToFolder(target);
         end
 
-        function move(obj)
+        function move_File_n_to_n(obj)
             sources = obj.testFolder / ["a.b", "c/d.e"];
             targets = obj.testFolder / ["f.g", "h/i.j"];
 
@@ -806,6 +836,30 @@ classdef PathTest < matlab.unittest.TestCase
             sources.move(targets);
 
             targets.mustExist;
+            obj.assertAllFalse(sources.exists);
+        end
+
+        function move_File_1_to_n(obj)
+            source = obj.testFolder / "a.b";
+            targets = obj.testFolder / ["f.g", "h/i.j"];
+
+            source.createEmptyFile;
+
+            obj.assertError2(@() source.move(targets), "Path:move:InvalidNumberOfTargets")
+        end
+
+        function move_Folder_n_to_n(obj)
+            files = obj.testFolder / ["a/b.c", "d/e/f.h"];
+            files.createEmptyFile;
+
+            sources = obj.testFolder / ["a", "d"];
+            targets = obj.testFolder / ["i", "j/k"];
+
+            sources.move(targets);
+
+            targets.mustExist;
+            newFiles = obj.testFolder / ["i/b.c", "j/k/e/f.h"];
+            newFiles.mustExist;
             obj.assertAllFalse(sources.exists);
         end
         

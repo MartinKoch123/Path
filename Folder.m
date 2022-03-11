@@ -70,7 +70,7 @@ classdef Folder < Path
         function result = exists(objects)
             result = arrayfun(@(obj) isfolder(obj.string), objects);
         end     
-        
+
         function result = modifiedDate(objects)
             objects.mustExist
             result(objects.count) = datetime;
@@ -229,7 +229,7 @@ classdef Folder < Path
     
 end
 
-function result = listFiles(folder)    
+function result = listFiles(folder)
     result = strings(0);    
     folderContents = dir(folder)';    
     for folderContent = folderContents

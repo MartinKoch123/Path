@@ -254,8 +254,7 @@ classdef Path < matlab.mixin.CustomDisplay
             result = obj.string.strlength;
         end
         
-        %% Absolute/Relative  
-        
+        %% Absolute/Relative          
         function result = absolute(objects, referenceFolder)
             arguments
                 objects
@@ -308,6 +307,57 @@ classdef Path < matlab.mixin.CustomDisplay
                 end
             end
         end 
+
+        function copy(objects, targets)
+            arguments
+                objects
+                targets (1, :) Folder
+            end
+            objects.copyOrMove(targets, true)
+        end
+
+        function move(objects, targets)
+            arguments
+                objects
+                targets (1, :) Folder
+            end
+            objects.copyOrMove(targets, false);
+        end
+
+        function copyOrMove(objects, targets, copy)
+            arguments
+                objects
+                targets (1, :) Folder
+                copy 
+            end
+            if copy
+                operationName = "copy";
+            else
+                operationName = "move";
+            end
+            if objects.count == 1 && copy
+                objects = repmat(objects, 1, length(targets));
+            end
+            if objects.count ~= length(targets)
+                error("Path:" + operationName + ":InvalidNumberOfTargets", "Number of target paths must be equal the number of source paths.")
+            end
+            for i = 1 : objects.count
+                obj = objects(i);
+                obj.mustExist;
+                target = targets(i);
+                obj.onCopying(target)
+                try
+                    target.parent.mkdir;
+                    if copy
+                        copyfile(obj.string, target.string);
+                    else
+                        movefile(obj.string, target.string);
+                    end
+                catch exception
+                    Path.extendError(exception, ["MATLAB:COPYFILE:", "MATLAB:MOVEFILE:", "MATLAB:MKDIR:"], "Unable to %s %s ""%s"" to ""%s"".", operationName, lower(class(obj)), obj, target);
+                end
+            end
+        end
                 
         %% Array
         function result = isEmpty(objects)
@@ -444,6 +494,8 @@ classdef Path < matlab.mixin.CustomDisplay
             end
         end
         
+        function onCopying(obj, target)
+        end
     end
     
     methods (Static, Access = protected)
