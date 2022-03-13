@@ -1,10 +1,10 @@
 classdef File < Path
-% File Represents a file path.    
-% 
+% File Represents a file path.
+%
 % For details, visit the <a href="matlab:
 % web('https://github.com/MartinKoch123/Path/wiki')">documentation on GitHub</a>.
     
-    methods        
+    methods
         
         %% Name
         function result = setName(objects, varargin)
@@ -133,7 +133,7 @@ classdef File < Path
                 obj.mustExist;
             else
                 obj.parent.mkdir;
-            end                
+            end
             [id, errorMessage] = obj.fopen(permission, varargin{:});
             if id == -1
                 error(errorMessage); end
@@ -175,7 +175,7 @@ classdef File < Path
                 obj.mustExist;
                 if isfile(targetFolder.string)
                     error("Path:copyToFolder:TargetFolderIsFile", "The target folder ""%s"" is an existing file.", targetFolder); end
-                try                    
+                try
                     targetFolder.mkdir;
                     target = targetFolder \ obj.name;
                     copyfile(obj.string, target.string);
@@ -195,7 +195,7 @@ classdef File < Path
                 obj.mustExist;
                 if isfile(targetFolder.string)
                     error("Path:moveToFolder:TargetFolderIsFile", "The target folder ""%s"" is an existing file.", targetFolder); end
-                try                    
+                try
                     targetFolder.mkdir;
                     target = targetFolder \ obj.name;
                     movefile(obj.string, target.string);
@@ -228,7 +228,7 @@ classdef File < Path
                 text (1, 1) string
             end
             [fileId, autoClose] = obj.openForWritingText;
-            fprintf(fileId, "%s", text);            
+            fprintf(fileId, "%s", text);
         end
         
         function result = bytes(objects)
@@ -345,7 +345,7 @@ classdef File < Path
         end
     end
     
-    methods (Static, Access = private)        
+    methods (Static, Access = private)
         function mustBeValidExtension(values)
             if any(values.contains(["\", "/", pathsep]))
                 throwAsCaller(MException("Path:Validation:InvalidExtension", "Value must be a valid extension."));

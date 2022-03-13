@@ -1,17 +1,17 @@
 classdef Folder < Path
 % Folder Represents a folder path.
-% 
+%
 % For details, visit the <a href="matlab:
 % web('https://github.com/MartinKoch123/Path/wiki')">documentation on GitHub</a>.
     
     methods
         
-        %% Name        
+        %% Name
         function result = setName(objects, varargin)
             result = objects.parent.appendFolder(varargin{:});
         end
         
-        %% Append         
+        %% Append
         function varargout = append(objects, appendage)
             arguments
                 objects(1, :)
@@ -20,7 +20,7 @@ classdef Folder < Path
                 appendage (1, :) string {Path.mustBeNonmissing}
             end
             
-            appendage = Path.clean(appendage{:});            
+            appendage = Path.clean(appendage{:});
             extension = regexp(appendage, "(?<!\.|^)\.[^\.]*$", "once", "match");
             if all(ismissing(extension))
                 result = objects.appendFolder(appendage);
@@ -38,8 +38,8 @@ classdef Folder < Path
             end
             arguments (Repeating)
                 appendage (1, :) string {Path.mustBeNonmissing}
-            end            
-            appendage = Path.clean(appendage{:});                  
+            end
+            appendage = Path.clean(appendage{:});
             result = objects.appendFile_(appendage);
             varargout = deal_(result, nargout);
         end
@@ -50,8 +50,8 @@ classdef Folder < Path
             end
             arguments (Repeating)
                 appendage (1, :) string {Path.mustBeNonmissing}
-            end            
-            appendage = Path.clean(appendage{:});               
+            end
+            appendage = Path.clean(appendage{:});
             result = objects.appendFolder_(appendage);
             varargout = deal_(result, nargout);
         end
@@ -66,10 +66,10 @@ classdef Folder < Path
             varargout = deal_(result, nargout);
         end
         
-        %% File system interaction                
+        %% File system interaction
         function result = exists(objects)
             result = arrayfun(@(obj) isfolder(obj.string), objects);
-        end     
+        end
 
         function result = modifiedDate(objects)
             objects.mustExist
@@ -90,7 +90,7 @@ classdef Folder < Path
             try
                 cd(obj.string);
             catch exception
-                throwAsCaller(exception); 
+                throwAsCaller(exception);
             end
         end
         
@@ -164,7 +164,7 @@ classdef Folder < Path
             if callingFile.startsWith("LiveEditorEvaluationHelper")
                 error("Folder:ofCaller:LiveScript", "Calling this method from a live script is not supported. Consider using 'Folder.ofMatlabElement' instead. Example: Folder.ofMatlabElement(""PathExamples.mlx"")."); end
             result = File.ofMatlabElement(callingFile).parent;
-        end 
+        end
         
         function result = empty
             result = Folder;
@@ -205,7 +205,7 @@ classdef Folder < Path
         function result = appendFile_(objects, files)
             if isempty(objects) || isempty(files)
                 result = objects;
-                return 
+                return
             elseif isscalar(objects) || isscalar(files) || length(objects) == length(files)
                 result = File(objects.string + filesep + files.string);
             else
@@ -216,7 +216,7 @@ classdef Folder < Path
         function result = appendFolder_(objects, folders)
             if isempty(objects) || isempty(folders)
                 result = objects;
-                return 
+                return
             elseif isscalar(objects) || isscalar(folders) || length(objects) == length(folders)
                 result = Folder(objects.string + filesep + folders.string);
             else
@@ -226,12 +226,11 @@ classdef Folder < Path
         end
     end
     
-    
 end
 
 function result = listFiles(folder)
-    result = strings(0);    
-    folderContents = dir(folder)';    
+    result = strings(0);
+    folderContents = dir(folder)';
     for folderContent = folderContents
         path = folder + filesep + folderContent.name;
         if folderContent.isdir
@@ -240,8 +239,8 @@ function result = listFiles(folder)
             result = [result, listFiles(path)];
         else
             result(end+1) = path;
-        end        
-    end    
+        end
+    end
 end
 
 function result = deal_(paths, outputCount)

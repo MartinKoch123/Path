@@ -82,7 +82,6 @@ classdef PathTest < matlab.unittest.TestCase
         end
     end
     
-    
     methods (Test)
         
         %% Constructor
@@ -128,7 +127,7 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertEqual(actual, expected);
         end
         
-        %% Factories        
+        %% Factories
         function fileOfMatlabElement(obj)
             actual = File.ofMatlabElement(["mean", "PathTest"]).string;
             expected = string({which("mean") which("PathTest")});
@@ -472,7 +471,6 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertEqual(Folder.empty.whereRootIsNot([obj.testRootPattern, "asf"]), Folder.empty);
         end
         
-        
         %% Properties
         function isRelative(obj)
             obj.assertTrue(all(File(".", "..", "a/b.c", "../../a/b/c").isRelative));
@@ -500,7 +498,7 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertEqual(File().parts, ".");
             
             obj.assertError2(@() Folder.empty.parts, ["MATLAB:validation:IncompatibleSize", "MATLAB:functionValidation:NotScalar"]);
-            obj.assertError2(@() File("a", "b").parts, ["MATLAB:validation:IncompatibleSize", "MATLAB:functionValidation:NotScalar"]);            
+            obj.assertError2(@() File("a", "b").parts, ["MATLAB:validation:IncompatibleSize", "MATLAB:functionValidation:NotScalar"]);
         end
         
         function strlength(obj)
@@ -508,7 +506,7 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertEmpty(Folder.empty.strlength)
         end
         
-        %% Absolute/Relative        
+        %% Absolute/Relative
         function absolute(obj)
             obj.assertEqual(...
                 File("a.b", obj.testRoot + "/c/d.e").absolute, ...
@@ -548,7 +546,7 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertEqual(Folder.empty.relative(referencePath), Folder.empty);
             
             file2 = File(obj.testRoot2 + "/a.b");
-            obj.assertError(@() file2.relative(referencePath), "Path:relative:RootsDiffer"); 
+            obj.assertError(@() file2.relative(referencePath), "Path:relative:RootsDiffer");
             
             folder2 = Folder("a/b");
             obj.assertEqual(folder2.relative, folder2.relative(pwd));
@@ -594,7 +592,7 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertEqual(file1, files(1));
             obj.assertEqual(file2, files(2));
             
-            obj.assertError(@testFun, "Path:deal:InvalidNumberOfOutputs");            
+            obj.assertError(@testFun, "Path:deal:InvalidNumberOfOutputs");
             function testFun
                 [file1, file2, file3] = files.deal;
             end
@@ -640,7 +638,7 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertEqual(file1, File("a/b.c"));
             obj.assertEqual(file2, File("a/d.e"));
             
-            obj.assertError(@testFun, "Path:deal:InvalidNumberOfOutputs");            
+            obj.assertError(@testFun, "Path:deal:InvalidNumberOfOutputs");
             function testFun
                 [file1, file2, file3] = Folder("a").append("b.c", "d.e");
             end
@@ -660,7 +658,7 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertEqual(file1, File("a/b.c"));
             obj.assertEqual(file2, File("a/d.e"));
             
-            obj.assertError(@testFun, "Path:deal:InvalidNumberOfOutputs");            
+            obj.assertError(@testFun, "Path:deal:InvalidNumberOfOutputs");
             function testFun
                 [file1, file2, file3] = Folder("a") / ["b.c", "d.e"];
             end
@@ -672,7 +670,7 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertEqual(file1, File("a/b.c"));
             obj.assertEqual(file2, File("a/d.e"));
             
-            obj.assertError(@testFun, "Path:deal:InvalidNumberOfOutputs");            
+            obj.assertError(@testFun, "Path:deal:InvalidNumberOfOutputs");
             function testFun
                 [file1, file2, file3] = Folder("a") \ ["b.c", "d.e"];
             end
@@ -914,8 +912,8 @@ classdef PathTest < matlab.unittest.TestCase
             file = obj.testFolder / "a.txt";
             fileId = file.openForWritingText;
             fprintf(fileId, "%s", expected);
-            fclose(fileId);            
-            actual = file.readText;            
+            fclose(fileId);
+            actual = file.readText;
             obj.assertEqual(actual, expected);
         end
         

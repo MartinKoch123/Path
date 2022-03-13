@@ -112,10 +112,9 @@ classdef Path < matlab.mixin.CustomDisplay
             arguments
                 objects(1, :)
                 suffix (1, :) string {Path.mustBeValidName, Path.mustBeEqualSizeOrScalar(suffix, objects)}
-            end            
-            result = objects.new(objects.string + suffix);            
+            end
+            result = objects.new(objects.string + suffix);
         end
-        
         
         %% Parent
         function result = parent(objects)
@@ -223,7 +222,6 @@ classdef Path < matlab.mixin.CustomDisplay
             pattern = Path.clean(pattern);
             result = objects.where(@(obj) Path.matchesWildcardPattern(obj.root.string, pattern, false));
         end
-
         
         %% Properties
         function result = isRelative(objects)
@@ -254,7 +252,7 @@ classdef Path < matlab.mixin.CustomDisplay
             result = obj.string.strlength;
         end
         
-        %% Absolute/Relative          
+        %% Absolute/Relative
         function result = absolute(objects, referenceFolder)
             arguments
                 objects
@@ -273,7 +271,7 @@ classdef Path < matlab.mixin.CustomDisplay
                 objects
                 referenceFolder (1, 1) Folder = Folder(pwd)
             end
-            paths = objects.absolute;            
+            paths = objects.absolute;
             referenceFolder = referenceFolder.absolute;
             referenceParts = referenceFolder.parts;
             nReferenceParts = length(referenceParts);
@@ -306,7 +304,7 @@ classdef Path < matlab.mixin.CustomDisplay
                     throwAsCaller(obj.notFoundException);
                 end
             end
-        end 
+        end
 
         function copy(objects, targets)
             arguments
@@ -328,7 +326,7 @@ classdef Path < matlab.mixin.CustomDisplay
             arguments
                 objects
                 targets (1, :) Folder
-                copy 
+                copy
             end
             if copy
                 operationName = "copy";
@@ -383,7 +381,7 @@ classdef Path < matlab.mixin.CustomDisplay
             for i = 1:nargout
                 varargout{i} = objects(i);
             end
-        end        
+        end
         
         function result = vertcat(obj, varargin)
             error("Path:vertcat:NotAllowed", "Vertical concatenation is not allowed. This is necessary to guarentee the functionality of the class methods. Consider using horizontal concatenation instead.");
@@ -483,7 +481,7 @@ classdef Path < matlab.mixin.CustomDisplay
             if ~obj.hasParent || obj.parent.exists
                 return; end
             
-            currentFolder = obj;            
+            currentFolder = obj;
             while true
                 if ~currentFolder.hasParent || currentFolder.parent.exists
                     causeException = currentFolder.notFoundException;
@@ -505,7 +503,7 @@ classdef Path < matlab.mixin.CustomDisplay
             result = paths;
             if isempty(paths)
                 return
-            end            
+            end
             paths = paths.join(pathsep).split(pathsep);
             for i = 1 : length(paths)
                 s = paths(i);
@@ -606,8 +604,6 @@ classdef Path < matlab.mixin.CustomDisplay
     
     methods (Abstract)
         result = exists(objects);
-        result = setName(objects, names)        
+        result = setName(objects, names)
     end
 end
-
-
