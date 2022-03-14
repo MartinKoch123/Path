@@ -164,46 +164,6 @@ classdef File < Path
             if nargout == 2
                 autoClose = onCleanup(@() tryToClose(id)); end
         end
-       
-        function copyToFolder(objects, targetFolder)
-            arguments
-                objects
-                targetFolder (1, 1) Folder
-            end
-            for i = 1 : objects.count
-                obj = objects(i);
-                obj.mustExist;
-                if isfile(targetFolder.string)
-                    error("Path:copyToFolder:TargetFolderIsFile", "The target folder ""%s"" is an existing file.", targetFolder); end
-                try
-                    targetFolder.mkdir;
-                    target = targetFolder \ obj.name;
-                    copyfile(obj.string, target.string);
-                catch exception
-                    Path.extendError(exception, ["MATLAB:COPYFILE:", "MATLAB:MKDIR:"], "Unable to copy file ""%s"" to folder ""%s"".", obj, targetFolder);
-                end
-            end
-        end
-       
-        function moveToFolder(objects, targetFolder)
-            arguments
-                objects
-                targetFolder (1, 1) Folder
-            end
-            for i = 1 : objects.count
-                obj = objects(i);
-                obj.mustExist;
-                if isfile(targetFolder.string)
-                    error("Path:moveToFolder:TargetFolderIsFile", "The target folder ""%s"" is an existing file.", targetFolder); end
-                try
-                    targetFolder.mkdir;
-                    target = targetFolder \ obj.name;
-                    movefile(obj.string, target.string);
-                catch exception
-                    Path.extendError(exception, ["MATLAB:MOVEFILE:", "MATLAB:MKDIR:"], "Unable to move file ""%s"" to folder ""%s"".", obj, targetFolder);
-                end
-            end
-        end
         
         function delete(objects)
             for obj = objects
