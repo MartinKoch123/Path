@@ -938,9 +938,6 @@ classdef PathTest < matlab.unittest.TestCase
             folders = [obj.testFolder, obj.testFolder];
             obj.assertEqual(folders.listFiles, obj.testFolder / ["a.b", "c.d"]);
             obj.assertError(@() Folder("klajsdfoi67w3pi47n").listFiles, "Path:mustExist:Failed");
-            emptyFolder = obj.testFolder.appendFolder("empty");
-            emptyFolder.mkdir;
-            obj.assertEqual(emptyFolder.listFiles, File.empty);
         end
         
         function listDeepFiles(obj)
@@ -952,6 +949,22 @@ classdef PathTest < matlab.unittest.TestCase
             emptyFolder = obj.testFolder.appendFolder("empty");
             emptyFolder.mkdir;
             obj.assertEqual(emptyFolder.listDeepFiles, File.empty);
+        end
+
+        function listFolders(obj)
+            files = obj.testFolder / ["a.b", "c/d.e", "e/f/g.h", "i/j.k"];
+            files.createEmptyFile;
+            folders = [obj.testFolder, obj.testFolder];
+            obj.assertEqual(folders.listFolders, obj.testFolder / ["c", "e", "i"]);
+            obj.assertError(@() Folder("klajsdfoi67w3pi47n").listFolders, "Path:mustExist:Failed");
+        end
+
+        function listDeepFolders(obj)
+            files = obj.testFolder / ["a.b", "c/d.e", "e/f/g.h", "i/j.k"];
+            files.createEmptyFile;
+            folders = [obj.testFolder, obj.testFolder];
+            obj.assertEqual(folders.listDeepFolders, obj.testFolder / ["c", "e", "e/f", "i"]);
+            obj.assertError(@() Folder("klajsdfoi67w3pi47n").listDeepFolders, "Path:mustExist:Failed");
         end
         
         function delete_(obj)

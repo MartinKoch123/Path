@@ -108,25 +108,49 @@ classdef Folder < Path
         end
         
         function result = listFiles(objects)
-            filePaths = strings(1, 0);
+            files = strings(1, 0);
             objects.mustExist;
             for obj = objects.unique_
                 contentInfo = obj.dir;
-                fileInfo = contentInfo(~[contentInfo.isdir]);
-                for i = 1 : length(fileInfo)
-                    filePaths(end+1) = obj.string + "\" + fileInfo(i).name;
+                fileInfoList = contentInfo(~[contentInfo.isdir]);
+                for fileInfo = fileInfoList'
+                    files(end+1) = obj.string + "\" + fileInfo.name;
                 end
             end
-            result = File(filePaths);
+            result = File(files);
         end
         
         function result = listDeepFiles(objects)
-            filePaths = strings(1, 0);
+            files = strings(1, 0);
             objects.mustExist;
             for obj = objects.unique_
-                filePaths = [filePaths, listFiles(obj.string)];
+                files = [files, listDeepPaths(obj.string, true)];
             end
-            result = File(filePaths);
+            result = File(files);
+        end
+
+        function result = listFolders(objects)
+            folders = strings(1, 0);
+            objects.mustExist;
+            for obj = objects.unique_
+                contentInfo = obj.dir;
+                folderInfoList = contentInfo([contentInfo.isdir]);
+                for folderInfo = folderInfoList'
+                    if ismember(folderInfo.name, [".", ".."])
+                        continue; end
+                    folders(end+1) = obj.string + "\" + folderInfo.name;
+                end
+            end
+            result = Folder(folders);
+        end
+
+        function result = listDeepFolders(objects)
+            folders = strings(1, 0);
+            objects.mustExist;
+            for obj = objects.unique_
+                folders = [folders, listDeepPaths(obj.string, false)];
+            end
+            result = Folder(folders);
         end
         
         function result = tempFile(obj, n)
@@ -228,16 +252,18 @@ classdef Folder < Path
     
 end
 
-function result = listFiles(folder)
+function result = listDeepPaths(folder, fileMode)
     result = strings(0);
     folderContents = dir(folder)';
     for folderContent = folderContents
         path = folder + filesep + folderContent.name;
         if folderContent.isdir
-            if folderContent.name == "." || folderContent.name == ".."
+            if ismember(folderContent.name, [".", ".."])
                 continue; end
-            result = [result, listFiles(path)];
-        else
+            if ~fileMode
+                result(end+1) = path; end
+            result = [result, listDeepPaths(path, fileMode)];
+        elseif fileMode
             result(end+1) = path;
         end
     end
