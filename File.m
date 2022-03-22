@@ -3,19 +3,19 @@ classdef File < Path
 %
 % For details, visit the <a href="matlab:
 % web('https://github.com/MartinKoch123/Path/wiki')">documentation on GitHub</a>.
-    
+
     methods
-        
+
         %% Name
         function result = setName(objects, varargin)
             result = objects.parent.appendFile(varargin{:});
         end
-        
+
         %% Stem
         function result = stem(objects)
             result = objects.selectString(@(obj) obj.stem_);
         end
-        
+
         function objects = setStem(objects, stems)
             arguments
                 objects(1, :)
@@ -28,27 +28,27 @@ classdef File < Path
                 objects(i).stem_ = stems(i);
             end
         end
-        
+
         function result = hasStem(objects, pattern)
             arguments; objects; pattern (1, :) string = strings(0); end
             result = objects.selectLogical(@(obj) Path.matchesWildcardPattern(obj.stem_, pattern, true));
         end
-        
+
         function result = whereStemIs(objects, pattern)
             arguments; objects; pattern (1, :) string = strings(0); end
             result = objects.where(@(obj) Path.matchesWildcardPattern(obj.stem_, pattern, true));
         end
-        
+
         function result = hasNotStem(objects, pattern)
             arguments; objects; pattern (1, :) string = strings(0); end
             result = objects.selectLogical(@(obj) Path.matchesWildcardPattern(obj.stem_, pattern, false));
         end
-        
+
         function result = whereStemIsNot(objects, pattern)
             arguments; objects; pattern (1, :) string = strings(0); end
             result = objects.where(@(obj) Path.matchesWildcardPattern(obj.stem_, pattern, false));
         end
-        
+
         function objects = addStemSuffix(objects, suffix)
             arguments
                 objects(1, :)
@@ -61,12 +61,12 @@ classdef File < Path
                 objects(i).stem_ = objects(i).stem_ + suffix(i);
             end
         end
-        
+
         %% Extension
         function result = extension(objects)
             result = objects.selectString(@(obj) obj.extension_);
         end
-        
+
         function results = setExtension(objects, extension)
             arguments
                 objects (1, :)
@@ -76,32 +76,32 @@ classdef File < Path
             extension(missesDotAndIsNonEmpty) = "." + extension(missesDotAndIsNonEmpty);
             results = File([objects.parent_] + [objects.stem_] + extension);
         end
-        
+
         function result = hasExtension(objects, pattern)
             arguments; objects; pattern (1, :) string = strings(0); end
             result = objects.selectLogical(@(obj) Path.matchesWildcardPattern(obj.extension_, pattern, true));
         end
-        
+
         function result = whereExtensionIs(objects, pattern)
             arguments; objects; pattern (1, :) string = strings(0); end
             result = objects.where(@(obj) Path.matchesWildcardPattern(obj.extension_, pattern, true));
         end
-        
+
         function result = hasNotExtension(objects, pattern)
             arguments; objects; pattern (1, :) string = strings(0); end
             result = objects.selectLogical(@(obj) Path.matchesWildcardPattern(obj.extension_, pattern, false));
         end
-        
+
         function result = whereExtensionIsNot(objects, pattern)
             arguments; objects; pattern (1, :) string = strings(0); end
             result = objects.where(@(obj) Path.matchesWildcardPattern(obj.extension_, pattern, false));
         end
-                
+
         %% File system interaction
         function result = exists(objects)
             result = arrayfun(@(obj) isfile(obj.string), objects);
         end
-                
+
         function result = modifiedDate(objects)
             objects.mustExist;
             result(objects.count) = datetime;
@@ -109,26 +109,26 @@ classdef File < Path
                 result(i) = datetime(objects(i).dir.datenum, "ConvertFrom", "datenum");
             end
         end
-        
+
         function createEmptyFile(objects)
             for obj = objects
                 [~, autoClose] = obj.openForWriting;
             end
         end
-        
+
         function varargout = fopen(obj, varargin)
             arguments; obj (1, 1); end
             arguments (Repeating); varargin; end
             [varargout{1:nargout}] = fopen(obj.string, varargin{:});
         end
-        
+
         function [id, autoClose] = open(obj, permission, varargin)
             arguments
                 obj (1, 1)
                 permission (1, 1) string = "r";
             end
             arguments (Repeating); varargin; end
-            
+
             if permission.startsWith("r")
                 obj.mustExist;
             else
@@ -140,31 +140,31 @@ classdef File < Path
             if nargout == 2
                 autoClose = onCleanup(@() tryToClose(id)); end
         end
-        
+
         function [id, autoClose] = openForReading(obj)
             id = obj.open;
             if nargout == 2
                 autoClose = onCleanup(@() tryToClose(id)); end
         end
-        
+
         function [id, autoClose] = openForWriting(obj)
             id = obj.open("w");
             if nargout == 2
                 autoClose = onCleanup(@() tryToClose(id)); end
         end
-        
+
         function [id, autoClose] = openForWritingText(obj)
             id = obj.open("wt");
             if nargout == 2
                 autoClose = onCleanup(@() tryToClose(id)); end
         end
-        
+
         function [id, autoClose] = openForAppendingText(obj)
             id = obj.open("at");
             if nargout == 2
                 autoClose = onCleanup(@() tryToClose(id)); end
         end
-        
+
         function delete(objects)
             for obj = objects
                 if obj.exists
@@ -172,7 +172,7 @@ classdef File < Path
                 end
             end
         end
-        
+
         function result = readText(obj)
             arguments
                 obj (1, 1)
@@ -181,7 +181,7 @@ classdef File < Path
             result = string(fileread(obj.string));
             result = result.replace(sprintf("\r\n"), newline);
         end
-        
+
         function writeText(obj, text)
             arguments
                 obj (1, 1)
@@ -190,11 +190,11 @@ classdef File < Path
             [fileId, autoClose] = obj.openForWritingText;
             fprintf(fileId, "%s", text);
         end
-        
+
         function result = bytes(objects)
             result = [objects.dir.bytes];
         end
-        
+
         %% Save and load
         function save(obj, variables)
             arguments
@@ -212,7 +212,7 @@ classdef File < Path
             obj.parent.mkdir;
             save(obj.string, "-struct", "saveStruct");
         end
-        
+
         function varargout = load(obj, variables)
             arguments
                 obj (1, 1)
@@ -220,7 +220,7 @@ classdef File < Path
             arguments (Repeating)
                 variables (1, 1) string {File.mustBeValidVariableName}
             end
-            
+
             if nargout ~= length(variables)
                 error("Path:load:InputOutputMismatch", "The number of outputs, %i, must match the number of variables to load, %i.", nargout, length(variables)); end
             data = load(obj.string, variables{:});
@@ -231,18 +231,18 @@ classdef File < Path
                 varargout{end+1} = data.(variable);
             end
         end
-        
+
         function result = mrdivide(~, ~)
             error("Not supported for objects of class File");
         end
-        
+
         function result = mldivide(~, ~)
             error("Not supported for objects of class File");
         end
     end
-       
+
     methods (Static)
-        
+
         function result = ofMatlabElement(elements)
             arguments
                 elements (1, :) string {Path.mustBeNonmissing}
@@ -250,7 +250,7 @@ classdef File < Path
             result = File.empty;
             for element = elements
                 path = string(which(element));
-                
+
                 % If the queried element happens to have the name of a
                 % variable in this function, temporarily rename that
                 % variable.
@@ -260,9 +260,9 @@ classdef File < Path
                     path = string(which(element));
                     eval(element + " = temp");
                 end
-                
+
                 if path.startsWith("built")
-                    
+
                     % Remove "build in" and brackets.
                     path = regexprep(path, ["^[^\(]*\(", "\)$"], "");
                 elseif path == ""
@@ -271,7 +271,7 @@ classdef File < Path
                 result(end+1) = File(path);
             end
         end
-        
+
         function result = ofCaller
             stack = dbstack;
             if length(stack) == 1
@@ -281,12 +281,12 @@ classdef File < Path
                 error("File:ofCaller:LiveScript", "Calling this method from a live script is not supported. Consider using 'File.ofMatlabElement' instead. Example: File.ofMatlabElement(""PathExamples.mlx"")."); end
             result = File.ofMatlabElement(callingFile);
         end
-        
+
         function result = empty
             result = File;
             result = result(double.empty(1, 0));
         end
-        
+
         function result = temp(n)
             arguments
                 n (1, 1) {mustBeInteger, mustBeNonnegative} = 1
@@ -304,21 +304,21 @@ classdef File < Path
                 error("Path:copy:TargetFileIsFolder", "The target ""%s"" is an existing folder.", target); end
         end
     end
-    
+
     methods (Static, Access = private)
         function mustBeValidExtension(values)
             if any(values.contains(["\", "/", pathsep]))
                 throwAsCaller(MException("Path:Validation:InvalidExtension", "Value must be a valid extension."));
             end
         end
-        
+
         function mustBeValidVariableName(values)
             if any(arrayfun(@(x) ~isvarname(x), values))
                 throwAsCaller(MException("Path:Validation:InvalidVariableName", "Value must be a valid variable name."));
             end
         end
     end
-    
+
 end
 
 function tryToClose(fileId)

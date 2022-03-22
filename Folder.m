@@ -3,14 +3,14 @@ classdef Folder < Path
 %
 % For details, visit the <a href="matlab:
 % web('https://github.com/MartinKoch123/Path/wiki')">documentation on GitHub</a>.
-    
+
     methods
-        
+
         %% Name
         function result = setName(objects, varargin)
             result = objects.parent.appendFolder(varargin{:});
         end
-        
+
         %% Append
         function varargout = append(objects, appendage)
             arguments
@@ -19,7 +19,7 @@ classdef Folder < Path
             arguments (Repeating)
                 appendage (1, :) string {Path.mustBeNonmissing}
             end
-            
+
             appendage = Path.clean(appendage{:});
             extension = regexp(appendage, "(?<!\.|^)\.[^\.]*$", "once", "match");
             if all(ismissing(extension))
@@ -31,7 +31,7 @@ classdef Folder < Path
             end
             varargout = deal_(result, nargout);
         end
-        
+
         function varargout = appendFile(objects, appendage)
             arguments
                 objects(1, :)
@@ -43,7 +43,7 @@ classdef Folder < Path
             result = objects.appendFile_(appendage);
             varargout = deal_(result, nargout);
         end
-        
+
         function varargout = appendFolder(objects, appendage)
             arguments
                 objects(1, :)
@@ -55,17 +55,17 @@ classdef Folder < Path
             result = objects.appendFolder_(appendage);
             varargout = deal_(result, nargout);
         end
-        
+
         function varargout = mrdivide(objects, appendage)
             result = objects.append(appendage);
             varargout = deal_(result, nargout);
         end
-        
+
         function varargout = mldivide(objects, appendage)
             result = objects.append(appendage);
             varargout = deal_(result, nargout);
         end
-        
+
         %% File system interaction
         function result = exists(objects)
             result = arrayfun(@(obj) isfolder(obj.string), objects);
@@ -79,7 +79,7 @@ classdef Folder < Path
                 result(i) = datetime(content({content.name} == ".").datenum, "ConvertFrom", "datenum");
             end
         end
-        
+
         function varargout = cd(obj)
             arguments
                 obj (1, 1)
@@ -93,7 +93,7 @@ classdef Folder < Path
                 throwAsCaller(exception);
             end
         end
-        
+
         function mkdir(objects)
             for obj = objects
                 if obj.exists
@@ -106,7 +106,7 @@ classdef Folder < Path
                 end
             end
         end
-        
+
         function result = listFiles(objects)
             files = strings(1, 0);
             objects.mustExist;
@@ -119,7 +119,7 @@ classdef Folder < Path
             end
             result = File(files);
         end
-        
+
         function result = listDeepFiles(objects)
             files = strings(1, 0);
             objects.mustExist;
@@ -152,7 +152,7 @@ classdef Folder < Path
             end
             result = Folder(folders);
         end
-        
+
         function result = tempFile(obj, n)
             arguments
                 obj (1, 1)
@@ -163,23 +163,23 @@ classdef Folder < Path
                 result(i) = File(tempname(obj.string));
             end
         end
-        
+
         function rmdir(objects, varargin)
             for obj = objects
                 rmdir(obj.string, varargin{:});
             end
         end
-        
+
     end
-    
+
     methods (Static)
 
         %% Factory methods
-        
+
         function result = ofMatlabElement(elements)
             result = File.ofMatlabElement(elements).parent;
         end
-        
+
         function result = ofCaller
             stack = dbstack;
             if length(stack) == 1
@@ -189,20 +189,20 @@ classdef Folder < Path
                 error("Folder:ofCaller:LiveScript", "Calling this method from a live script is not supported. Consider using 'Folder.ofMatlabElement' instead. Example: Folder.ofMatlabElement(""PathExamples.mlx"")."); end
             result = File.ofMatlabElement(callingFile).parent;
         end
-        
+
         function result = empty
             result = Folder;
             result = result(double.empty(1, 0));
         end
-        
+
         function result = temp
             result = Folder(tempdir);
         end
-        
+
         function result = current
             result = Folder(pwd);
         end
-        
+
         function result = home
             if Path.IS_WINDOWS
                 result = Folder(getenv("USERPROFILE"));
@@ -224,7 +224,7 @@ classdef Folder < Path
         end
 
     end
-    
+
     methods (Access = private)
         function result = appendFile_(objects, files)
             if isempty(objects) || isempty(files)
@@ -236,7 +236,7 @@ classdef Folder < Path
                 error("Folder:append:LengthMismatch", "Length of object array, %i, and length of appendage array, %i, must either match or one of them must be scalar.", length(objects), length(files));
             end
         end
-        
+
         function result = appendFolder_(objects, folders)
             if isempty(objects) || isempty(folders)
                 result = objects;
@@ -249,24 +249,24 @@ classdef Folder < Path
             end
         end
     end
-    
+
 end
 
 function result = listDeepPaths(folder, fileMode)
-    result = strings(0);
-    folderContents = dir(folder)';
-    for folderContent = folderContents
-        path = folder + filesep + folderContent.name;
-        if folderContent.isdir
-            if ismember(folderContent.name, [".", ".."])
-                continue; end
-            if ~fileMode
-                result(end+1) = path; end
-            result = [result, listDeepPaths(path, fileMode)];
-        elseif fileMode
-            result(end+1) = path;
-        end
+result = strings(0);
+folderContents = dir(folder)';
+for folderContent = folderContents
+    path = folder + filesep + folderContent.name;
+    if folderContent.isdir
+        if ismember(folderContent.name, [".", ".."])
+            continue; end
+        if ~fileMode
+            result(end+1) = path; end
+        result = [result, listDeepPaths(path, fileMode)];
+    elseif fileMode
+        result(end+1) = path;
     end
+end
 end
 
 function result = deal_(paths, outputCount)
