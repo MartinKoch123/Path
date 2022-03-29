@@ -8,15 +8,15 @@ classdef Path < matlab.mixin.CustomDisplay
         extension_
         stem_
         parent_
-        root_
     end
 
-    properties (Constant, Access = protected, Hidden)
+    properties (Constant, Access=protected, Hidden)
         FILE_SEPARATOR_REGEX = regexptranslate("escape", filesep);
         DOCUMENTATION_WEB_PAGE = "https://github.com/MartinKoch123/Path/wiki";
         ROOT_REGEX_WINDOWS = "^(\\\\[^\\]+|[A-Za-z]:|)";
         ROOT_REGEX_POSIX = "^(/[^/]*|)";
         IS_WINDOWS = ispc;
+        ROOT_REGEX = tern(Path.IS_WINDOWS, Path.ROOT_REGEX_WINDOWS, Path.ROOT_REGEX_POSIX)
     end
 
     methods
@@ -65,7 +65,11 @@ classdef Path < matlab.mixin.CustomDisplay
 
         %% Conversion
         function result = string(objects)
-            result = objects.selectString(@(obj) obj.parent_ + obj.stem_ + obj.extension_);
+            if isempty(objects)
+                result = strings(1, 0);
+                return
+            end
+            result = [objects.parent_] + [objects.stem_] + [objects.extension_];
         end
 
         function result = char(obj)
@@ -85,27 +89,25 @@ classdef Path < matlab.mixin.CustomDisplay
 
         %% Name
         function result = name(objects)
-            result = objects.selectPath(@(obj) objects.new(obj.stem_ + obj.extension_), objects.empty);
+            result = objects.new(objects.nameString);
+        end
+
+        function result = nameString(objects)
+            if isempty(objects)
+                result = strings(1, 0);
+                return
+            end
+            result = [objects.stem_] + [objects.extension_];
         end
 
         function result = hasName(objects, pattern)
             arguments; objects; pattern (1, :) string = strings(0); end
-            result = objects.selectLogical(@(obj) Path.matchesWildcardPattern(obj.stem_ + obj.extension_, pattern, true));
-        end
-
-        function result = whereNameIs(objects, pattern)
-            arguments; objects; pattern (1, :) string = strings(0); end
-            result = objects.where(@(obj) Path.matchesWildcardPattern(obj.stem_ + obj.extension_, pattern, true));
+            result = objects.selectLogical(@(obj) Path.matches(obj.stem_ + obj.extension_, pattern, true));
         end
 
         function result = hasNotName(objects, pattern)
             arguments; objects; pattern (1, :) string = strings(0); end
-            result = objects.selectLogical(@(obj) Path.matchesWildcardPattern(obj.stem_ + obj.extension_, pattern, false));
-        end
-
-        function result = whereNameIsNot(objects, pattern)
-            arguments; objects; pattern (1, :) string = strings(0); end
-            result = objects.where(@(obj) Path.matchesWildcardPattern(obj.stem_ + obj.extension_, pattern, false));
+            result = objects.selectLogical(@(obj) Path.matches(obj.stem_ + obj.extension_, pattern, false));
         end
 
         function result = addSuffix(objects, suffix)
@@ -118,7 +120,17 @@ classdef Path < matlab.mixin.CustomDisplay
 
         %% Parent
         function result = parent(objects)
-            result = objects.selectFolder(@(obj) Folder(obj.parent_));
+            result = Folder(objects.parentString);
+        end
+
+        function result = parentString(objects)
+            if isempty(objects)
+                result = strings(1, 0);
+                return
+            end
+            result = [objects.parent_];
+            result = regexprep(result, Path.FILE_SEPARATOR_REGEX + "$", "");
+            result(result == "") = ".";
         end
 
         function objects = setParent(objects, parents)
@@ -132,7 +144,6 @@ classdef Path < matlab.mixin.CustomDisplay
             for i = 1 : length(objects)
                 objects(i).parent_ = parents(i).string + filesep;
             end
-
         end
 
         function result = hasParent(objects, pattern)
@@ -142,17 +153,7 @@ classdef Path < matlab.mixin.CustomDisplay
                 return
             end
             pattern = Path.clean(pattern);
-            result = objects.selectLogical(@(obj) Path.matchesWildcardPattern(obj.parent.string, pattern, true));
-        end
-
-        function result = whereParentIs(objects, pattern)
-            arguments; objects; pattern (1, :) string = missing; end
-            if ismissing(pattern)
-                result = objects.whereParentIsNot(".");
-                return
-            end
-            pattern = Path.clean(pattern);
-            result = objects.where(@(obj) Path.matchesWildcardPattern(obj.parent.string, pattern, true));
+            result = objects.selectLogical(@(obj) Path.matches(obj.parentString, pattern, true));
         end
 
         function result = hasNotParent(objects, pattern)
@@ -162,27 +163,21 @@ classdef Path < matlab.mixin.CustomDisplay
                 return
             end
             pattern = Path.clean(pattern);
-            result = objects.selectLogical(@(obj) Path.matchesWildcardPattern(obj.parent.string, pattern, false));
-        end
-
-        function result = whereParentIsNot(objects, pattern)
-            arguments; objects; pattern (1, :) string = missing; end
-            if ismissing(pattern)
-                result = objects.whereParentIs(".");
-                return
-            end
-            pattern = Path.clean(pattern);
-            result = objects.where(@(obj) Path.matchesWildcardPattern(obj.parent.string, pattern, false));
+            result = objects.selectLogical(@(obj) Path.matches(obj.parentString, pattern, false));
         end
 
         %% Root
         function result = root(objects)
-            if Path.IS_WINDOWS
-                expression = Path.ROOT_REGEX_WINDOWS;
-            else
-                expression = Path.ROOT_REGEX_POSIX;
+            result = Folder(objects.rootString);
+        end
+        
+        function result = rootString(objects)
+            if isempty(objects)
+                result = strings(1, 0);
+                return
             end
-            result = objects.selectFolder(@(obj) Folder(regexp(obj.string, expression, "match", "emptymatch")));
+            result = regexp(objects.string, Path.ROOT_REGEX, "match", "emptymatch", "once");
+            result(result == "") = ".";
         end
 
         function result = setRoot(objects, root)
@@ -190,37 +185,20 @@ classdef Path < matlab.mixin.CustomDisplay
                 objects
                 root (1, 1) string {Path.mustNotContainPathSeparator}
             end
-            if Path.IS_WINDOWS
-                expression = Path.ROOT_REGEX_WINDOWS;
-            else
-                expression = Path.ROOT_REGEX_POSIX;
-            end
             root = root + filesep;
-            result = objects.selectPath(@(obj) objects.new(regexprep(obj.string, expression, root, "emptymatch")), objects.empty);
+            result = objects.selectPath(@(obj) objects.new(regexprep(obj.string, Path.ROOT_REGEX, root, "emptymatch")), objects.empty);
         end
 
         function result = hasRoot(objects, pattern)
             arguments; objects; pattern (1, :) string = strings(0); end
             pattern = Path.clean(pattern);
-            result = objects.selectLogical(@(obj) Path.matchesWildcardPattern(obj.root.string, pattern, true));
-        end
-
-        function result = whereRootIs(objects, pattern)
-            arguments; objects; pattern (1, :) string = strings(0); end
-            pattern = Path.clean(pattern);
-            result = objects.where(@(obj) Path.matchesWildcardPattern(obj.root.string, pattern, true));
+            result = objects.selectLogical(@(obj) Path.matches(obj.root.string, pattern, true));
         end
 
         function result = hasNotRoot(objects, pattern)
             arguments; objects; pattern (1, :) string = strings(0); end
             pattern = Path.clean(pattern);
-            result = objects.selectLogical(@(obj) Path.matchesWildcardPattern(obj.root.string, pattern, false));
-        end
-
-        function result = whereRootIsNot(objects, pattern)
-            arguments; objects; pattern (1, :) string = strings(0); end
-            pattern = Path.clean(pattern);
-            result = objects.where(@(obj) Path.matchesWildcardPattern(obj.root.string, pattern, false));
+            result = objects.selectLogical(@(obj) Path.matches(obj.root.string, pattern, false));
         end
 
         %% Properties
@@ -250,6 +228,49 @@ classdef Path < matlab.mixin.CustomDisplay
 
         function result = strlength(obj)
             result = obj.string.strlength;
+        end
+
+        %% Filter
+        function result = where(objects, options)
+            arguments
+                objects
+                options.Path (1, :) string = "*"
+                options.PathNot (1, :) string = strings(0);
+                options.Name (1, :) string = "*"
+                options.NameNot (1, :) string = strings(0)
+                options.Parent (1, :) string = "*"
+                options.ParentNot (1, :) string = strings(0)
+                options.Root (1, :) string = "*"
+                options.RootNot (1, :) string = strings(0)
+            end
+            path        = Path.clean(options.Path);
+            pathNot     = Path.clean(options.PathNot);
+            name        = Path.clean(options.Name);
+            nameNot     = Path.clean(options.NameNot);
+            parent      = Path.clean(options.Parent);
+            parentNot   = Path.clean(options.ParentNot);
+            root        = Path.clean(options.Root);
+            rootNot     = Path.clean(options.RootNot);
+
+            pathStrings = objects.string;
+            parentStrings = objects.parentString;
+            rootStrings = objects.rootString;
+            nameStrings = objects.nameString;
+
+            keep =  ...
+                Path.matches2(pathStrings, path, true) & ...
+                Path.matches2(pathStrings, pathNot, false) & ...
+                Path.matches2(nameStrings, name, true) & ...
+                Path.matches2(nameStrings, nameNot, false) & ...
+                Path.matches2(parentStrings, parent, true) & ...
+                Path.matches2(parentStrings, parentNot, false) & ...
+                Path.matches2(rootStrings, root, true) & ...
+                Path.matches2(rootStrings, rootNot, false);
+
+            result = objects(keep);
+            if isempty(result)
+                result = objects.new([]);
+            end
         end
 
         %% Absolute/Relative
@@ -353,7 +374,8 @@ classdef Path < matlab.mixin.CustomDisplay
         end
 
         function varargout = unique_(objects, varargin)
-            [varargout{1:nargout}] = unique(objects, varargin{:});
+            [varargout{1:nargout}] = unique(objects.string, varargin{:});
+            varargout{1} = objects.new(varargout{1});
         end
 
         function varargout = deal(objects)
@@ -425,7 +447,7 @@ classdef Path < matlab.mixin.CustomDisplay
             end
         end
 
-        function result = where(objects, filterFun)
+        function result = where_(objects, filterFun)
             keep = true(1, length(objects));
             for iObject = 1:length(objects)
                 keep(iObject) = filterFun(objects(iObject));
@@ -580,7 +602,7 @@ classdef Path < matlab.mixin.CustomDisplay
             end
         end
 
-        function result = matchesWildcardPattern(s, patterns, mode)
+        function result = matches(s, patterns, mode)
             result = ~mode;
             for pattern = regexptranslate("wildcard", patterns)
                 if ~isempty(regexp(s, "^"+pattern+"$", 'once'))
@@ -588,6 +610,20 @@ classdef Path < matlab.mixin.CustomDisplay
                     return
                 end
             end
+        end
+
+        function result = matches2(s, patterns, mode)
+            pattern = "^(" + regexptranslate("wildcard", patterns).join("|") + ")$";
+            indices = regexp(s, pattern, "once", "emptymatch");
+            if isscalar(s)
+                result = isempty(indices);
+            else
+                result = cellfun(@isempty, indices);
+            end
+            if mode 
+                result = ~result;
+            end
+
         end
 
         function mustBeEqualSizeOrScalar(value, objects)
@@ -613,11 +649,18 @@ classdef Path < matlab.mixin.CustomDisplay
                 throwAsCaller(MException("Path:Validation:InvalidName", "Value must be non-missing."));
             end
         end
-
     end
 
     methods (Abstract)
         result = exists(objects);
         result = setName(objects, names)
     end
+end
+
+function result = tern(condition, a, b)
+if condition
+    result = a;
+else
+    result = b;
+end
 end

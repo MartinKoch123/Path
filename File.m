@@ -31,22 +31,12 @@ classdef File < Path
 
         function result = hasStem(objects, pattern)
             arguments; objects; pattern (1, :) string = strings(0); end
-            result = objects.selectLogical(@(obj) Path.matchesWildcardPattern(obj.stem_, pattern, true));
-        end
-
-        function result = whereStemIs(objects, pattern)
-            arguments; objects; pattern (1, :) string = strings(0); end
-            result = objects.where(@(obj) Path.matchesWildcardPattern(obj.stem_, pattern, true));
+            result = objects.selectLogical(@(obj) Path.matches(obj.stem_, pattern, true));
         end
 
         function result = hasNotStem(objects, pattern)
             arguments; objects; pattern (1, :) string = strings(0); end
-            result = objects.selectLogical(@(obj) Path.matchesWildcardPattern(obj.stem_, pattern, false));
-        end
-
-        function result = whereStemIsNot(objects, pattern)
-            arguments; objects; pattern (1, :) string = strings(0); end
-            result = objects.where(@(obj) Path.matchesWildcardPattern(obj.stem_, pattern, false));
+            result = objects.selectLogical(@(obj) Path.matches(obj.stem_, pattern, false));
         end
 
         function objects = addStemSuffix(objects, suffix)
@@ -79,24 +69,52 @@ classdef File < Path
 
         function result = hasExtension(objects, pattern)
             arguments; objects; pattern (1, :) string = strings(0); end
-            result = objects.selectLogical(@(obj) Path.matchesWildcardPattern(obj.extension_, pattern, true));
-        end
-
-        function result = whereExtensionIs(objects, pattern)
-            arguments; objects; pattern (1, :) string = strings(0); end
-            result = objects.where(@(obj) Path.matchesWildcardPattern(obj.extension_, pattern, true));
+            result = objects.selectLogical(@(obj) Path.matches(obj.extension_, pattern, true));
         end
 
         function result = hasNotExtension(objects, pattern)
             arguments; objects; pattern (1, :) string = strings(0); end
-            result = objects.selectLogical(@(obj) Path.matchesWildcardPattern(obj.extension_, pattern, false));
+            result = objects.selectLogical(@(obj) Path.matches(obj.extension_, pattern, false));
         end
 
-        function result = whereExtensionIsNot(objects, pattern)
-            arguments; objects; pattern (1, :) string = strings(0); end
-            result = objects.where(@(obj) Path.matchesWildcardPattern(obj.extension_, pattern, false));
-        end
+        %% Filter
+        function result = where(objects, options)
+            arguments
+                objects
+                options.Stem (1, :) string = "*"
+                options.StemNot (1, :) string = strings(0);
+                options.Extension (1, :) string = "*"
+                options.ExtensionNot (1, :) string = strings(0)
+                options.Path (1, :) string = "*"
+                options.PathNot (1, :) string = strings(0);
+                options.Name (1, :) string = "*"
+                options.NameNot (1, :) string = strings(0)
+                options.Parent (1, :) string = "*"
+                options.ParentNot (1, :) string = strings(0)
+                options.Root (1, :) string = "*"
+                options.RootNot (1, :) string = strings(0)
+            end
+            options.Stem = Path.clean(options.Stem);
+            options.StemNot = Path.clean(options.StemNot);
+            options.Extension = Path.clean(options.Extension);
+            options.ExtensionNot = Path.clean(options.ExtensionNot);
+            
+            stemStrings = objects.stem;
+            extensionStrings = objects.extension;
 
+            keep =  ...
+                Path.matches2(stemStrings, options.Stem, true) & ...
+                Path.matches2(stemStrings, options.StemNot, false) & ...
+                Path.matches2(extensionStrings, options.Extension, true) & ...
+                Path.matches2(extensionStrings, options.ExtensionNot, false);
+
+            result = objects(keep);
+
+            result = result.where@Path("Path", options.Path, "PathNot", options.PathNot, "Name", options.Name, "NameNot", options.NameNot, ...
+                "Parent", options.Parent, "ParentNot", options.ParentNot, "Root", options.Root, "RootNot", options.RootNot);
+
+        end
+        
         %% File system interaction
         function result = exists(objects)
             result = arrayfun(@(obj) isfile(obj.string), objects);

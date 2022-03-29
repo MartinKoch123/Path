@@ -39,10 +39,10 @@ The `File` and `Folder` classes allow you to solve your path-related problems us
 ```Matlab
 >> files = Folder("Sketchy Folder").listDeepFiles
     File("Sketchy Folder\DeleteStuffVirus.exe")
-    File("Sketchy Folder\System32\nastyworm.dll")
+    File("Sketchy Folder\System32\nastyWorm.dll")
     File("Sketchy Folder\dark_corner\half_a_sandwich.dat")
     File("Sketchy Folder\WormholeResearch.pdf")
->> files.whereStemIs(["*Virus*", "*Worm*"]).whereExtensionIsNot(".pdf").copyToFolder("D:\Quarantine");
+>> files.where("Stem", ["*Virus*", "*Worm*"], "ExtensionNot", ".pdf").copyToFolder("D:\Quarantine");
 ```
 ### Get path of executing file
 ```Matlab
