@@ -100,16 +100,6 @@ classdef Path < matlab.mixin.CustomDisplay
             result = [objects.stem_] + [objects.extension_];
         end
 
-        function result = hasName(objects, pattern)
-            arguments; objects; pattern (1, :) string = strings(0); end
-            result = objects.selectLogical(@(obj) Path.matches(obj.stem_ + obj.extension_, pattern, true));
-        end
-
-        function result = hasNotName(objects, pattern)
-            arguments; objects; pattern (1, :) string = strings(0); end
-            result = objects.selectLogical(@(obj) Path.matches(obj.stem_ + obj.extension_, pattern, false));
-        end
-
         function result = addSuffix(objects, suffix)
             arguments
                 objects(1, :)
@@ -146,24 +136,8 @@ classdef Path < matlab.mixin.CustomDisplay
             end
         end
 
-        function result = hasParent(objects, pattern)
-            arguments; objects; pattern (1, :) string = missing; end
-            if ismissing(pattern)
-                result = objects.hasNotParent(".");
-                return
-            end
-            pattern = Path.clean(pattern);
-            result = objects.selectLogical(@(obj) Path.matches(obj.parentString, pattern, true));
-        end
-
-        function result = hasNotParent(objects, pattern)
-            arguments; objects; pattern (1, :) string = missing; end
-            if ismissing(pattern)
-                result = objects.hasParent(".");
-                return
-            end
-            pattern = Path.clean(pattern);
-            result = objects.selectLogical(@(obj) Path.matches(obj.parentString, pattern, false));
+        function result = hasParent(objects)
+            result = objects.is("ParentNot", ".");
         end
 
         %% Root
@@ -187,18 +161,6 @@ classdef Path < matlab.mixin.CustomDisplay
             end
             root = root + filesep;
             result = objects.selectPath(@(obj) objects.new(regexprep(obj.string, Path.ROOT_REGEX, root, "emptymatch")), objects.empty);
-        end
-
-        function result = hasRoot(objects, pattern)
-            arguments; objects; pattern (1, :) string = strings(0); end
-            pattern = Path.clean(pattern);
-            result = objects.selectLogical(@(obj) Path.matches(obj.root.string, pattern, true));
-        end
-
-        function result = hasNotRoot(objects, pattern)
-            arguments; objects; pattern (1, :) string = strings(0); end
-            pattern = Path.clean(pattern);
-            result = objects.selectLogical(@(obj) Path.matches(obj.root.string, pattern, false));
         end
 
         %% Properties
@@ -243,6 +205,27 @@ classdef Path < matlab.mixin.CustomDisplay
                 options.Root (1, :) string = "*"
                 options.RootNot (1, :) string = strings(0)
             end
+
+            args = namedargs2cell(options);
+            keep = objects.is(args{:});
+            result = objects(keep);
+            if isempty(result)
+                result = objects.new([]);
+            end
+        end
+
+        function result = is(objects, options)
+            arguments
+                objects
+                options.Path (1, :) string = "*"
+                options.PathNot (1, :) string = strings(0);
+                options.Name (1, :) string = "*"
+                options.NameNot (1, :) string = strings(0)
+                options.Parent (1, :) string = "*"
+                options.ParentNot (1, :) string = strings(0)
+                options.Root (1, :) string = "*"
+                options.RootNot (1, :) string = strings(0)
+            end
             path        = Path.clean(options.Path);
             pathNot     = Path.clean(options.PathNot);
             name        = Path.clean(options.Name);
@@ -257,7 +240,7 @@ classdef Path < matlab.mixin.CustomDisplay
             rootStrings = objects.rootString;
             nameStrings = objects.nameString;
 
-            keep =  ...
+            result =  ...
                 Path.matches2(pathStrings, path, true) & ...
                 Path.matches2(pathStrings, pathNot, false) & ...
                 Path.matches2(nameStrings, name, true) & ...
@@ -266,11 +249,6 @@ classdef Path < matlab.mixin.CustomDisplay
                 Path.matches2(parentStrings, parentNot, false) & ...
                 Path.matches2(rootStrings, root, true) & ...
                 Path.matches2(rootStrings, rootNot, false);
-
-            result = objects(keep);
-            if isempty(result)
-                result = objects.new([]);
-            end
         end
 
         %% Absolute/Relative

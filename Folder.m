@@ -68,7 +68,7 @@ classdef Folder < Path
 
         %% File system interaction
         function result = exists(objects)
-            result = arrayfun(@(obj) isfolder(obj.string), objects);
+            result = objects.selectFolder(@(obj) isfolder(obj.string));
         end
 
         function result = modifiedDate(objects)

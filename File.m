@@ -29,16 +29,6 @@ classdef File < Path
             end
         end
 
-        function result = hasStem(objects, pattern)
-            arguments; objects; pattern (1, :) string = strings(0); end
-            result = objects.selectLogical(@(obj) Path.matches(obj.stem_, pattern, true));
-        end
-
-        function result = hasNotStem(objects, pattern)
-            arguments; objects; pattern (1, :) string = strings(0); end
-            result = objects.selectLogical(@(obj) Path.matches(obj.stem_, pattern, false));
-        end
-
         function objects = addStemSuffix(objects, suffix)
             arguments
                 objects(1, :)
@@ -66,17 +56,7 @@ classdef File < Path
             extension(missesDotAndIsNonEmpty) = "." + extension(missesDotAndIsNonEmpty);
             results = File([objects.parent_] + [objects.stem_] + extension);
         end
-
-        function result = hasExtension(objects, pattern)
-            arguments; objects; pattern (1, :) string = strings(0); end
-            result = objects.selectLogical(@(obj) Path.matches(obj.extension_, pattern, true));
-        end
-
-        function result = hasNotExtension(objects, pattern)
-            arguments; objects; pattern (1, :) string = strings(0); end
-            result = objects.selectLogical(@(obj) Path.matches(obj.extension_, pattern, false));
-        end
-
+        
         %% Filter
         function result = where(objects, options)
             arguments
@@ -94,30 +74,55 @@ classdef File < Path
                 options.Root (1, :) string = "*"
                 options.RootNot (1, :) string = strings(0)
             end
-            options.Stem = Path.clean(options.Stem);
-            options.StemNot = Path.clean(options.StemNot);
-            options.Extension = Path.clean(options.Extension);
-            options.ExtensionNot = Path.clean(options.ExtensionNot);
+            
+            args = namedargs2cell(options);
+            keep =  objects.is(args{:});
+            result = objects(keep);
+            if isempty(result)
+                result = objects.new([]);
+            end
+        end
+
+        function result = is(objects, options)
+            arguments
+                objects
+                options.Stem (1, :) string = "*"
+                options.StemNot (1, :) string = strings(0);
+                options.Extension (1, :) string = "*"
+                options.ExtensionNot (1, :) string = strings(0)
+                options.Path (1, :) string = "*"
+                options.PathNot (1, :) string = strings(0);
+                options.Name (1, :) string = "*"
+                options.NameNot (1, :) string = strings(0)
+                options.Parent (1, :) string = "*"
+                options.ParentNot (1, :) string = strings(0)
+                options.Root (1, :) string = "*"
+                options.RootNot (1, :) string = strings(0)
+            end
+            for option = ["Stem", "StemNot", "Extension", "ExtensionNot"]
+                options.(option) = Path.clean(options.(option));
+            end
             
             stemStrings = objects.stem;
             extensionStrings = objects.extension;
 
-            keep =  ...
+            result =  ...
                 Path.matches2(stemStrings, options.Stem, true) & ...
                 Path.matches2(stemStrings, options.StemNot, false) & ...
                 Path.matches2(extensionStrings, options.Extension, true) & ...
                 Path.matches2(extensionStrings, options.ExtensionNot, false);
 
-            result = objects(keep);
-
-            result = result.where@Path("Path", options.Path, "PathNot", options.PathNot, "Name", options.Name, "NameNot", options.NameNot, ...
-                "Parent", options.Parent, "ParentNot", options.ParentNot, "Root", options.Root, "RootNot", options.RootNot);
+            for option = ["Stem", "StemNot", "Extension", "ExtensionNot"]
+                options = rmfield(options, option);
+            end
+            args = namedargs2cell(options);
+            result = result & objects.is@Path(args{:});
 
         end
         
         %% File system interaction
         function result = exists(objects)
-            result = arrayfun(@(obj) isfile(obj.string), objects);
+            result = objects.selectFile(@(obj) isfile(obj.string));
         end
 
         function result = modifiedDate(objects)
