@@ -534,6 +534,15 @@ classdef Path < matlab.mixin.CustomDisplay
                     s = regexprep(s, fs + "+", fs);
                 end
 
+                % Remove current-directory-dots.
+                s = regexprep(s, ["(?<=(^|"+fs+"))(\."+fs+")", "("+fs+"\.)$"], "");
+
+                % Resolve folder-up-dots.
+                expression = "("+fs+"|^)[^"+fs+":]+(?<!\.\.)"+fs+"\.\."; % Folder name followed by folder-up dots.
+                while ~isempty(regexp(s, expression, 'once'))
+                    s = regexprep(s, expression, "");
+                end
+
                 % Remove leading and trailing separators.
                 if Path.IS_WINDOWS
                     expression = ["^"+fs+"(?!"+fs+")", fs+"+$"];
@@ -541,15 +550,6 @@ classdef Path < matlab.mixin.CustomDisplay
                     expression = fs+"+$";
                 end
                 s = regexprep(s, expression, "");
-
-                % Remove current-directory-dots.
-                s = regexprep(s, ["(?<=(^|"+fs+"))(\."+fs+")", "("+fs+"\.)$"], "");
-
-                % Resolve folder-up-dots.
-                expression = "("+fs+"|^)[^"+fs+":]+(?<!\.\.)"+fs+"\.\."; % Folder name folled by folder-up dots.
-                while ~isempty(regexp(s, expression, 'once'))
-                    s = regexprep(s, expression, "");
-                end
 
                 if s == ""
                     s = ".";

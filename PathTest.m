@@ -234,9 +234,20 @@ classdef PathTest < matlab.unittest.TestCase
         end
 
         function clean_resolvesParentDirDots(obj)
-            actual = File("one/two/three/../../four");
-            expected = File("one/four");
-            obj.assertEqual(actual, expected);
+            tests = {
+                % Input / Expected (Windows) / Expected (Linux)
+                "one/two/three/../../four", "one/four", "one/four"
+                "a\..\b", "b", "/b"
+                };
+            for test = tests'
+                actual = File(test{1}).string;
+                if ispc 
+                    expected = File(test{2}).string;
+                else
+                    expected = File(test{3}).string;
+                end
+                obj.assertEqual(actual, expected);
+            end
         end
 
         %% Name
