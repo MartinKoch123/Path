@@ -144,10 +144,12 @@ classdef PathTest < matlab.unittest.TestCase
 
         function fileOfCaller(obj)
             obj.assertEqual(File.ofCaller, File(which("PathTest")));
+            obj.assertEqual(File.ofCaller(2), File(which(adjustSeparators("+matlab\+unittest\TestRunner.m"))));
         end
 
         function folderOfCaller(obj)
             obj.assertEqual(Folder.ofCaller, File(which("PathTest")).parent);
+            obj.assertEqual(Folder.ofCaller(2), File(which(adjustSeparators("+matlab\+unittest\TestRunner.m"))).parent);
         end
 
         function current(obj)

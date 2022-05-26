@@ -295,14 +295,18 @@ classdef File < Path
             end
         end
 
-        function result = ofCaller
-            stack = dbstack;
-            if length(stack) == 1
-                error("File:ofCaller:NoCaller", "This method was not called from another file."); end
-            callingFile = string(stack(2).file);
-            if callingFile.startsWith("LiveEditorEvaluationHelper")
+        function result = ofCaller(level)
+            arguments
+                level (1, 1) double {mustBeInteger, mustBePositive} = 1
+            end
+            stack = dbstack("-completenames");
+            if length(stack) < level + 1
+                error("File:ofCaller:NoCaller", "This method was not called from another file at the requested stack level."); end
+            callingFilePath = string(stack(level + 1).file);
+            callingFileBaseName = regexp(callingFilePath.string, "(+[\w\d_]+(\\|/))*[\w\d_\.]+$", "match", "once");
+            if callingFileBaseName.startsWith("LiveEditorEvaluationHelper")
                 error("File:ofCaller:LiveScript", "Calling this method from a live script is not supported. Consider using 'File.ofMatlabElement' instead. Example: File.ofMatlabElement(""PathExamples.mlx"")."); end
-            result = File.ofMatlabElement(callingFile);
+            result = File.ofMatlabElement(callingFileBaseName);
         end
 
         function result = empty
@@ -347,5 +351,6 @@ end
 function tryToClose(fileId)
 try
     fclose(fileId);
+catch 
 end
 end

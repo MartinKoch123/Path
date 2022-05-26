@@ -180,14 +180,11 @@ classdef Folder < Path
             result = File.ofMatlabElement(elements).parent;
         end
 
-        function result = ofCaller
-            stack = dbstack;
-            if length(stack) == 1
-                error("Folder:ofCaller:NoCaller", "This method was not called from another file."); end
-            callingFile = string(stack(2).file);
-            if callingFile.startsWith("LiveEditorEvaluationHelper")
-                error("Folder:ofCaller:LiveScript", "Calling this method from a live script is not supported. Consider using 'Folder.ofMatlabElement' instead. Example: Folder.ofMatlabElement(""PathExamples.mlx"")."); end
-            result = File.ofMatlabElement(callingFile).parent;
+        function result = ofCaller(level)
+            arguments
+                level (1, 1) double {mustBeInteger, mustBePositive} = 1
+            end
+            result = File.ofCaller(level + 1).parent;
         end
 
         function result = empty
