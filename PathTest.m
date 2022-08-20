@@ -651,7 +651,7 @@ classdef PathTest < matlab.unittest.TestCase
 
         function vertcat_(obj)
             actual = [File("a"); File("b")];
-            expected = File("a;b");
+            expected = File("a", "b");
             obj.assertEqual(actual, expected);
         end
 
