@@ -163,6 +163,20 @@ classdef Path < matlab.mixin.CustomDisplay
             result = objects.selectPath(@(obj) objects.new(regexprep(obj.string, Path.ROOT_REGEX, root, "emptymatch")), objects.empty);
         end
 
+        %% Regex
+        function result = regexprep(objects, expression, replace, varargin)
+            arguments
+                objects (1, :)
+                expression 
+                replace 
+            end
+            arguments (Repeating)
+                varargin
+            end
+            newStrings = regexprep(objects.string, expression, replace, varargin{:});
+            result = objects.new(newStrings);
+        end
+
         %% Properties
         function result = isRelative(objects)
             result = [objects.root] == ".";

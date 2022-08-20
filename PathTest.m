@@ -419,6 +419,18 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertError(@() File("a").setRoot(pathsep), "Path:Validation:ContainsPathsep");
         end
 
+        %% Regex
+        function regexprep(obj)
+            testPaths = {strings(0), "a.b", ["test01\two.txt", "1\2\3.x"]};
+            expression = {'\w', '\d\d'};
+            replace = {'letter', 'numbers'};
+            for testPath = testPaths
+                expected = File(regexprep(testPath{1}, expression, replace));
+                actual = File(testPath{1}).regexprep(expression, replace);
+                obj.assertEqual(actual, expected);
+            end
+        end
+
         %% Properties
         function isRelative(obj)
             obj.assertTrue(all(File(".", "..", "a/b.c", "../../a/b/c").isRelative));
