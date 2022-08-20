@@ -365,14 +365,24 @@ classdef Path < matlab.mixin.CustomDisplay
         end
 
         function result = vertcat(obj, varargin)
-            error("Path:vertcat:NotAllowed", "Vertical concatenation is not allowed. This is necessary to guarentee the functionality of the class methods. Consider using horizontal concatenation instead.");
+            result = horzcat(obj, varargin);
         end
 
         function result = subsasgn(obj, s, varargin)
             indices = s(end).subs;
             if (length(indices) == 2 && indices{1} ~= 1) || length(indices) > 2
-                error("Path:subsasgn:MultiRowsNotAllowed", "Arrays with multiple rows and arrays with more than two dimensions are not allowed. This is necessary to guarentee the functionality of the class methods. Consider using only one indexing dimension instead (""linear indexing""). Example: ""a(2:4) = b""."); end
+                e = MException("Path:subsasgn:MultiRowsNotSupported", "Column vectors and 2D arrays are not supported. Use only one indexing dimension instead (""linear indexing""). Example: ""a(2:4) = b""."); 
+                e.throwAsCaller;
+            end
             result = builtin("subsasgn", obj, s, varargin{:});
+        end
+
+        function transpose(~)
+            MException("Path:transpose:NotSupported", "Transpose operation is not supported.").throwAsCaller;
+        end
+
+        function ctranspose(~)
+            MException("Path:transpose:NotSupported", "Transpose operation is not supported.").throwAsCaller;
         end
 
     end

@@ -637,14 +637,20 @@ classdef PathTest < matlab.unittest.TestCase
         end
 
         function vertcat_(obj)
-            obj.assertError(@() [File("a"); File("b")], "Path:vertcat:NotAllowed");
-            [File, File];
+            actual = [File("a"); File("b")];
+            expected = File("a;b");
+            obj.assertEqual(actual, expected);
+        end
+
+        function transpose(obj)
+            obj.assertError(@() File("a")', "Path:transpose:NotSupported");
+            obj.assertError(@() File("a").', "Path:transpose:NotSupported");
         end
 
         function subsasgn_(obj)
 
-            obj.assertError(@() makeColumn, "Path:subsasgn:MultiRowsNotAllowed");
-            obj.assertError(@() make3dArray, "Path:subsasgn:MultiRowsNotAllowed");
+            obj.assertError(@() makeColumn, "Path:subsasgn:MultiRowsNotSupported");
+            obj.assertError(@() make3dArray, "Path:subsasgn:MultiRowsNotSupported");
             files = File;
             files(2) = File;
             files(1, 3) = File;
