@@ -332,7 +332,7 @@ classdef PathTest < matlab.unittest.TestCase
             files = File("a.b", "c/d");
             obj.assertEqual(files.setStem("e"), File("e.b", "c/e"));
             obj.assertEqual(files.setStem(["e", "f"]), File("e.b", "c/f"));
-            obj.assertError(@() files.setStem(""), "Path:Validation:InvalidName");
+            obj.assertEqual(files.setStem(""), File(".b", "c"));
             obj.assertError(@() files.setStem("a/\b"), "Path:Validation:InvalidName");
             obj.assertError(@() files.setStem(["a", "b", "c"]), "Path:Validation:InvalidSize");
         end
@@ -341,6 +341,7 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertEqual(File("a/b.c").addStemSuffix("_s"), File("a/b_s.c"))
             obj.assertEqual(File("a/b.c", "d/e").addStemSuffix("_s"), File("a/b_s.c", "d/e_s"));
             obj.assertEqual(File("a/b.c", "d/e").addStemSuffix(["_s1", "_s2"]), File("a/b_s1.c", "d/e_s2"));
+            obj.assertEqual(File("a/b.c").addStemSuffix(""), File("a/b.c"))
             obj.assertEqual(File.empty.addStemSuffix("s"), File.empty);
             obj.assertError(@() File("a/b.c", "d/e").addStemSuffix(["_s1", "_s2", "_s3"]), "Path:Validation:InvalidSize");
             obj.assertError(@() File("a/b.c", "d/e").addStemSuffix("/"), "Path:Validation:InvalidName");

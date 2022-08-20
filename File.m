@@ -16,7 +16,7 @@ classdef File < Path
             result = objects.selectString(@(obj) obj.stem_);
         end
 
-        function objects = setStem(objects, stems)
+        function results = setStem(objects, stems)
             arguments
                 objects(1, :)
                 stems (1, :) string {Path.mustBeValidName, Path.mustBeEqualSizeOrScalar(stems, objects)}
@@ -24,9 +24,7 @@ classdef File < Path
             if isscalar(stems)
                 stems = repmat(stems, 1, objects.count);
             end
-            for i = 1 : length(objects)
-                objects(i).stem_ = stems(i);
-            end
+            results = File([objects.parent_] + stems + [objects.extension_]);
         end
 
         function objects = addStemSuffix(objects, suffix)

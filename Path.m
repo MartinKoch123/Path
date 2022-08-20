@@ -621,7 +621,7 @@ classdef Path < matlab.mixin.CustomDisplay
         end
 
         function mustBeValidName(values)
-            if any(ismissing(values)) || any(values.strlength == 0) || any(values.contains(["\", "/", pathsep]))
+            if any(ismissing(values)) || any(values.contains(["\", "/", pathsep]))
                 throwAsCaller(MException("Path:Validation:InvalidName", "Value must be a valid file name."));
             end
         end
