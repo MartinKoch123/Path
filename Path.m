@@ -356,14 +356,14 @@ classdef Path < matlab.mixin.CustomDisplay
             result(isRelative) = Path(referenceFolder.string + filesep + objects(isRelative).string);
         end
 
-        function result = relative(objects, referenceFolder)
+        function result = relative(objects, referenceDir)
             arguments
                 objects
-                referenceFolder (1, 1) Path = Path(pwd)
+                referenceDir (1, 1) Path = Path(pwd)
             end
             paths = objects.absolute;
-            referenceFolder = referenceFolder.absolute;
-            referenceParts = referenceFolder.parts;
+            referenceDir = referenceDir.absolute;
+            referenceParts = referenceDir.parts;
             nReferenceParts = length(referenceParts);
             result = Path(strings(0));
             for path = paths
@@ -372,10 +372,10 @@ classdef Path < matlab.mixin.CustomDisplay
                 nLower = min([nParts, nReferenceParts]);
                 nEqualParts = find([parts(1:nLower) ~= referenceParts(1:nLower), true], 1) - 1;
                 if nEqualParts == 0
-                    error("Path:relative:RootsDiffer", "Roots of path ""%s"" and reference folder ""%s"" differ.", path, referenceFolder); end
-                folderUps = join([repmat("..", 1, nReferenceParts - nEqualParts), "."], filesep);
+                    error("Path:relative:RootsDiffer", "Roots of path ""%s"" and reference directory ""%s"" differ.", path, referenceDir); end
+                dirUps = join([repmat("..", 1, nReferenceParts - nEqualParts), "."], filesep);
                 keptTail = join([".", parts(nEqualParts+1 : end)], filesep);
-                result(end+1) = Path(folderUps + filesep + keptTail);
+                result(end+1) = Path(dirUps + filesep + keptTail);
             end
 
         end
@@ -394,22 +394,15 @@ classdef Path < matlab.mixin.CustomDisplay
         end
 
         %% File systen interaction
-        function result = dir(objects)
-            result = struct("name", {}, "folder", {}, "date", {}, "bytes", {}, "isdir", {}, "datenum", {});
-            for obj = objects
-                result = [result; dir(obj.string)];
-            end
-        end
-
         function result = exists(objects)
             result = objects.selectLogical(@(obj) isfile(obj.string) || isfolder(obj.string));
         end
 
-        function result = fileExists(objects)
+        function result = isFile(objects)
             result = objects.selectLogical(@(obj) isfile(obj.string));
         end
 
-        function result = folderExists(objects)
+        function result = isDir(objects)
             result = objects.selectLogical(@(obj) isfolder(obj.string));
         end
 
@@ -421,17 +414,17 @@ classdef Path < matlab.mixin.CustomDisplay
             end
         end
 
-        function folderMustExist(objects)
+        function mustBeDir(objects)
             for obj = objects
-                if ~obj.folderExists
+                if ~obj.isDir
                     throwAsCaller(obj.notFoundException);
                 end
             end
         end
 
-        function fileMustExist(objects)
+        function mustBeFile(objects)
             for obj = objects
-                if ~obj.fileExists
+                if ~obj.isFile
                     throwAsCaller(obj.notFoundException);
                 end
             end
@@ -440,11 +433,11 @@ classdef Path < matlab.mixin.CustomDisplay
         function result = modifiedDate(objects)
             result(objects.count) = datetime;
             for i = 1 : objects.count
-                content = objects(i).dir;
-                if objects(i).fileExists
+                content = dir(objects(i).string);
+                if objects(i).isFile
                     datenum = content.datenum;
                 else 
-                    objects(i).folderMustExist
+                    objects(i).mustBeDir
                     datenum = content({content.name} == ".").datenum;
                 end
                 result(i) = datetime(datenum, "ConvertFrom", "datenum");
@@ -532,16 +525,16 @@ classdef Path < matlab.mixin.CustomDisplay
                 try
                     mkdir(obj.string);
                 catch exception
-                    Path.extendError(exception, "MATLAB:MKDIR", "Error while creating folder ""%s"".", obj);
+                    Path.extendError(exception, "MATLAB:MKDIR", "Error while creating directory ""%s"".", obj);
                 end
             end
         end
 
         function result = listFiles(objects)
             files = strings(1, 0);
-            objects.folderMustExist;
+            objects.mustBeDir;
             for obj = objects.unique_
-                contentInfo = obj.dir;
+                contentInfo = dir(obj.string);
                 fileInfoList = contentInfo(~[contentInfo.isdir]);
                 for fileInfo = fileInfoList'
                     files(end+1) = obj.string + "\" + fileInfo.name;
@@ -552,7 +545,7 @@ classdef Path < matlab.mixin.CustomDisplay
 
         function result = listDeepFiles(objects)
             files = strings(1, 0);
-            objects.folderMustExist;
+            objects.mustBeDir;
             for obj = objects.unique_
                 files = [files, listDeepPaths(obj.string, true)];
             end
@@ -560,34 +553,34 @@ classdef Path < matlab.mixin.CustomDisplay
         end
 
         function result = listFolders(objects)
-            folders = strings(1, 0);
-            objects.folderMustExist;
+            dirs = strings(1, 0);
+            objects.mustBeDir;
             for obj = objects.unique_
-                contentInfo = obj.dir;
-                folderInfoList = contentInfo([contentInfo.isdir]);
-                for folderInfo = folderInfoList'
-                    if ismember(folderInfo.name, [".", ".."])
+                contentInfo = dir(obj.string);
+                dirInfoList = contentInfo([contentInfo.isdir]);
+                for dirInfo = dirInfoList'
+                    if ismember(dirInfo.name, [".", ".."])
                         continue; end
-                    folders(end+1) = obj.string + "\" + folderInfo.name;
+                    dirs(end+1) = obj.string + "\" + dirInfo.name;
                 end
             end
-            result = Path(folders);
+            result = Path(dirs);
         end
 
-        function result = listDeepFolders(objects)
-            folders = strings(1, 0);
-            objects.folderMustExist;
+        function result = listDeepDirs(objects)
+            dirs = strings(1, 0);
+            objects.mustBeDir;
             for obj = objects.unique_
-                folders = [folders, listDeepPaths(obj.string, false)];
+                dirs = [dirs, listDeepPaths(obj.string, false)];
             end
-            result = Path(folders);
+            result = Path(dirs);
         end
 
         function delete(objects, varargin)
             for obj = objects
-                if obj.fileExists
+                if obj.isFile
                     delete(obj.string)
-                elseif obj.folderExists
+                elseif obj.isDir
                     rmdir(obj.string, varargin{:});
                 end
             end
@@ -597,7 +590,7 @@ classdef Path < matlab.mixin.CustomDisplay
             arguments
                 obj (1, 1)
             end
-            obj.fileMustExist;
+            obj.mustBeFile;
             result = string(fileread(obj.string));
             result = result.replace(sprintf("\r\n"), newline);
         end
@@ -612,7 +605,11 @@ classdef Path < matlab.mixin.CustomDisplay
         end
 
         function result = bytes(objects)
-            result = [objects.dir.bytes];
+            objects.mustBeFile;
+            result = zeros(1, objects.count);
+            for i = 1:objects.count
+                result(i) = dir(objects(i).string).bytes;
+            end
         end
 
         function copy(objects, targets)
@@ -943,8 +940,8 @@ classdef Path < matlab.mixin.CustomDisplay
                 % Remove current-directory-dots.
                 s = regexprep(s, ["(?<=(^|"+fs+"))(\."+fs+")", "("+fs+"\.)$"], "");
 
-                % Resolve folder-up-dots.
-                expression = "("+fs+"|^)[^"+fs+":]+(?<!\.\.)"+fs+"\.\."; % Folder name followed by folder-up dots.
+                % Resolve dir-up-dots.
+                expression = "("+fs+"|^)[^"+fs+":]+(?<!\.\.)"+fs+"\.\."; % Folder name followed by dir-up dots.
                 while ~isempty(regexp(s, expression, 'once'))
                     s = regexprep(s, expression, "");
                 end
@@ -1063,13 +1060,13 @@ catch
 end
 end
 
-function result = listDeepPaths(folder, fileMode)
+function result = listDeepPaths(dir_, fileMode)
 result = strings(0);
-folderContents = dir(folder)';
-for folderContent = folderContents
-    path = folder + filesep + folderContent.name;
-    if folderContent.isdir
-        if ismember(folderContent.name, [".", ".."])
+dirContents = dir(dir_)';
+for dirContent = dirContents
+    path = dir_ + filesep + dirContent.name;
+    if dirContent.isdir
+        if ismember(dirContent.name, [".", ".."])
             continue; end
         if ~fileMode
             result(end+1) = path; end

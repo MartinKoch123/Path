@@ -711,44 +711,37 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertFolderExists(obj.testFolder / ["a", "b/a"]);
         end
 
-        function dir(obj)
-            obj.assertEqual(Path("sadfs(/%634ihsfd").dir, dir("sadfs(/%634ihsfd"));
-            obj.testFolder.join("a.b", "a2.b", "c/d.e").createEmptyFile;
-            obj.assertEqual(obj.testFolder.dir, dir(obj.testFolder.string));
-            obj.assertEqual(obj.testFolder.join("c/d.e").dir, dir(obj.testFolder.string + filesep+"c"+filesep+"d.e"));
-        end
-
         function createEmptyFile(obj)
             obj.testFolder.join("a.b", "c/d.e").createEmptyFile;
             obj.assertFileExists(obj.testFolder / ["a.b", "c/d.e"]);
         end
 
-        function fileExistsAndFolderExists(obj)
+        function isFileAndIsFolder(obj)
             paths = obj.testFolder / ["a.b", "c/d.e"];
             obj.assertEqual(paths.exists, [false, false]);
-            obj.assertEqual(paths.folderExists, [false, false]);
-            obj.assertEqual(paths.fileExists, [false, false]);
+            obj.assertEqual(paths.isDir, [false, false]);
+            obj.assertEqual(paths.isFile, [false, false]);
             obj.assertError(@() paths.mustExist, "Path:mustExist:Failed");
-            obj.assertError(@() paths.folderMustExist, "Path:mustExist:Failed");
-            obj.assertError(@() paths.fileMustExist, "Path:mustExist:Failed");
+            obj.assertError(@() paths.mustBeDir, "Path:mustExist:Failed");
+            obj.assertError(@() paths.mustBeFile, "Path:mustExist:Failed");
 
             paths.createEmptyFile;
             obj.assertEqual(paths.exists, [true, true]);
-            obj.assertEqual(paths.fileExists, [true, true]);
-            obj.assertEqual(paths.folderExists, [false, false]);
+            obj.assertEqual(paths.isFile, [true, true]);
+            obj.assertEqual(paths.isDir, [false, false]);
             paths.mustExist;
-            paths.fileMustExist;
-            obj.assertError(@() paths.folderMustExist, "Path:mustExist:Failed");
+            paths.mustBeFile;
+            obj.assertError(@() paths.mustBeDir, "Path:mustExist:Failed");
 
             delete(paths(1).string, paths(2).string);
             paths.mkdir;
 
             obj.assertEqual(paths.exists, [true, true]);
-            obj.assertEqual(paths.folderExists, [true, true]);
-            obj.assertEqual(paths.fileExists, [false, false]);
+            obj.assertEqual(paths.isDir, [true, true]);
+            obj.assertEqual(paths.isFile, [false, false]);
             paths.mustExist;
-            paths.folderMustExist
-            obj.assertError(@() paths.fileMustExist, "Path:mustExist:Failed");
+            paths.mustBeDir
+            obj.assertError(@() paths.mustBeFile, "Path:mustExist:Failed");
         end
 
         function fopen(obj)
@@ -815,24 +808,29 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertError(@() Path("klajsdfoi67w3pi47n").listFolders, "Path:mustExist:Failed");
         end
 
-        function listDeepFolders(obj)
+        function listDeepDirs(obj)
             files = obj.testFolder / ["a.b", "c/d.e", "e/f/g.h", "i/j.k"];
             files.createEmptyFile;
             folders = [obj.testFolder, obj.testFolder];
-            obj.assertEqual(folders.listDeepFolders, obj.testFolder / ["c", "e", "e/f", "i"]);
-            obj.assertError(@() Path("klajsdfoi67w3pi47n").listDeepFolders, "Path:mustExist:Failed");
+            obj.assertEqual(folders.listDeepDirs, obj.testFolder / ["c", "e", "e/f", "i"]);
+            obj.assertError(@() Path("klajsdfoi67w3pi47n").listDeepDirs, "Path:mustExist:Failed");
         end
 
         function delete_(obj)
-            files = obj.testFolder / ["a.b", "c/d.e"];
-            files.createEmptyFile;
-            files(3) = obj.testFolder / "e/f";
-            files.delete;
-            obj.assertFalse(any(files.exists));
 
-            Path(obj.testFolder.string).delete;
-            obj.assertTrue(obj.testFolder.exists);
-            error("todo, rmdir")
+            % Delete files
+            files = obj.testFolder / ["a.b", "c/d.e", "e/f"];
+            files(1:2).createEmptyFile;
+            obj.assertTrue(all(files(1:2).isFile));
+            files.delete;
+            obj.assertFalse(any(files.isFile));
+
+            folders = obj.testFolder / ["a", "b"];
+            folders.mkdir;
+            folders(1).join("c.d").createEmptyFile;
+            obj.assertError(@() folders(1).delete, "MATLAB:RMDIR:NoDirectoriesRemoved");
+            folders.delete("s");
+            obj.assertFolderDoesNotExist(folders);
         end
 
         function readText(obj)
@@ -859,10 +857,11 @@ classdef PathTest < matlab.unittest.TestCase
             fileInfo(1) = dir("Path.m");
             fileInfo(2) = dir("PathTest.m");
             obj.assertEqual(Path("Path.m", "PathTest.m").bytes, [fileInfo(1).bytes, fileInfo(2).bytes]);
-            obj.assertEqual(Path.empty.bytes, []);
+            obj.assertEqual(Path.empty.bytes, zeros(1, 0));
             oldDir.cd;
 
-            error("todo, folder")
+            obj.testFolder.mkdir;
+            obj.assertError(@() obj.testFolder.bytes, "Path:mustExist:Failed");
         end
 
         function modifiedDate(obj)
