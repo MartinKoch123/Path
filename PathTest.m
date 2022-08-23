@@ -246,8 +246,6 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertEqual(Path("..").name.string, "..");
             obj.assertEqual(Path(".").name.string, ".");
             obj.assertEmpty(Path.empty.name);
-            obj.assertInstanceOf(Path.empty.name, "Folder")
-            obj.assertInstanceOf(Path.empty.name, "File")
         end
 
         function setName(obj)
@@ -551,7 +549,7 @@ classdef PathTest < matlab.unittest.TestCase
 
             obj.assertEqual(...
                 Path("a.b").absolute("x\y"), ...
-                Path.pwd / "x\y\a.b") ...
+                Path.pwd / "x\y\a.b" ...
             );
 
             obj.assertEqual(Path(obj.testRoot).absolute, Path(obj.testRoot));
@@ -588,31 +586,31 @@ classdef PathTest < matlab.unittest.TestCase
 
         %% Array
         function isEmpty(obj)
-            obj.assertFalse(File("a", "b").isEmpty)
-            obj.assertTrue(File.empty.isEmpty)
+            obj.assertFalse(Path("a", "b").isEmpty)
+            obj.assertTrue(Path.empty.isEmpty)
         end
 
         function count(obj)
-            obj.assertEqual(File("a", "b").count, 2);
+            obj.assertEqual(Path("a", "b").count, 2);
         end
 
         function sort(obj)
-            [sortedFiles, indices] = File("a", "c", "b").sort;
-            obj.assertEqual(sortedFiles, File("a", "b", "c"));
+            [sortedFiles, indices] = Path("a", "c", "b").sort;
+            obj.assertEqual(sortedFiles, Path("a", "b", "c"));
             obj.assertEqual(indices, [1, 3, 2]);
 
-            [sortedFiles, indices] = File("a", "c", "b").sort("descend");
-            obj.assertEqual(sortedFiles, File("c", "b", "a"));
+            [sortedFiles, indices] = Path("a", "c", "b").sort("descend");
+            obj.assertEqual(sortedFiles, Path("c", "b", "a"));
             obj.assertEqual(indices, [2, 3, 1]);
         end
 
         function unique(obj)
-            obj.assertEqual(File("a", "b", "a").unique_, File("a", "b"));
-            obj.assertEqual(File.empty.unique_, File.empty);
+            obj.assertEqual(Path("a", "b", "a").unique_, Path("a", "b"));
+            obj.assertEqual(Path.empty.unique_, Path.empty);
         end
 
         function deal(obj)
-            files = File("a.b", "c.d");
+            files = Path("a.b", "c.d");
             [file1, file2] = files.deal;
             obj.assertEqual(file1, files(1));
             obj.assertEqual(file2, files(2));
@@ -624,86 +622,77 @@ classdef PathTest < matlab.unittest.TestCase
         end
 
         function vertcat_(obj)
-            actual = [File("a"); File("b")];
-            expected = File("a", "b");
+            actual = [Path("a"); Path("b")];
+            expected = Path("a", "b");
             obj.assertEqual(actual, expected);
         end
 
         function transpose(obj)
-            obj.assertError(@() File("a")', "Path:transpose:NotSupported");
-            obj.assertError(@() File("a").', "Path:transpose:NotSupported");
+            obj.assertError(@() Path("a")', "Path:transpose:NotSupported");
+            obj.assertError(@() Path("a").', "Path:transpose:NotSupported");
         end
 
         function subsasgn_(obj)
 
             obj.assertError(@() makeColumn, "Path:subsasgn:MultiRowsNotSupported");
             obj.assertError(@() make3dArray, "Path:subsasgn:MultiRowsNotSupported");
-            files = File;
-            files(2) = File;
-            files(1, 3) = File;
+            files = Path;
+            files(2) = Path;
+            files(1, 3) = Path;
 
             function makeColumn()
-                files = File("a");
-                files(2, 1) = File("b");
+                files = Path("a");
+                files(2, 1) = Path("b");
             end
 
             function make3dArray()
-                files = File("a");
-                files(1, 1, 1) = File("b");
+                files = Path("a");
+                files(1, 1, 1) = Path("b");
             end
         end
 
         %% Join
-        function append(obj)
-            obj.assertEqual(Folder("one").append(""), Folder("one"));
-            obj.assertEqual(Folder("one").append(["one", "two"]), Folder("one/one", "one/two"));
-            obj.assertEqual(Folder("one", "two").append("one"), Folder("one/one", "two/one"));
-            obj.assertEmpty(Folder.empty.append("one"), Folder);
-            obj.assertEqual(Folder("one").append(strings(0)), Folder("one"));
-            obj.assertError(@() Folder("one", "two", "three").append(["one", "two"]), "Folder:append:LengthMismatch");
-            obj.assertEqual(Folder("a").append("b", 'c', {'d', "e", "f"}), Folder("a/b", "a/c", "a/d", "a/e", "a/f"));
-            obj.assertEqual(Folder("one").append(["one.a", "two.b"]), File("one/one.a", "one/two.b"));
-            obj.assertError(@() Folder("one").append(["one.a", "two"]), "Folder:append:Ambiguous");
+        function join(obj)
+            obj.assertEqual(Path("one").join(""), Path("one"));
+            obj.assertEqual(Path("one").join(["one", "two"]), Path("one/one", "one/two"));
+            obj.assertEqual(Path("one", "two").join("one"), Path("one/one", "two/one"));
+            obj.assertEmpty(Path.empty.join("one"), Path);
+            obj.assertEqual(Path("one").join(strings(0)), Path("one"));
+            obj.assertError(@() Path("one", "two", "three").join(["one", "two"]), "Path:join:LengthMismatch");
+            obj.assertEqual(Path("a").join("b", 'c', {'d', "e", "f"}), Path("a/b", "a/c", "a/d", "a/e", "a/f"));
+            obj.assertEqual(Path("one").join(["one.a", "two.b"]), Path("one/one.a", "one/two.b"));
 
-            [file1, file2] = Folder("a").append("b.c", "d.e");
-            obj.assertEqual(file1, File("a/b.c"));
-            obj.assertEqual(file2, File("a/d.e"));
+            [file1, file2] = Path("a").join("b.c", "d.e");
+            obj.assertEqual(file1, Path("a/b.c"));
+            obj.assertEqual(file2, Path("a/d.e"));
 
             obj.assertError(@testFun, "Path:deal:InvalidNumberOfOutputs");
             function testFun
-                [file1, file2, file3] = Folder("a").append("b.c", "d.e");
+                [file1, file2, file3] = Path("a").join("b.c", "d.e");
             end
         end
 
-        function appendFile(obj)
-            obj.assertEqual(Folder("a").appendFile("b.c", "d"), File("a/b.c", "a/d"));
-        end
-
-        function appendFolder(obj)
-            obj.assertEqual(Folder("a").appendFolder("b.c", "d"), Folder("a/b.c", "a/d"));
-        end
-
         function mrdivide(obj)
-            obj.assertEqual(Folder("one") / "two", Folder("one/two"));
-            [file1, file2] = Folder("a") / ["b.c", "d.e"];
-            obj.assertEqual(file1, File("a/b.c"));
-            obj.assertEqual(file2, File("a/d.e"));
+            obj.assertEqual(Path("one") / "two", Path("one/two"));
+            [file1, file2] = Path("a") / ["b.c", "d.e"];
+            obj.assertEqual(file1, Path("a/b.c"));
+            obj.assertEqual(file2, Path("a/d.e"));
 
             obj.assertError(@testFun, "Path:deal:InvalidNumberOfOutputs");
             function testFun
-                [file1, file2, file3] = Folder("a") / ["b.c", "d.e"];
+                [file1, file2, file3] = Path("a") / ["b.c", "d.e"];
             end
         end
 
         function mldivide(obj)
-            obj.assertEqual(Folder("one") \ "two", Folder("one/two"));
-            [file1, file2] = Folder("a") \ ["b.c", "d.e"];
-            obj.assertEqual(file1, File("a/b.c"));
-            obj.assertEqual(file2, File("a/d.e"));
+            obj.assertEqual(Path("one") \ "two", Path("one/two"));
+            [file1, file2] = Path("a") \ ["b.c", "d.e"];
+            obj.assertEqual(file1, Path("a/b.c"));
+            obj.assertEqual(file2, Path("a/d.e"));
 
             obj.assertError(@testFun, "Path:deal:InvalidNumberOfOutputs");
             function testFun
-                [file1, file2, file3] = Folder("a") \ ["b.c", "d.e"];
+                [file1, file2, file3] = Path("a") \ ["b.c", "d.e"];
             end
         end
 
@@ -718,43 +707,48 @@ classdef PathTest < matlab.unittest.TestCase
         end
 
         function mkdir(obj)
-            obj.testFolder.append(["a", "b/a"]).mkdir;
+            obj.testFolder.join(["a", "b/a"]).mkdir;
             obj.assertFolderExists(obj.testFolder / ["a", "b/a"]);
         end
 
         function dir(obj)
-            obj.assertEqual(Folder("sadfs(/%634ihsfd").dir, dir("sadfs(/%634ihsfd"));
-            obj.testFolder.append("a.b", "a2.b", "c/d.e").createEmptyFile;
+            obj.assertEqual(Path("sadfs(/%634ihsfd").dir, dir("sadfs(/%634ihsfd"));
+            obj.testFolder.join("a.b", "a2.b", "c/d.e").createEmptyFile;
             obj.assertEqual(obj.testFolder.dir, dir(obj.testFolder.string));
-            obj.assertEqual(obj.testFolder.appendFile("c/d.e").dir, dir(obj.testFolder.string + filesep+"c"+filesep+"d.e"));
+            obj.assertEqual(obj.testFolder.join("c/d.e").dir, dir(obj.testFolder.string + filesep+"c"+filesep+"d.e"));
         end
 
         function createEmptyFile(obj)
-            obj.testFolder.append("a.b", "c/d.e").createEmptyFile;
+            obj.testFolder.join("a.b", "c/d.e").createEmptyFile;
             obj.assertFileExists(obj.testFolder / ["a.b", "c/d.e"]);
         end
 
         function fileExistsAndFolderExists(obj)
-            files = obj.testFolder / ["a.b", "c/d.e"];
-            folders = Folder(files);
-            obj.assertEqual(files.exists, [false, false]);
-            obj.assertEqual(folders.exists, [false, false]);
-            obj.assertError(@() files.mustExist, "Path:mustExist:Failed");
-            obj.assertError(@() folders.mustExist, "Path:mustExist:Failed");
+            paths = obj.testFolder / ["a.b", "c/d.e"];
+            obj.assertEqual(paths.exists, [false, false]);
+            obj.assertEqual(paths.folderExists, [false, false]);
+            obj.assertEqual(paths.fileExists, [false, false]);
+            obj.assertError(@() paths.mustExist, "Path:mustExist:Failed");
+            obj.assertError(@() paths.folderMustExist, "Path:mustExist:Failed");
+            obj.assertError(@() paths.fileMustExist, "Path:mustExist:Failed");
 
-            files.createEmptyFile;
-            obj.assertEqual(files.exists, [true, true]);
-            obj.assertEqual(folders.exists, [false, false]);
-            files.mustExist;
-            obj.assertError(@() folders.mustExist, "Path:mustExist:Failed");
+            paths.createEmptyFile;
+            obj.assertEqual(paths.exists, [true, true]);
+            obj.assertEqual(paths.fileExists, [true, true]);
+            obj.assertEqual(paths.folderExists, [false, false]);
+            paths.mustExist;
+            paths.fileMustExist;
+            obj.assertError(@() paths.folderMustExist, "Path:mustExist:Failed");
 
-            delete(files(1).string, files(2).string);
-            folders.mkdir;
+            delete(paths(1).string, paths(2).string);
+            paths.mkdir;
 
-            obj.assertEqual(files.exists, [false, false]);
-            obj.assertEqual(folders.exists, [true, true]);
-            folders.mustExist;
-            obj.assertError(@() files.mustExist, "Path:mustExist:Failed");
+            obj.assertEqual(paths.exists, [true, true]);
+            obj.assertEqual(paths.folderExists, [true, true]);
+            obj.assertEqual(paths.fileExists, [false, false]);
+            paths.mustExist;
+            paths.folderMustExist
+            obj.assertError(@() paths.fileMustExist, "Path:mustExist:Failed");
         end
 
         function fopen(obj)
@@ -794,192 +788,23 @@ classdef PathTest < matlab.unittest.TestCase
             end
         end
 
-        function copy_File_n_to_n(obj)
-            sources = obj.testFolder / ["a.b", "c/d.e"];
-            targets = obj.testFolder / ["f.g", "h/i.j"];
-
-            sources.createEmptyFile;
-            sources.copy(targets);
-
-            targets.mustExist;
-            sources.mustExist;
-        end
-
-        function copy_File_1_to_n(obj)
-            source = obj.testFolder / "k.l";
-            targets = obj.testFolder / ["m.n", "o/p.q"];
-
-            source.createEmptyFile;
-            source.copy(targets);
-
-            source.mustExist;
-            targets.mustExist;
-        end
-
-        function copy_File_n_to_1(obj)
-            sources = obj.testFolder / ["a.b", "c/d.e"];
-            targets = obj.testFolder / "f.g";
-
-            obj.assertError2(@() sources.copy(targets), "Path:copyOrMove:InvalidNumberOfTargets")
-        end
-
-        function copy_Folder_n_to_n(obj)
-            files = obj.testFolder / ["a/b.c", "d/e/f.h"];
-            files.createEmptyFile;
-
-            sources = obj.testFolder / ["a", "d"];
-            targets = obj.testFolder / ["i", "j/k"];
-
-            sources.copy(targets);
-
-            targets.mustExist;
-            newFiles = obj.testFolder / ["i/b.c", "j/k/e/f.h"];
-            newFiles.mustExist;
-            sources.mustExist;
-        end
-
-        function copy_Folder_1_to_n(obj)
-            files = obj.testFolder / "a/b.c";
-            files.createEmptyFile;
-
-            sources = obj.testFolder / "a";
-            targets = obj.testFolder / ["i", "j/k"];
-
-            sources.copy(targets);
-
-            targets.mustExist;
-            newFiles = obj.testFolder / ["i/b.c", "j/k/b.c"];
-            newFiles.mustExist;
-            sources.mustExist;
-        end
-
-        function copyToFolder_n_to_1(obj)
-            sources = obj.testFolder / ["a.b", "c/d.e"];
-            target = obj.testFolder / "target";
-            sources.createEmptyFile;
-            sources.copyToFolder(target);
-            target.append(sources.name).mustExist;
-            sources.mustExist;
-        end
-
-        function copyToFolder_1_to_n(obj)
-            source = obj.testFolder / "a.b";
-            targets = obj.testFolder / ["target1", "target2"];
-            source.createEmptyFile;
-            source.copyToFolder(targets);
-            targets.append(source.name).mustExist;
-            source.mustExist;
-        end
-
-        function copyToFolder_n_to_n(obj)
-            sources = obj.testFolder / ["a.b", "c/d.e"];
-            targets = obj.testFolder / ["target1", "target2"];
-            sources.createEmptyFile;
-            sources.copyToFolder(targets);
-            targets.append(sources.name).mustExist;
-            sources.mustExist;
-        end
-
-        function copyToFolder_Folder(obj)
-            source = obj.testFolder / "a";
-            target = obj.testFolder / "t";
-            subFile = source / "b.c";
-            subFile.createEmptyFile;
-            source.copyToFolder(target);
-            target.append(source.name).mustExist;
-            target.append("a/b.c").mustExist;
-            source.mustExist;
-        end
-
-        function move_File_n_to_n(obj)
-            sources = obj.testFolder / ["a.b", "c/d.e"];
-            targets = obj.testFolder / ["f.g", "h/i.j"];
-            sources.createEmptyFile;
-            sources.move(targets);
-            targets.mustExist;
-            obj.assertAllFalse(sources.exists);
-        end
-
-        function move_File_1_to_n(obj)
-            source = obj.testFolder / "a.b";
-            targets = obj.testFolder / ["f.g", "h/i.j"];
-            obj.assertError2(@() source.move(targets), "Path:copyOrMove:InvalidNumberOfTargets")
-        end
-
-        function move_File_n_to_1(obj)
-            sources = obj.testFolder / ["f.g", "h/i.j"];
-            target = obj.testFolder / "a.b";
-            obj.assertError2(@() sources.move(target), "Path:copyOrMove:InvalidNumberOfTargets")
-        end
-
-        function move_Folder_n_to_n(obj)
-            files = obj.testFolder / ["a/b.c", "d/e/f.h"];
-            files.createEmptyFile;
-
-            sources = obj.testFolder / ["a", "d"];
-            targets = obj.testFolder / ["i", "j/k"];
-
-            sources.move(targets);
-
-            targets.mustExist;
-            newFiles = obj.testFolder / ["i/b.c", "j/k/e/f.h"];
-            newFiles.mustExist;
-            obj.assertAllFalse(sources.exists);
-        end
-
-        function moveToFolder_n_to_1(obj)
-            sources = obj.testFolder / ["a.b", "c/d.e"];
-            target = obj.testFolder / "target";
-            sources.createEmptyFile;
-            sources.moveToFolder(target);
-            target.append(sources.name).mustExist;
-            obj.assertAllFalse(sources.exists);
-            File.empty.moveToFolder(target);
-        end
-
-        function moveToFolder_n_to_n(obj)
-            sources = obj.testFolder / ["a.b", "c/d.e"];
-            targets = obj.testFolder / ["target1", "target2"];
-            sources.createEmptyFile;
-            sources.moveToFolder(targets);
-            targets.append(sources.name).mustExist;
-            obj.assertAllFalse(sources.exists);
-        end
-
-        function moveToFolder_1_to_n(obj)
-            source = obj.testFolder / "a.b";
-            targets = obj.testFolder / ["target1", "target2"];
-            obj.assertError2(@() source.moveToFolder(targets), "Path:copyOrMove:InvalidNumberOfTargets")
-        end
-
-        function moveToFolder_Folder(obj)
-            source = obj.testFolder / "a";
-            target = obj.testFolder / "t";
-            subFile = source / "b.c";
-            subFile.createEmptyFile;
-            source.moveToFolder(target);
-            target.append(source.name).mustExist;
-            target.append("a/b.c").mustExist;
-            obj.assertFalse(source.exists);
-        end
-
         function listFiles(obj)
             files = obj.testFolder / ["a.b", "c.d", "e/f.g"];
             files.createEmptyFile;
             folders = [obj.testFolder, obj.testFolder];
             obj.assertEqual(folders.listFiles, obj.testFolder / ["a.b", "c.d"]);
-            obj.assertError(@() Folder("klajsdfoi67w3pi47n").listFiles, "Path:mustExist:Failed");
+            obj.assertError(@() Path("klajsdfoi67w3pi47n").listFiles, "Path:mustExist:Failed");
         end
 
         function listDeepFiles(obj)
-            files = obj.testFolder.appendFile("a.b", "c.d", "e/f/g.h");
+            files = obj.testFolder.join("a.b", "c.d", "e/f/g.h");
             files.createEmptyFile;
             folders = [obj.testFolder, obj.testFolder];
-            obj.assertEqual(folders.listDeepFiles, obj.testFolder.appendFile("a.b", "c.d", "e/f/g.h"));
-            obj.assertError(@() Folder("klajsdfoi67w3pi47n").listDeepFiles, "Path:mustExist:Failed");
-            emptyFolder = obj.testFolder.appendFolder("empty");
+            obj.assertEqual(folders.listDeepFiles, obj.testFolder.join("a.b", "c.d", "e/f/g.h"));
+            obj.assertError(@() Path("klajsdfoi67w3pi47n").listDeepFiles, "Path:mustExist:Failed");
+            emptyFolder = obj.testFolder.join("empty");
             emptyFolder.mkdir;
-            obj.assertEqual(emptyFolder.listDeepFiles, File.empty);
+            obj.assertEqual(emptyFolder.listDeepFiles, Path.empty);
         end
 
         function listFolders(obj)
@@ -987,7 +812,7 @@ classdef PathTest < matlab.unittest.TestCase
             files.createEmptyFile;
             folders = [obj.testFolder, obj.testFolder];
             obj.assertEqual(folders.listFolders, obj.testFolder / ["c", "e", "i"]);
-            obj.assertError(@() Folder("klajsdfoi67w3pi47n").listFolders, "Path:mustExist:Failed");
+            obj.assertError(@() Path("klajsdfoi67w3pi47n").listFolders, "Path:mustExist:Failed");
         end
 
         function listDeepFolders(obj)
@@ -995,7 +820,7 @@ classdef PathTest < matlab.unittest.TestCase
             files.createEmptyFile;
             folders = [obj.testFolder, obj.testFolder];
             obj.assertEqual(folders.listDeepFolders, obj.testFolder / ["c", "e", "e/f", "i"]);
-            obj.assertError(@() Folder("klajsdfoi67w3pi47n").listDeepFolders, "Path:mustExist:Failed");
+            obj.assertError(@() Path("klajsdfoi67w3pi47n").listDeepFolders, "Path:mustExist:Failed");
         end
 
         function delete_(obj)
@@ -1005,8 +830,9 @@ classdef PathTest < matlab.unittest.TestCase
             files.delete;
             obj.assertFalse(any(files.exists));
 
-            File(obj.testFolder.string).delete;
+            Path(obj.testFolder.string).delete;
             obj.assertTrue(obj.testFolder.exists);
+            error("todo, rmdir")
         end
 
         function readText(obj)
@@ -1029,16 +855,18 @@ classdef PathTest < matlab.unittest.TestCase
         end
 
         function bytes(obj)
-            oldDir = Folder.ofCaller.cd;
-            fileInfo(1) = dir("File.m");
-            fileInfo(2) = dir("Folder.m");
-            obj.assertEqual(File("File.m", "Folder.m").bytes, [fileInfo(1).bytes, fileInfo(2).bytes]);
-            obj.assertEqual(File.empty.bytes, []);
+            oldDir = Path.ofCaller.parent.cd;
+            fileInfo(1) = dir("Path.m");
+            fileInfo(2) = dir("PathTest.m");
+            obj.assertEqual(Path("Path.m", "PathTest.m").bytes, [fileInfo(1).bytes, fileInfo(2).bytes]);
+            obj.assertEqual(Path.empty.bytes, []);
             oldDir.cd;
+
+            error("todo, folder")
         end
 
         function modifiedDate(obj)
-            files = obj.testFolder.append("a.b", "c.d");
+            files = obj.testFolder.join("a.b", "c.d");
             files.createEmptyFile;
             content = dir(obj.testFolder.string);
             actual(1) = datetime(content({content.name} == "a.b").datenum, "ConvertFrom", "datenum");
@@ -1047,34 +875,6 @@ classdef PathTest < matlab.unittest.TestCase
 
             actual = datetime(content({content.name} == ".").datenum, "ConvertFrom", "datenum");
             obj.assertEqual(actual, obj.testFolder.modifiedDate)
-        end
-
-        function File_temp(obj)
-            obj.assertEqual(File.temp(0), File.empty);
-            obj.assertLength(File.temp(3), 3);
-            obj.assertEqual(File.temp.parent, Folder(tempdir));
-        end
-
-        function Folder_temp(obj)
-            obj.assertEqual(Folder.temp, Folder(tempdir));
-        end
-
-        function tempFile(obj)
-            obj.assertEqual(Folder("a").tempFile(0), File.empty);
-            files = Folder("a").tempFile(2);
-            obj.assertLength(files, 2);
-            obj.assertNotEqual(files(1), files(2));
-            obj.assertEqual(files(1).parent, Folder("a"));
-
-        end
-
-        function rmdir(obj)
-            folders = obj.testFolder / ["a", "b"];
-            folders.mkdir;
-            folders(1).append("c.d").createEmptyFile;
-            obj.assertError(@() folders(1).rmdir, "MATLAB:RMDIR:NoDirectoriesRemoved");
-            folders.rmdir("s");
-            obj.assertFolderDoesNotExist(folders);
         end
 
         %% Save and load
