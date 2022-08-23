@@ -1,5 +1,5 @@
 classdef Path < matlab.mixin.CustomDisplay
-% Path Base class for representing filesystem paths.
+% Path Represents file system paths
 %
 % For details, visit the <a href="matlab:
 % web('https://github.com/MartinKoch123/Path/wiki')">documentation on GitHub</a>.
@@ -16,7 +16,7 @@ classdef Path < matlab.mixin.CustomDisplay
         ROOT_REGEX_WINDOWS = "^(\\\\[^\\]+|[A-Za-z]:|)";
         ROOT_REGEX_POSIX = "^(/[^/]*|)";
         IS_WINDOWS = ispc;
-        ROOT_REGEX = tern(Path.IS_WINDOWS, Path.ROOT_REGEX_WINDOWS, Path.ROOT_REGEX_POSIX)
+        ROOT_REGEX = ifThenElse(Path.IS_WINDOWS, Path.ROOT_REGEX_WINDOWS, Path.ROOT_REGEX_POSIX)
     end
 
     methods
@@ -31,7 +31,7 @@ classdef Path < matlab.mixin.CustomDisplay
             end
 
             paths = Path.clean(paths{:});
-            pathCount = length(paths);
+            n = length(paths);
 
             % Empty constructor
             if isempty(paths)
@@ -39,10 +39,10 @@ classdef Path < matlab.mixin.CustomDisplay
                 return
             end
 
-            obj(pathCount) = obj;
+            obj(n) = obj;
             fs = Path.FILE_SEPARATOR_REGEX;
 
-            for i = 1 : pathCount
+            for i = 1 : n
 
                 % Extract parent directory and name.
                 match = regexp(paths(i), "^(?<parent>.*?)(?<name>[^"+fs+"]+)$", "names");
@@ -89,7 +89,11 @@ classdef Path < matlab.mixin.CustomDisplay
 
         %% Name
         function result = name(objects)
-            result = objects.new(objects.nameString);
+            result = Path(objects.nameString);
+        end
+
+        function result = setName(objects, varargin)
+            result = objects.parent.join(varargin{:});
         end
 
         function result = nameString(objects)
@@ -105,12 +109,56 @@ classdef Path < matlab.mixin.CustomDisplay
                 objects(1, :)
                 suffix (1, :) string {Path.mustBeValidName, Path.mustBeEqualSizeOrScalar(suffix, objects)}
             end
-            result = objects.new(objects.string + suffix);
+            result = Path(objects.string + suffix);
+        end
+
+        %% Stem
+        function result = stem(objects)
+            result = [objects.stem_];
+        end
+
+        function results = setStem(objects, stems)
+            arguments
+                objects(1, :)
+                stems (1, :) string {Path.mustBeValidName, Path.mustBeEqualSizeOrScalar(stems, objects)}
+            end
+            if isscalar(stems)
+                stems = repmat(stems, 1, objects.count);
+            end
+            results = File([objects.parent_] + stems + [objects.extension_]);
+        end
+
+        function objects = addStemSuffix(objects, suffix)
+            arguments
+                objects(1, :)
+                suffix (1, :) string {Path.mustBeValidName, Path.mustBeEqualSizeOrScalar(suffix, objects)}
+            end
+            if isscalar(suffix)
+                suffix = repmat(suffix, 1, objects.count);
+            end
+            for i = 1 : length(objects)
+                objects(i).stem_ = objects(i).stem_ + suffix(i);
+            end
+        end
+
+        %% Extension
+        function result = extension(objects)
+            result = [objects.extension_];
+        end
+
+        function results = setExtension(objects, extension)
+            arguments
+                objects (1, :)
+                extension (1, :) string {File.mustBeValidExtension, Path.mustBeEqualSizeOrScalar(extension, objects)}
+            end
+            missesDotAndIsNonEmpty = ~extension.startsWith(".") & strlength(extension) > 0;
+            extension(missesDotAndIsNonEmpty) = "." + extension(missesDotAndIsNonEmpty);
+            results = Path([objects.parent_] + [objects.stem_] + extension);
         end
 
         %% Parent
         function result = parent(objects)
-            result = Folder(objects.parentString);
+            result = Path(objects.parentString);
         end
 
         function result = parentString(objects)
@@ -142,7 +190,7 @@ classdef Path < matlab.mixin.CustomDisplay
 
         %% Root
         function result = root(objects)
-            result = Folder(objects.rootString);
+            result = Path(objects.rootString);
         end
         
         function result = rootString(objects)
@@ -160,21 +208,9 @@ classdef Path < matlab.mixin.CustomDisplay
                 root (1, 1) string {Path.mustNotContainPathSeparator}
             end
             root = root + filesep;
-            result = objects.selectPath(@(obj) objects.new(regexprep(obj.string, Path.ROOT_REGEX, root, "emptymatch")), objects.empty);
-        end
-
-        %% Regex
-        function result = regexprep(objects, expression, replace, varargin)
-            arguments
-                objects (1, :)
-                expression 
-                replace 
-            end
-            arguments (Repeating)
-                varargin
-            end
-            newStrings = regexprep(objects.string, expression, replace, varargin{:});
-            result = objects.new(newStrings);
+            result = objects.selectPath( ...
+                @(obj) Path(regexprep(obj.string, Path.ROOT_REGEX, root, "emptymatch")), ...
+                objects.empty);
         end
 
         %% Properties
@@ -206,6 +242,36 @@ classdef Path < matlab.mixin.CustomDisplay
             result = obj.string.strlength;
         end
 
+        %% Join
+        function varargout = join(objects, other)
+            arguments
+                objects(1, :)
+            end
+            arguments (Repeating)
+                other (1, :) string {Path.mustBeNonmissing}
+            end
+
+            other = Path.clean(other{:});
+            if isempty(objects) || isempty(other)
+                result = objects;
+            elseif isscalar(objects) || isscalar(other) || length(objects) == length(other)
+                result = Path(objects.string + filesep + files.string);
+            else
+                error("Path:join:LengthMismatch", "Length of Path array, %i, and length of joined array, %i, must either match or one of them must be scalar.", length(objects), length(other));
+            end
+            varargout = deal_(result, nargout);
+        end
+
+        function varargout = mrdivide(objects, other)
+            result = objects.join(other);
+            varargout = deal_(result, nargout);
+        end
+
+        function varargout = mldivide(objects, other)
+            result = objects.join(other);
+            varargout = deal_(result, nargout);
+        end
+
         %% Filter
         function result = where(objects, options)
             arguments
@@ -214,6 +280,10 @@ classdef Path < matlab.mixin.CustomDisplay
                 options.PathNot (1, :) string = strings(0);
                 options.Name (1, :) string = "*"
                 options.NameNot (1, :) string = strings(0)
+                options.Stem (1, :) string = "*"
+                options.StemNot (1, :) string = strings(0);
+                options.Extension (1, :) string = "*"
+                options.ExtensionNot (1, :) string = strings(0)
                 options.Parent (1, :) string = "*"
                 options.ParentNot (1, :) string = strings(0)
                 options.Root (1, :) string = "*"
@@ -223,9 +293,6 @@ classdef Path < matlab.mixin.CustomDisplay
             args = namedargs2cell(options);
             keep = objects.is(args{:});
             result = objects(keep);
-            if isempty(result)
-                result = objects.new([]);
-            end
         end
 
         function result = is(objects, options)
@@ -235,54 +302,61 @@ classdef Path < matlab.mixin.CustomDisplay
                 options.PathNot (1, :) string = strings(0);
                 options.Name (1, :) string = "*"
                 options.NameNot (1, :) string = strings(0)
+                options.Stem (1, :) string = "*"
+                options.StemNot (1, :) string = strings(0);
+                options.Extension (1, :) string = "*"
+                options.ExtensionNot (1, :) string = strings(0)
                 options.Parent (1, :) string = "*"
                 options.ParentNot (1, :) string = strings(0)
                 options.Root (1, :) string = "*"
                 options.RootNot (1, :) string = strings(0)
             end
-            path        = Path.clean(options.Path);
-            pathNot     = Path.clean(options.PathNot);
-            name        = Path.clean(options.Name);
-            nameNot     = Path.clean(options.NameNot);
-            parent      = Path.clean(options.Parent);
-            parentNot   = Path.clean(options.ParentNot);
-            root        = Path.clean(options.Root);
-            rootNot     = Path.clean(options.RootNot);
+        
+            for option = ["Path", "PathNot", "Name", "NameNot", "Stem", "StemNot", ...
+                    "Extension", "ExtensionNot", "Parent", "ParentNot", "Root", "RootNot"]
+                options.(option) = Path.clean(options.(option));
+            end
 
-            pathStrings = objects.string;
-            parentStrings = objects.parentString;
-            rootStrings = objects.rootString;
-            nameStrings = objects.nameString;
+            paths = objects.string;
+            names = objects.nameString;
+            stems = objects.stem;
+            extensions = objects.extension;
+            parents = objects.parentString;
+            roots = objects.rootString;
 
             result =  ...
-                Path.matches2(pathStrings, path, true) & ...
-                Path.matches2(pathStrings, pathNot, false) & ...
-                Path.matches2(nameStrings, name, true) & ...
-                Path.matches2(nameStrings, nameNot, false) & ...
-                Path.matches2(parentStrings, parent, true) & ...
-                Path.matches2(parentStrings, parentNot, false) & ...
-                Path.matches2(rootStrings, root, true) & ...
-                Path.matches2(rootStrings, rootNot, false);
+                Path.matches2(paths, options.path, true) & ...
+                Path.matches2(paths, options.pathNot, false) & ...
+                Path.matches2(names, options.name, true) & ...
+                Path.matches2(names, options.nameNot, false) & ...
+                Path.matches2(stems, options.Stem, true) & ...
+                Path.matches2(stems, options.StemNot, false) & ...
+                Path.matches2(extensions, options.Extension, true) & ...
+                Path.matches2(extensions, options.ExtensionNot, false) & ...
+                Path.matches2(parents, options.parent, true) & ...
+                Path.matches2(parents, options.parentNot, false) & ...
+                Path.matches2(roots, options.root, true) & ...
+                Path.matches2(roots, options.rootNot, false);
         end
 
         %% Absolute/Relative
         function result = absolute(objects, referenceFolder)
             arguments
-                objects
-                referenceFolder (1, 1) Folder = Folder(pwd)
+                objects 
+                referenceFolder (1, 1) Path = Path(pwd)
             end
             if referenceFolder.isRelative
                 referenceFolder = referenceFolder.absolute;
             end
             isRelative = objects.isRelative;
             result = objects;
-            result(isRelative) = objects.new(referenceFolder.string + filesep + objects(isRelative).string);
+            result(isRelative) = Path(referenceFolder.string + filesep + objects(isRelative).string);
         end
 
         function result = relative(objects, referenceFolder)
             arguments
                 objects
-                referenceFolder (1, 1) Folder = Folder(pwd)
+                referenceFolder (1, 1) Path = Path(pwd)
             end
             paths = objects.absolute;
             referenceFolder = referenceFolder.absolute;
@@ -298,9 +372,22 @@ classdef Path < matlab.mixin.CustomDisplay
                     error("Path:relative:RootsDiffer", "Roots of path ""%s"" and reference folder ""%s"" differ.", path, referenceFolder); end
                 folderUps = join([repmat("..", 1, nReferenceParts - nEqualParts), "."], filesep);
                 keptTail = join([".", parts(nEqualParts+1 : end)], filesep);
-                result(end+1) = objects.new(folderUps + filesep + keptTail);
+                result(end+1) = Path(folderUps + filesep + keptTail);
             end
 
+        end
+
+         %% Regex
+        function result = regexprep(objects, expression, replace, varargin)
+            arguments
+                objects (1, :)
+                expression 
+                replace 
+            end
+            arguments (Repeating)
+                varargin
+            end
+            result = Path(regexprep(objects.string, expression, replace, varargin{:}));
         end
 
         %% File systen interaction
@@ -311,12 +398,229 @@ classdef Path < matlab.mixin.CustomDisplay
             end
         end
 
+        function result = exists(objects)
+            result = objects.selectLogical(@(obj) isfile(obj.string) || isfolder(obj.string));
+        end
+
+        function result = fileExists(objects)
+            result = objects.selectLogical(@(obj) isfile(obj.string));
+        end
+
+        function result = folderExists(objects)
+            result = objects.selectLogical(@(obj) isfolder(obj.string));
+        end
+
         function mustExist(objects)
             for obj = objects
                 if ~obj.exists
                     throwAsCaller(obj.notFoundException);
                 end
             end
+        end
+
+        function folderMustExist(objects)
+            for obj = objects
+                if ~obj.folderExists
+                    throwAsCaller(obj.notFoundException);
+                end
+            end
+        end
+
+        function fileMustExist(objects)
+            for obj = objects
+                if ~obj.fileExists
+                    throwAsCaller(obj.notFoundException);
+                end
+            end
+        end
+
+        function result = modifiedDate(objects)
+            result(objects.count) = datetime;
+            for i = 1 : objects.count
+                content = objects(i).dir;
+                if objects(i).fileExists
+                    datenum = content.datenum;
+                else 
+                    objects(i).folderMustExist
+                    datenum = content({content.name} == ".").datenum;
+                end
+                result(i) = datetime(datenum, "ConvertFrom", "datenum");
+            end
+        end
+
+        function varargout = fopen(obj, varargin)
+            arguments 
+                obj (1, 1) 
+            end
+            arguments (Repeating)
+                varargin
+            end
+            [varargout{1:nargout}] = fopen(obj.string, varargin{:});
+        end
+
+        function [id, autoClose] = open(obj, permission, varargin)
+            arguments
+                obj (1, 1)
+                permission (1, 1) string = "r";
+            end
+            arguments (Repeating); varargin; end
+
+            if permission.startsWith("r")
+                obj.mustExist;
+            else
+                obj.parent.mkdir;
+            end
+            [id, errorMessage] = obj.fopen(permission, varargin{:});
+            if id == -1
+                error(errorMessage); end
+            if nargout == 2
+                autoClose = onCleanup(@() tryToClose(id)); end
+        end
+
+        function [id, autoClose] = openForReading(obj)
+            id = obj.open;
+            if nargout == 2
+                autoClose = onCleanup(@() tryToClose(id)); end
+        end
+
+        function [id, autoClose] = openForWriting(obj)
+            id = obj.open("w");
+            if nargout == 2
+                autoClose = onCleanup(@() tryToClose(id)); end
+        end
+
+        function [id, autoClose] = openForWritingText(obj)
+            id = obj.open("wt");
+            if nargout == 2
+                autoClose = onCleanup(@() tryToClose(id)); end
+        end
+
+        function [id, autoClose] = openForAppendingText(obj)
+            id = obj.open("at");
+            if nargout == 2
+                autoClose = onCleanup(@() tryToClose(id)); end
+        end
+
+        function createEmptyFile(objects)
+            for obj = objects
+                [~, autoClose] = obj.openForWriting;
+            end
+        end
+
+        function varargout = cd(obj)
+            arguments
+                obj (1, 1)
+            end
+            if nargout == 1
+                varargout = {Path.pwd};
+            end
+            try
+                cd(obj.string);
+            catch exception
+                throwAsCaller(exception);
+            end
+        end
+
+        function mkdir(objects)
+            for obj = objects
+                if obj.exists
+                    return;
+                end
+                try
+                    mkdir(obj.string);
+                catch exception
+                    Path.extendError(exception, "MATLAB:MKDIR", "Error while creating folder ""%s"".", obj);
+                end
+            end
+        end
+
+        function result = listFiles(objects)
+            files = strings(1, 0);
+            objects.folderMustExist;
+            for obj = objects.unique_
+                contentInfo = obj.dir;
+                fileInfoList = contentInfo(~[contentInfo.isdir]);
+                for fileInfo = fileInfoList'
+                    files(end+1) = obj.string + "\" + fileInfo.name;
+                end
+            end
+            result = Path(files);
+        end
+
+        function result = listDeepFiles(objects)
+            files = strings(1, 0);
+            objects.folderMustExist;
+            for obj = objects.unique_
+                files = [files, listDeepPaths(obj.string, true)];
+            end
+            result = Path(files);
+        end
+
+        function result = listFolders(objects)
+            folders = strings(1, 0);
+            objects.folderMustExist;
+            for obj = objects.unique_
+                contentInfo = obj.dir;
+                folderInfoList = contentInfo([contentInfo.isdir]);
+                for folderInfo = folderInfoList'
+                    if ismember(folderInfo.name, [".", ".."])
+                        continue; end
+                    folders(end+1) = obj.string + "\" + folderInfo.name;
+                end
+            end
+            result = Path(folders);
+        end
+
+        function result = listDeepFolders(objects)
+            folders = strings(1, 0);
+            objects.folderMustExist;
+            for obj = objects.unique_
+                folders = [folders, listDeepPaths(obj.string, false)];
+            end
+            result = Path(folders);
+        end
+
+        function result = tempFile(obj, n)
+            arguments
+                obj (1, 1)
+                n (1, 1) {mustBeInteger, mustBeNonnegative} = 1
+            end
+            result = File.empty;
+            for i = n : -1 : 1
+                result(i) = Path(tempname(obj.string));
+            end
+        end
+
+        function delete(objects, varargin)
+            for obj = objects
+                if obj.fileExists
+                    delete(obj.string)
+                elseif obj.folderExists
+                    rmdir(obj, varargin{:});
+                end
+            end
+        end
+
+        function result = readText(obj)
+            arguments
+                obj (1, 1)
+            end
+            obj.fileMustExist;
+            result = string(fileread(obj.string));
+            result = result.replace(sprintf("\r\n"), newline);
+        end
+
+        function writeText(obj, text)
+            arguments
+                obj (1, 1)
+                text (1, 1) string
+            end
+            [fileId, autoClose] = obj.openForWritingText;
+            fprintf(fileId, "%s", text);
+        end
+
+        function result = bytes(objects)
+            result = [objects.dir.bytes];
         end
 
         function copy(objects, targets)
@@ -351,6 +655,43 @@ classdef Path < matlab.mixin.CustomDisplay
             objects.copyOrMove(targets, false, true);
         end
 
+        %% Save and load
+        function save(obj, variables)
+            arguments
+                obj (1, 1)
+            end
+            arguments (Repeating)
+                variables (1, 1) string {File.mustBeValidVariableName}
+            end
+            if isempty(variables)
+                error("Path:load:MissingArgument", "Not enough inputs arguments.");
+            end
+            for variable = [variables{:}]
+                saveStruct.(variable) = evalin("caller", variable);
+            end
+            obj.parent.mkdir;
+            save(obj.string, "-struct", "saveStruct");
+        end
+
+        function varargout = load(obj, variables)
+            arguments
+                obj (1, 1)
+            end
+            arguments (Repeating)
+                variables (1, 1) string {File.mustBeValidVariableName}
+            end
+
+            if nargout ~= length(variables)
+                error("Path:load:InputOutputMismatch", "The number of outputs, %i, must match the number of variables to load, %i.", nargout, length(variables)); end
+            data = load(obj.string, variables{:});
+            varargout = {};
+            for variable = string(variables)
+                if ~isfield(data, variable)
+                    error("Path:load:VariableNotFound", "Variable ""%s"" not found in file ""%s"".", variable, obj); end
+                varargout{end+1} = data.(variable);
+            end
+        end
+
         %% Array
         function result = isEmpty(objects)
             result = isempty(objects);
@@ -377,7 +718,7 @@ classdef Path < matlab.mixin.CustomDisplay
                 varargout{i} = objects(i);
             end
         end
-
+        
         function result = vertcat(obj, varargin)
             result = horzcat(obj, varargin);
         end
@@ -457,10 +798,6 @@ classdef Path < matlab.mixin.CustomDisplay
             result = objects(keep);
         end
 
-        function result = new(obj, varargin)
-            result = eval(class(obj) + "(varargin{:});");
-        end
-
         function displayScalarObject(obj)
             fprintf("    %s(""%s"")\n\n", class(obj), obj.string);
         end
@@ -534,7 +871,7 @@ classdef Path < matlab.mixin.CustomDisplay
         end
     end
 
-    methods (Static, Access = protected)
+    methods (Static, Access = private)
         function result = clean(varargin)
             fs = Path.FILE_SEPARATOR_REGEX;
             paths = [varargin{:}];
@@ -651,15 +988,22 @@ classdef Path < matlab.mixin.CustomDisplay
                 throwAsCaller(MException("Path:Validation:InvalidName", "Value must be non-missing."));
             end
         end
-    end
 
-    methods (Abstract)
-        result = exists(objects);
-        result = setName(objects, names)
+        function mustBeValidExtension(values)
+            if any(values.contains(["\", "/", pathsep]))
+                throwAsCaller(MException("Path:Validation:InvalidExtension", "Value must be a valid extension."));
+            end
+        end
+
+        function mustBeValidVariableName(values)
+            if any(arrayfun(@(x) ~isvarname(x), values))
+                throwAsCaller(MException("Path:Validation:InvalidVariableName", "Value must be a valid variable name."));
+            end
+        end
     end
 end
 
-function result = tern(condition, a, b)
+function result = ifThenElse(condition, a, b)
 if condition
     result = a;
 else
