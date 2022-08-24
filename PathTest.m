@@ -896,6 +896,171 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertEqual(actual, obj.testFolder.modifiedDate)
         end
 
+        %% Copy and move
+        function copy_n_to_n(obj)
+            sourceFiles = obj.testFolder / ["a.b", "c/d.e"];
+            sourceFolders = obj.testFolder / ["f", "g"];
+            targets = obj.testFolder / ["f.g", "h/i.j", "k", "l/m"];
+
+            files = obj.testFolder / ["f/b.c", "g/e/f.h"];
+            files.createEmptyFile;
+            sourceFiles.createEmptyFile;
+
+            sources = [sourceFiles, sourceFolders];
+            sources.copy(targets);
+
+            expectedNewFiles = obj.testFolder / ["k/b.c", "l/m/e/f.h"];
+            expectedNewFiles.mustBeFile;
+            targets(1:2).mustBeFile;
+            targets(3:4).mustBeDir;
+            sourceFiles.mustBeFile;
+            sourceFolders.mustBeDir;
+        end
+
+        function copy_File_1_to_n(obj)
+            source = obj.testFolder / "k.l";
+            targets = obj.testFolder / ["m.n", "o/p.q"];
+
+            source.createEmptyFile;
+            source.copy(targets);
+
+            source.mustBeFile;
+            targets.mustBeFile;
+        end
+
+        function copy_Folder_1_to_n(obj)
+            files = obj.testFolder / "a/b.c";
+            files.createEmptyFile;
+
+            sources = obj.testFolder / "a";
+            targets = obj.testFolder / ["i", "j/k"];
+
+            sources.copy(targets);
+
+            targets.mustBeDir;
+            newFiles = obj.testFolder / ["i/b.c", "j/k/b.c"];
+            newFiles.mustBeFile;
+            sources.mustBeDir;
+        end
+
+        function copy_n_to_1(obj)
+            sources = obj.testFolder / ["a.b", "c/d.e"];
+            targets = obj.testFolder / "f.g";
+
+            obj.assertError2(@() sources.copy(targets), "Path:copyOrMove:InvalidNumberOfTargets")
+        end
+
+        function copyToFolder_n_to_1(obj)
+            sources = obj.testFolder / ["a.b", "c/d.e", "f/g"];
+            obj.testFolder.join("f/g/h/i.j").createEmptyFile;
+            sources(1:2).createEmptyFile;
+            sources(3).mkdir;            
+            target = obj.testFolder / "target";            
+
+            sources.copyToFolder(target);
+
+            target.join(sources(1:2).name).mustBeFile;
+            target.join(sources(3).name).mustBeDir;
+            target.join("g/h/i.j").mustBeFile;
+            sources.mustExist;
+        end
+
+        function copyToFolder_File_1_to_n(obj)
+            source = obj.testFolder / "a.b";
+            targets = obj.testFolder / ["t1", "t2"];
+            source.createEmptyFile;
+
+            source.copyToFolder(targets);
+
+            targets.join(source.name).mustBeFile;
+            source.mustBeFile;
+        end
+
+        function copyToFolder_Folder_1_to_n(obj)
+            source = obj.testFolder / "a";
+            source.join("b/d.c").createEmptyFile;
+            targets = obj.testFolder / ["t1", "t2"];
+
+            source.copyToFolder(targets);
+
+            targets.join("a/b/d.c").mustBeFile;
+            source.mustExist;
+        end
+
+        function copyToFolder_n_to_n(obj)
+            sources = obj.testFolder / ["a.b", "c/d.e", "f/g"];
+            obj.testFolder.join("f/g/h/i.j").createEmptyFile;
+            sources(1:2).createEmptyFile;
+            sources(3).mkdir;            
+
+            targets = obj.testFolder / ["t1", "t2", "t3"];
+            
+            sources.copyToFolder(targets);
+            targets(1:2).join(sources(1:2).name).mustBeFile;
+            targets(3).join("g/h/i.j").mustBeFile;
+            sources.mustExist;
+        end
+
+        function move_n_to_n(obj)
+            sources = obj.testFolder / ["a", "d/e.f"];
+            targets = obj.testFolder / ["f", "h/i.j"];
+            sources(2).createEmptyFile;
+            sources(1).join("b.c").createEmptyFile;
+
+            sources.move(targets);
+            targets(1).join("b.c").mustBeFile;
+            targets(2).mustBeFile;
+            obj.assertAllFalse(sources.exists);
+        end
+
+        function move_1_to_n(obj)
+            source = obj.testFolder / "a.b";
+            targets = obj.testFolder / ["f.g", "h/i.j"];
+            obj.assertError2(@() source.move(targets), "Path:copyOrMove:InvalidNumberOfTargets")
+        end
+
+        function move_n_to_1(obj)
+            source = obj.testFolder / ["a.b", "c.d"];
+            targets = obj.testFolder / "e.g";
+            obj.assertError2(@() source.move(targets), "Path:copyOrMove:InvalidNumberOfTargets")
+        end
+
+%         function moveToFolder_n_to_1(obj)
+%             sources = obj.testFolder / ["a.b", "c/d.e"];
+%             target = obj.testFolder / "target";
+%             sources.createEmptyFile;
+%             sources.moveToFolder(target);
+%             target.append(sources.name).mustExist;
+%             obj.assertAllFalse(sources.exists);
+%             File.empty.moveToFolder(target);
+%         end
+% 
+%         function moveToFolder_n_to_n(obj)
+%             sources = obj.testFolder / ["a.b", "c/d.e"];
+%             targets = obj.testFolder / ["target1", "target2"];
+%             sources.createEmptyFile;
+%             sources.moveToFolder(targets);
+%             targets.append(sources.name).mustExist;
+%             obj.assertAllFalse(sources.exists);
+%         end
+% 
+%         function moveToFolder_1_to_n(obj)
+%             source = obj.testFolder / "a.b";
+%             targets = obj.testFolder / ["target1", "target2"];
+%             obj.assertError2(@() source.moveToFolder(targets), "Path:copyOrMove:InvalidNumberOfTargets")
+%         end
+% 
+%         function moveToFolder_Folder(obj)
+%             source = obj.testFolder / "a";
+%             target = obj.testFolder / "t";
+%             subFile = source / "b.c";
+%             subFile.createEmptyFile;
+%             source.moveToFolder(target);
+%             target.append(source.name).mustExist;
+%             target.append("a/b.c").mustExist;
+%             obj.assertFalse(source.exists);
+%         end
+
         %% Save and load
         function save(obj)
             a = 1;

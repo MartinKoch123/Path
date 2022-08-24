@@ -614,10 +614,11 @@ classdef Path < matlab.mixin.CustomDisplay
             end
         end
 
+        %% Copy and move
         function copy(objects, targets)
             arguments
                 objects
-                targets (1, :) Folder
+                targets (1, :) Path
             end
             objects.copyOrMove(targets, true, false)
         end
@@ -625,7 +626,7 @@ classdef Path < matlab.mixin.CustomDisplay
         function move(objects, targets)
             arguments
                 objects
-                targets (1, :) Folder
+                targets (1, :) Path
             end
             objects.copyOrMove(targets, false, false);
         end
@@ -633,7 +634,7 @@ classdef Path < matlab.mixin.CustomDisplay
         function copyToFolder(objects, targets)
             arguments
                 objects
-                targets (1, :) Folder
+                targets (1, :) Path
             end
             objects.copyOrMove(targets, true, true);
         end
@@ -641,7 +642,7 @@ classdef Path < matlab.mixin.CustomDisplay
         function moveToFolder(objects, targets)
             arguments
                 objects
-                targets (1, :) Folder
+                targets (1, :) Path
             end
             objects.copyOrMove(targets, false, true);
         end
@@ -923,7 +924,9 @@ classdef Path < matlab.mixin.CustomDisplay
                 else
                     target = targets(i);
                 end
-                obj.onCopying(target)
+                if obj.isFile && target.isDir
+                    error("Path:copy:TargetIsFolder", "The source ""%s"" is a file but the target ""%s"" is an existing folder.", target)
+                end
                 try
                     target.parent.mkdir;
                     if copy
@@ -932,7 +935,7 @@ classdef Path < matlab.mixin.CustomDisplay
                         movefile(obj.string, target.string);
                     end
                 catch exception
-                    if copy; operationName = "copy"; else; operationName = "move"; end
+                    operationName = ifThenElse(copy, "copy", "move");
                     Path.extendError(exception, ["MATLAB:COPYFILE:", "MATLAB:MOVEFILE:", "MATLAB:MKDIR:"], "Unable to %s %s ""%s"" to ""%s"".", operationName, lower(class(obj)), obj, target);
                 end
             end

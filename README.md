@@ -29,29 +29,30 @@ The `Path` class allow you to solve your path-related problems using short and r
  ```
  ### Arrays of paths
  ```Matlab
->> personalFolders = Folder("astronauts") / ["Andrew", "Trudy", "Sniffels"]
-     Folder("astronauts\Andrew")
-     Folder("astronauts\Trudy")
-     Folder("astronauts\Sniffels")
->> personalFolders.append("DONT_PANIC.txt").createEmptyFile;
+>> personalFolders = Path("Astronauts") / ["Arthur", "Trillian", "Zaphod"]
+     Path("Astronauts\Andrew")
+     Path("Astronauts\Trudy")
+     Path("Astronauts\Sniffels")
+>> personalFolders.join("DONT_PANIC.txt").createEmptyFile;
 ``` 
 ### Filtering and chaining
 ```Matlab
->> files = Folder("Sketchy Folder").listDeepFiles
-    File("Sketchy Folder\DeleteStuffVirus.exe")
-    File("Sketchy Folder\System32\nastyWorm.dll")
-    File("Sketchy Folder\dark_corner\half_a_sandwich.dat")
-    File("Sketchy Folder\WormholeResearch.pdf")
+>> files = Path("Sketchy Folder").listDeepFiles
+    Path("Sketchy Folder\DeleteStuffVirus.exe")
+    Path("Sketchy Folder\System32\nastyWorm.dll")
+    Path("Sketchy Folder\dark_corner\half_a_sandwich.dat")
+    Path("Sketchy Folder\WormholeResearch.pdf")
 >> files.where("Stem", ["*Virus*", "*Worm*"], "ExtensionNot", ".pdf").copyToFolder("D:\Quarantine");
 ```
 ### Get path of executing file
 ```Matlab
->> scriptFile = File.ofCaller
+>> scriptFile = Path.ofCaller
     File("/MATLAB Drive/YesIMadeAnExtraScriptToDemonstrateThis.m")
 >> scriptFile.parent.cd;
 ```
 ## Installation
-Download this repository and add it to your MATLAB search path. Requires R2019b or newer.
+Download this repository or soley the file `Path.m` and add it to your MATLAB search path. 
+Requires R2019b or newer.
  
 ## Documentation
 Find the documentation in the [wiki](https://www.github.com/MartinKoch123/Path/wiki).
