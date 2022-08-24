@@ -415,17 +415,19 @@ classdef Path < matlab.mixin.CustomDisplay
         end
 
         function mustBeDir(objects)
+            objects.mustExist;
             for obj = objects
                 if ~obj.isDir
-                    throwAsCaller(obj.notFoundException);
+                    MException("Path:NotADir", "Path '%s' exists but is not a directory.", obj.string).throwAsCaller;
                 end
             end
         end
 
         function mustBeFile(objects)
+            objects.mustExist;
             for obj = objects
                 if ~obj.isFile
-                    throwAsCaller(obj.notFoundException);
+                    MException("Path:NotAFile", "Path '%s' exists but is not a file.", obj.string).throwAsCaller;
                 end
             end
         end
@@ -462,7 +464,7 @@ classdef Path < matlab.mixin.CustomDisplay
             arguments (Repeating); varargin; end
 
             if permission.startsWith("r")
-                obj.mustExist;
+                obj.mustBeFile;
             else
                 obj.parent.mkdir;
             end
@@ -729,11 +731,21 @@ classdef Path < matlab.mixin.CustomDisplay
             MException("Path:transpose:NotSupported", "Transpose operation is not supported.").throwAsCaller;
         end
 
+        function result = tempFileName(obj, n)
+            arguments
+                obj (1, 1)
+                n (1, 1) {mustBeNonnegative, mustBeInteger} = 1
+            end
+            result = Path.empty;
+            for i = 1:n
+                result(i) = tempname(obj.string);
+            end
+        end
     end
 
     methods (Static)
 
-        function result = ofMatlabElement(elements)
+        function result = ofMatlabFile(elements)
             arguments
                 elements (1, :) string {Path.mustBeNonmissing}
             end
@@ -756,7 +768,7 @@ classdef Path < matlab.mixin.CustomDisplay
                     % Remove "build in" and brackets.
                     path = regexprep(path, ["^[^\(]*\(", "\)$"], "");
                 elseif path == ""
-                    error("Path:ofMatlabElement:NotFound", "Element ""%s"" is not on the search path.", element);
+                    error("Path:ofMatlabFile:NotFound", "Element ""%s"" is not on the search path.", element);
                 end
                 result(end+1) = Path(path);
             end
@@ -772,8 +784,8 @@ classdef Path < matlab.mixin.CustomDisplay
             callingFilePath = string(stack(level + 1).file);
             callingFileBaseName = regexp(callingFilePath.string, "(+[\w\d_]+(\\|/))*[\w\d_\.]+$", "match", "once");
             if callingFileBaseName.startsWith("LiveEditorEvaluationHelper")
-                error("Path:ofCaller:LiveScript", "Calling this method from a live script is not supported. Consider using 'Path.ofMatlabElement' instead. Example: Path.ofMatlabElement(""PathExamples.mlx"")."); end
-            result = Path.ofMatlabElement(callingFileBaseName);
+                error("Path:ofCaller:LiveScript", "Calling this method from a live script is not supported. Consider using 'Path.ofMatlabFile' instead. Example: Path.ofMatlabFile(""PathExamples.mlx"")."); end
+            result = Path.ofMatlabFile(callingFileBaseName);
         end
 
         function result = empty
@@ -803,6 +815,20 @@ classdef Path < matlab.mixin.CustomDisplay
 
         function result = userPath
             result = Path(userpath);
+        end
+
+        function result = tempFile(n)
+            arguments
+                n (1, 1) {mustBeNonnegative, mustBeInteger} = 1
+            end
+            result = Path.empty;
+            for i = 1:n
+                result(i) = Path(tempname);
+            end
+        end
+
+        function result = tempDir
+            result = Path(tempdir);
         end
 
         function help
@@ -860,7 +886,7 @@ classdef Path < matlab.mixin.CustomDisplay
 
         function result = notFoundException(obj)
 
-            result = MException("Path:mustExist:Failed", "%s ""%s"" not found. ", class(obj), obj.string);
+            result = MException("Path:NotFound", "Path ""%s"" not found. ", obj.string);
 
             if ~obj.hasParent || obj.parent.exists
                 return; end
@@ -971,7 +997,7 @@ classdef Path < matlab.mixin.CustomDisplay
                 messageArguments
             end
             if (isscalar(identifiers) && ismissing(identifiers)) || any(startsWith(exception.identifier, identifiers))
-                messageFormat = messageFormat + "\nCaused by: %s";
+                messageFormat = messageFormat + "\nCause: %s";
                 messageArguments{end+1} = exception.message;
                 message = sprintf(messageFormat, messageArguments{:});
                 exception = MException(exception.identifier, "%s", message);

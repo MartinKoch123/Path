@@ -1,7 +1,7 @@
 # Path
-Classes for handling filesystem paths in MATLAB.
+Class for representing filesystem paths in MATLAB.
 
-The `File` and `Folder` classes allow you to solve your path-related problems using short and readable code.
+The `Path` class allow you to solve your path-related problems using short and readable code.
 
 [![View Path on File Exchange](https://www.mathworks.com/matlabcentral/images/matlab-file-exchange.svg)](https://www.mathworks.com/matlabcentral/fileexchange/87552-path)
 
@@ -18,10 +18,10 @@ The `File` and `Folder` classes allow you to solve your path-related problems us
  ## Examples
  ### Path properties
  ```Matlab
->> file = File("C:\data\model.dat")
-    File("C:\data\model.dat")
+>> file = Path("C:\data) \ "model.dat"
+    Path("C:\data\model.dat")
 >> file.parent
-    Folder("C:\data")
+    Path("C:\data")
 >> file.stem
     "model"
 >> file.extension
