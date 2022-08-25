@@ -1,31 +1,16 @@
 {
-  "File":
+  "Path":
   {
      "inputs":
      [
-        {"name":"paths",  "kind":"required", "type":[["string"], ["file"]], "repeating":true, "purpose":"File paths"}
+        {"name":"paths",  "kind":"required", "type":[["string"], ["file"], ["folder"]], "repeating":true, "purpose":"File paths"}
      ]
   },
-  "File.ofMatlabElement":
+  "Path.ofMatlabFile":
   {
 	"inputs":
 	[
-		{"name": "Matlab elements", "kind":"required", "type":["matlabpathfile=*.mat,*.m,*.mlx,*.mdl,*.slx"]}
-	]
-  },
-  "Folder":
-  {
-     "inputs":
-     [
-        {"name":"paths",  "kind":"required", "type":[["string"], ["folder"]], "repeating":true, "purpose":"Folder paths"}
-     ]
-  },
-  "Folder.ofMatlabElement":
-  {
-	"inputs":
-	[
-		{"name": "Matlab elements", "kind":"required", "type":["matlabpathfile=*.mat,*.m,*.mlx,*.mdl,*.slx"]}
+		{"name": "Matlab files", "kind":"required", "type":["matlabpathfile=*.mat,*.m,*.mlx,*.mdl,*.slx"]}
 	]
   }
-
 }
