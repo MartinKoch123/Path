@@ -781,7 +781,7 @@ classdef Path < matlab.mixin.CustomDisplay
             end
             stack = dbstack("-completenames");
             if length(stack) < level + 1
-                error("Path:ofCaller:NoCaller", "This method was not called from another file at the requested stack level."); end
+                error("Path:ofCaller:NoCaller", "This method was not called from another file" + ifThenElse(level == 1, "", " at the requested stack level") + "."); end
             callingFilePath = string(stack(level + 1).file);
             callingFileBaseName = regexp(callingFilePath.string, "(+[\w\d_]+(\\|/))*[\w\d_\.]+$", "match", "once");
             if callingFileBaseName.startsWith("LiveEditorEvaluationHelper")

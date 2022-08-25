@@ -1,9 +1,12 @@
 # Path
 Class for representing filesystem paths in MATLAB and solveing path-related problems with short and readable code.
 
-[![View Path on File Exchange](https://www.mathworks.com/matlabcentral/images/matlab-file-exchange.svg)](https://www.mathworks.com/matlabcentral/fileexchange/87552-path)
+[Features](#Features)  
+[Examples](#Examples)  
+[Installation](#Installation)  
+[Reference](#Reference) 
 
-[[_TOC_]]
+[![View Path on File Exchange](https://www.mathworks.com/matlabcentral/images/matlab-file-exchange.svg)](https://www.mathworks.com/matlabcentral/fileexchange/87552-path)
 
 ## Features
  - Get and set path name, parent, root, stem and extension
@@ -18,7 +21,7 @@ Class for representing filesystem paths in MATLAB and solveing path-related prob
  ## Examples
  ### Path properties
  ```Matlab
->> file = Path("C:\data) \ "model.dat"
+>> file = Path("C:\data") \ "model.dat"
     Path("C:\data\model.dat")
 >> file.parent
     Path("C:\data")
