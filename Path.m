@@ -4,13 +4,13 @@ classdef Path < matlab.mixin.CustomDisplay
 % For details, visit the <a href="matlab:
 % web('https://github.com/MartinKoch123/Path')">documentation on GitHub</a>.
 
-    properties (Access = protected)
+    properties (Access = private)
         extension_
         stem_
         parent_
     end
 
-    properties (Constant, Access=protected, Hidden)
+    properties (Constant, Access=private, Hidden)
         FILE_SEPARATOR_REGEX = regexptranslate("escape", filesep);
         DOCUMENTATION_WEB_PAGE = "https://github.com/MartinKoch123/Path";
         ROOT_REGEX_WINDOWS = "^(\\\\[^\\]+|[A-Za-z]:|)";
@@ -837,7 +837,7 @@ classdef Path < matlab.mixin.CustomDisplay
         end
     end
 
-    methods (Access = protected)
+    methods (Access = private)
         function result = selectString(objects, fun)
             result = strings(size(objects));
             for i = 1 : numel(objects)
