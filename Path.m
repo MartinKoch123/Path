@@ -867,24 +867,6 @@ classdef Path < matlab.mixin.CustomDisplay
             result = objects(keep);
         end
 
-        function displayScalarObject(obj)
-            fprintf("    %s(""%s"")\n\n", class(obj), obj.string);
-        end
-
-        function displayNonScalarObject(objects)
-            fprintf("  %s <a href=""matlab:Path.help"">%s</a> array\n\n", matlab.mixin.CustomDisplay.convertDimensionsToString(objects), class(objects));
-            if isempty(objects)
-                return; end
-            for obj = objects
-                fprintf("     %s(""%s"")\n", class(obj), obj.string);
-            end
-            fprintf("\n");
-        end
-
-        function displayEmptyObject(obj)
-            obj.displayNonScalarObject;
-        end
-
         function result = notFoundException(obj)
 
             result = MException("Path:NotFound", "Path ""%s"" not found. ", obj.string);
@@ -936,6 +918,26 @@ classdef Path < matlab.mixin.CustomDisplay
                     Path.extendError(exception, ["MATLAB:COPYFILE:", "MATLAB:MOVEFILE:", "MATLAB:MKDIR:"], "Unable to %s %s ""%s"" to ""%s"".", operationName, lower(class(obj)), obj, target);
                 end
             end
+        end
+    end
+
+    methods (Access = protected)
+        function displayScalarObject(obj)
+            fprintf("    %s(""%s"")\n\n", class(obj), obj.string);
+        end
+
+        function displayNonScalarObject(objects)
+            fprintf("  %s <a href=""matlab:Path.help"">%s</a> array\n\n", matlab.mixin.CustomDisplay.convertDimensionsToString(objects), class(objects));
+            if isempty(objects)
+                return; end
+            for obj = objects
+                fprintf("     %s(""%s"")\n", class(obj), obj.string);
+            end
+            fprintf("\n");
+        end
+
+        function displayEmptyObject(obj)
+            obj.displayNonScalarObject;
         end
     end
 
