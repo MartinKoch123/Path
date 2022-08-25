@@ -2,7 +2,7 @@ classdef Path < matlab.mixin.CustomDisplay
 % Path Represents file system paths
 %
 % For details, visit the <a href="matlab:
-% web('https://github.com/MartinKoch123/Path/wiki')">documentation on GitHub</a>.
+% web('https://github.com/MartinKoch123/Path')">documentation on GitHub</a>.
 
     properties (Access = protected)
         extension_
@@ -12,7 +12,7 @@ classdef Path < matlab.mixin.CustomDisplay
 
     properties (Constant, Access=protected, Hidden)
         FILE_SEPARATOR_REGEX = regexptranslate("escape", filesep);
-        DOCUMENTATION_WEB_PAGE = "https://github.com/MartinKoch123/Path/wiki";
+        DOCUMENTATION_WEB_PAGE = "https://github.com/MartinKoch123/Path";
         ROOT_REGEX_WINDOWS = "^(\\\\[^\\]+|[A-Za-z]:|)";
         ROOT_REGEX_POSIX = "^(/[^/]*|)";
         IS_WINDOWS = ispc;
@@ -328,32 +328,32 @@ classdef Path < matlab.mixin.CustomDisplay
             roots = objects.rootString;
 
             result =  ...
-                Path.matches2(paths, options.Path, true) & ...
-                Path.matches2(paths, options.PathNot, false) & ...
-                Path.matches2(names, options.Name, true) & ...
-                Path.matches2(names, options.NameNot, false) & ...
-                Path.matches2(stems, options.Stem, true) & ...
-                Path.matches2(stems, options.StemNot, false) & ...
-                Path.matches2(extensions, options.Extension, true) & ...
-                Path.matches2(extensions, options.ExtensionNot, false) & ...
-                Path.matches2(parents, options.Parent, true) & ...
-                Path.matches2(parents, options.ParentNot, false) & ...
-                Path.matches2(roots, options.Root, true) & ...
-                Path.matches2(roots, options.RootNot, false);
+                Path.matches(paths, options.Path, true) & ...
+                Path.matches(paths, options.PathNot, false) & ...
+                Path.matches(names, options.Name, true) & ...
+                Path.matches(names, options.NameNot, false) & ...
+                Path.matches(stems, options.Stem, true) & ...
+                Path.matches(stems, options.StemNot, false) & ...
+                Path.matches(extensions, options.Extension, true) & ...
+                Path.matches(extensions, options.ExtensionNot, false) & ...
+                Path.matches(parents, options.Parent, true) & ...
+                Path.matches(parents, options.ParentNot, false) & ...
+                Path.matches(roots, options.Root, true) & ...
+                Path.matches(roots, options.RootNot, false);
         end
 
         %% Absolute/Relative
-        function result = absolute(objects, referenceFolder)
+        function result = absolute(objects, referenceDir)
             arguments
                 objects 
-                referenceFolder (1, 1) Path = Path(pwd)
+                referenceDir (1, 1) Path = Path(pwd)
             end
-            if referenceFolder.isRelative
-                referenceFolder = referenceFolder.absolute;
+            if referenceDir.isRelative
+                referenceDir = referenceDir.absolute;
             end
             isRelative = objects.isRelative;
             result = objects;
-            result(isRelative) = Path(referenceFolder.string + filesep + objects(isRelative).string);
+            result(isRelative) = Path(referenceDir.string + filesep + objects(isRelative).string);
         end
 
         function result = relative(objects, referenceDir)
@@ -554,7 +554,7 @@ classdef Path < matlab.mixin.CustomDisplay
             result = Path(files);
         end
 
-        function result = listFolders(objects)
+        function result = listDirs(objects)
             dirs = strings(1, 0);
             objects.mustBeDir;
             for obj = objects.unique_
@@ -631,7 +631,7 @@ classdef Path < matlab.mixin.CustomDisplay
             objects.copyOrMove(targets, false, false);
         end
 
-        function copyToFolder(objects, targets)
+        function copyToDir(objects, targets)
             arguments
                 objects
                 targets (1, :) Path
@@ -639,7 +639,7 @@ classdef Path < matlab.mixin.CustomDisplay
             objects.copyOrMove(targets, true, true);
         end
 
-        function moveToFolder(objects, targets)
+        function moveToDir(objects, targets)
             arguments
                 objects
                 targets (1, :) Path
@@ -892,25 +892,22 @@ classdef Path < matlab.mixin.CustomDisplay
             if ~obj.hasParent || obj.parent.exists
                 return; end
 
-            currentFolder = obj;
+            dir_ = obj;
             while true
-                if ~currentFolder.hasParent || currentFolder.parent.exists
-                    causeException = currentFolder.notFoundException;
+                if ~dir_.hasParent || dir_.parent.exists
+                    causeException = dir_.notFoundException;
                     result = Path.extendError(causeException, missing, "%s", result.message);
                     return
                 end
-                currentFolder = currentFolder.parent;
+                dir_ = dir_.parent;
             end
         end
 
-        function onCopying(obj, target)
-        end
-
-        function copyOrMove(objects, targets, copy, toFolderMode)
+        function copyOrMove(objects, targets, copy, toDirMode)
             if objects.count == 1 && copy
                 objects = repmat(objects, 1, length(targets));
             end
-            if targets.count == 1 && toFolderMode
+            if targets.count == 1 && toDirMode
                 targets = repmat(targets, 1, length(objects));
             end
             if objects.count ~= length(targets)
@@ -919,13 +916,13 @@ classdef Path < matlab.mixin.CustomDisplay
             for i = 1 : objects.count
                 obj = objects(i);
                 obj.mustExist;
-                if toFolderMode
+                if toDirMode
                     target = targets(i) / obj.name;
                 else
                     target = targets(i);
                 end
                 if obj.isFile && target.isDir
-                    error("Path:copy:TargetIsFolder", "The source ""%s"" is a file but the target ""%s"" is an existing folder.", target)
+                    error("Path:copy:TargetIsDir", "The source ""%s"" is a file but the target ""%s"" is an existing directory.", target)
                 end
                 try
                     target.parent.mkdir;
@@ -970,7 +967,7 @@ classdef Path < matlab.mixin.CustomDisplay
                 s = regexprep(s, ["(?<=(^|"+fs+"))(\."+fs+")", "("+fs+"\.)$"], "");
 
                 % Resolve dir-up-dots.
-                expression = "("+fs+"|^)[^"+fs+":]+(?<!\.\.)"+fs+"\.\."; % Folder name followed by dir-up dots.
+                expression = "("+fs+"|^)[^"+fs+":]+(?<!\.\.)"+fs+"\.\."; % Directory name followed by dir-up dots.
                 while ~isempty(regexp(s, expression, 'once'))
                     s = regexprep(s, expression, "");
                 end
@@ -1013,16 +1010,6 @@ classdef Path < matlab.mixin.CustomDisplay
         end
 
         function result = matches(s, patterns, mode)
-            result = ~mode;
-            for pattern = regexptranslate("wildcard", patterns)
-                if ~isempty(regexp(s, "^"+pattern+"$", 'once'))
-                    result = mode;
-                    return
-                end
-            end
-        end
-
-        function result = matches2(s, patterns, mode)
             pattern = "^(" + regexptranslate("wildcard", patterns).join("|") + ")$";
             indices = regexp(s, pattern, "once", "emptymatch");
             if isscalar(s)
@@ -1036,6 +1023,7 @@ classdef Path < matlab.mixin.CustomDisplay
 
         end
 
+        %% Validator functions
         function mustBeEqualSizeOrScalar(value, objects)
             if ~isscalar(value) && ~isequal(numel(value), numel(objects))
                 throwAsCaller(MException("Path:Validation:InvalidSize", "Value must be scalar or size must equal size of the object array."));

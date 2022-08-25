@@ -736,7 +736,7 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertFileExists(obj.testFolder / ["a.b", "c/d.e"]);
         end
 
-        function isFileAndIsFolder(obj)
+        function isFileAndIsDir(obj)
             paths = obj.testFolder / ["a.b", "c/d.e"];
             obj.assertEqual(paths.exists, [false, false]);
             obj.assertEqual(paths.isDir, [false, false]);
@@ -820,12 +820,12 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertEqual(emptyFolder.listDeepFiles, Path.empty);
         end
 
-        function listFolders(obj)
+        function listDirs(obj)
             files = obj.testFolder / ["a.b", "c/d.e", "e/f/g.h", "i/j.k"];
             files.createEmptyFile;
             folders = [obj.testFolder, obj.testFolder];
-            obj.assertEqual(folders.listFolders, obj.testFolder / ["c", "e", "i"]);
-            obj.assertError(@() Path("klajsdfoi67w3pi47n").listFolders, "Path:NotFound");
+            obj.assertEqual(folders.listDirs, obj.testFolder / ["c", "e", "i"]);
+            obj.assertError(@() Path("klajsdfoi67w3pi47n").listDirs, "Path:NotFound");
         end
 
         function listDeepDirs(obj)
@@ -950,14 +950,14 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertError2(@() sources.copy(targets), "Path:copyOrMove:InvalidNumberOfTargets")
         end
 
-        function copyToFolder_n_to_1(obj)
+        function copyToDir_n_to_1(obj)
             sources = obj.testFolder / ["a.b", "c/d.e", "f/g"];
             obj.testFolder.join("f/g/h/i.j").createEmptyFile;
             sources(1:2).createEmptyFile;
             sources(3).mkdir;            
             target = obj.testFolder / "target";            
 
-            sources.copyToFolder(target);
+            sources.copyToDir(target);
 
             target.join(sources(1:2).name).mustBeFile;
             target.join(sources(3).name).mustBeDir;
@@ -965,29 +965,29 @@ classdef PathTest < matlab.unittest.TestCase
             sources.mustExist;
         end
 
-        function copyToFolder_File_1_to_n(obj)
+        function copyToDir_File_1_to_n(obj)
             source = obj.testFolder / "a.b";
             targets = obj.testFolder / ["t1", "t2"];
             source.createEmptyFile;
 
-            source.copyToFolder(targets);
+            source.copyToDir(targets);
 
             targets.join(source.name).mustBeFile;
             source.mustBeFile;
         end
 
-        function copyToFolder_Folder_1_to_n(obj)
+        function copyToDir_Folder_1_to_n(obj)
             source = obj.testFolder / "a";
             source.join("b/d.c").createEmptyFile;
             targets = obj.testFolder / ["t1", "t2"];
 
-            source.copyToFolder(targets);
+            source.copyToDir(targets);
 
             targets.join("a/b/d.c").mustBeFile;
             source.mustExist;
         end
 
-        function copyToFolder_n_to_n(obj)
+        function copyToDir_n_to_n(obj)
             sources = obj.testFolder / ["a.b", "c/d.e", "f/g"];
             obj.testFolder.join("f/g/h/i.j").createEmptyFile;
             sources(1:2).createEmptyFile;
@@ -995,7 +995,7 @@ classdef PathTest < matlab.unittest.TestCase
 
             targets = obj.testFolder / ["t1", "t2", "t3"];
             
-            sources.copyToFolder(targets);
+            sources.copyToDir(targets);
             targets(1:2).join(sources(1:2).name).mustBeFile;
             targets(3).join("g/h/i.j").mustBeFile;
             sources.mustExist;
@@ -1025,41 +1025,39 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertError2(@() source.move(targets), "Path:copyOrMove:InvalidNumberOfTargets")
         end
 
-%         function moveToFolder_n_to_1(obj)
-%             sources = obj.testFolder / ["a.b", "c/d.e"];
-%             target = obj.testFolder / "target";
-%             sources.createEmptyFile;
-%             sources.moveToFolder(target);
-%             target.append(sources.name).mustExist;
-%             obj.assertAllFalse(sources.exists);
-%             File.empty.moveToFolder(target);
-%         end
-% 
-%         function moveToFolder_n_to_n(obj)
-%             sources = obj.testFolder / ["a.b", "c/d.e"];
-%             targets = obj.testFolder / ["target1", "target2"];
-%             sources.createEmptyFile;
-%             sources.moveToFolder(targets);
-%             targets.append(sources.name).mustExist;
-%             obj.assertAllFalse(sources.exists);
-%         end
-% 
-%         function moveToFolder_1_to_n(obj)
-%             source = obj.testFolder / "a.b";
-%             targets = obj.testFolder / ["target1", "target2"];
-%             obj.assertError2(@() source.moveToFolder(targets), "Path:copyOrMove:InvalidNumberOfTargets")
-%         end
-% 
-%         function moveToFolder_Folder(obj)
-%             source = obj.testFolder / "a";
-%             target = obj.testFolder / "t";
-%             subFile = source / "b.c";
-%             subFile.createEmptyFile;
-%             source.moveToFolder(target);
-%             target.append(source.name).mustExist;
-%             target.append("a/b.c").mustExist;
-%             obj.assertFalse(source.exists);
-%         end
+        function moveToDir_n_to_1(obj)
+            sources = obj.testFolder / ["a.b", "c"];
+            target = obj.testFolder / "t";
+            sources(1).createEmptyFile;
+            sources(2).join("d.e").createEmptyFile;
+
+            sources.moveToDir(target);
+
+            target.join(sources(1).name).mustBeFile;
+            target.join("c/d.e").mustBeFile
+            obj.assertAllFalse(sources.exists);
+
+            Path.empty.moveToDir(target);
+        end
+
+        function moveToDir_n_to_n(obj)
+            sources = obj.testFolder / ["a.b", "c"];
+            targets = obj.testFolder / ["t", "t2"];
+            sources(1).createEmptyFile;
+            sources(2).join("d.e").createEmptyFile;
+
+            sources.moveToDir(targets);
+
+            targets(1).join(sources(1).name).mustBeFile;
+            targets(2).join("c/d.e").mustBeFile;
+            obj.assertAllFalse(sources.exists);
+        end
+
+        function moveToDir_1_to_n(obj)
+            source = obj.testFolder / "a.b";
+            targets = obj.testFolder / ["t1", "t2"];
+            obj.assertError2(@() source.moveToDir(targets), "Path:copyOrMove:InvalidNumberOfTargets")
+        end
 
         %% Save and load
         function save(obj)
