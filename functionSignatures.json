@@ -1,16 +1,36 @@
 {
-  "Path":
-  {
-     "inputs":
-     [
-        {"name":"paths",  "kind":"required", "type":[["string"], ["file"], ["folder"]], "repeating":true, "purpose":"File paths"}
-     ]
-  },
-  "Path.ofMatlabFile":
-  {
-	"inputs":
-	[
-		{"name": "Matlab files", "kind":"required", "type":["matlabpathfile=*.mat,*.m,*.mlx,*.mdl,*.slx"]}
-	]
-  }
+    "Path.Path": {
+        "inputs": [
+            {"name":"paths", "kind":"required", "type":["string", "file", "folder"], "repeating":true, "purpose":"Path strings"}
+        ]
+    },
+    "Path.setStem": {
+        "inputs": [
+            {"name":"objects"},
+            {"name":"stem", "type":["string"], "purpose":"New stem string(s)"}
+        ]
+    },
+    "Path.addStemSuffix": {
+        "inputs": [
+            {"name":"objects"},
+            {"name":"suffix", "type":["string"], "purpose":"Suffix string to add to the stem"}
+        ]
+    },
+    "Path.setExtension": {
+        "inputs": [
+            {"name":"objects"},
+            {"name":"extension", "type":["string"], "purpose":"New extension string(s)"}
+        ]
+    },
+    "Path.setParent": {
+        "inputs": [
+            {"name":"objects"},
+            {"name":"parent", "type":["string", "Path"], "purpose":"New parent path"}
+        ]
+    },
+    "Path.ofMatlabFile": {
+	    "inputs": [
+            {"name": "Matlab files", "kind":"required", "type":["matlabpathfile=*.mat,*.m,*.mlx,*.mdl,*.slx"]}
+	    ]
+    }
 }
