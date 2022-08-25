@@ -1,5 +1,5 @@
 # Path
-Class for representing filesystem paths in MATLAB and solveing path-related problems with short and readable code.
+Class for representing filesystem paths in MATLAB and solving path-related problems with short and readable code.
 
 [Features](#Features)  
 [Examples](#Examples)  
