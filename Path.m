@@ -1,8 +1,8 @@
 classdef Path < matlab.mixin.CustomDisplay
-% Path Represents file system paths
-%
-% For details, visit the <a href="matlab:
-% web('https://github.com/MartinKoch123/Path')">documentation on GitHub</a>.
+    % Path Represents file system paths
+    %
+    % For details, visit the <a href="matlab:
+    % web('https://github.com/MartinKoch123/Path')">documentation on GitHub</a>.
 
     properties (Access = private)
         extension_
@@ -117,15 +117,15 @@ classdef Path < matlab.mixin.CustomDisplay
             result = objects.selectString(@(obj) obj.stem_);
         end
 
-        function results = setStem(objects, stems)
+        function results = setStem(objects, stem)
             arguments
                 objects(1, :)
-                stems (1, :) string {Path.mustBeValidName, Path.mustBeEqualSizeOrScalar(stems, objects)}
+                stem (1, :) string {Path.mustBeValidName, Path.mustBeEqualSizeOrScalar(stem, objects)}
             end
-            if isscalar(stems)
-                stems = repmat(stems, 1, objects.count);
+            if isscalar(stem)
+                stem = repmat(stem, 1, objects.count);
             end
-            results = Path([objects.parent_] + stems + [objects.extension_]);
+            results = Path([objects.parent_] + stem + [objects.extension_]);
         end
 
         function objects = addStemSuffix(objects, suffix)
@@ -171,16 +171,16 @@ classdef Path < matlab.mixin.CustomDisplay
             result(result == "") = ".";
         end
 
-        function objects = setParent(objects, parents)
+        function objects = setParent(objects, parent)
             arguments
                 objects(1, :)
-                parents (1, :) Path {Path.mustBeEqualSizeOrScalar(parents, objects)}
+                parent (1, :) Path {Path.mustBeEqualSizeOrScalar(parent, objects)}
             end
-            if isscalar(parents)
-                parents = repmat(parents, 1, objects.count);
+            if isscalar(parent)
+                parent = repmat(parent, 1, objects.count);
             end
             for i = 1 : length(objects)
-                objects(i).parent_ = parents(i).string + filesep;
+                objects(i).parent_ = parent(i).string + filesep;
             end
         end
 
@@ -192,7 +192,7 @@ classdef Path < matlab.mixin.CustomDisplay
         function result = root(objects)
             result = Path(objects.rootString);
         end
-        
+
         function result = rootString(objects)
             if isempty(objects)
                 result = strings(1, 0);
@@ -314,7 +314,7 @@ classdef Path < matlab.mixin.CustomDisplay
                 options.Root (1, :) string = "*"
                 options.RootNot (1, :) string = strings(0)
             end
-        
+
             for option = ["Path", "PathNot", "Name", "NameNot", "Stem", "StemNot", ...
                     "Extension", "ExtensionNot", "Parent", "ParentNot", "Root", "RootNot"]
                 options.(option) = Path.clean(options.(option));
@@ -345,7 +345,7 @@ classdef Path < matlab.mixin.CustomDisplay
         %% Absolute/Relative
         function result = absolute(objects, referenceDir)
             arguments
-                objects 
+                objects
                 referenceDir (1, 1) Path = Path(pwd)
             end
             if referenceDir.isRelative
@@ -380,12 +380,12 @@ classdef Path < matlab.mixin.CustomDisplay
 
         end
 
-         %% Regex
+        %% Regex
         function result = regexprep(objects, expression, replace, varargin)
             arguments
                 objects (1, :)
-                expression 
-                replace 
+                expression
+                replace
             end
             arguments (Repeating)
                 varargin
@@ -438,7 +438,7 @@ classdef Path < matlab.mixin.CustomDisplay
                 content = dir(objects(i).string);
                 if objects(i).isFile
                     datenum = content.datenum;
-                else 
+                else
                     objects(i).mustBeDir
                     datenum = content({content.name} == ".").datenum;
                 end
@@ -447,8 +447,8 @@ classdef Path < matlab.mixin.CustomDisplay
         end
 
         function varargout = fopen(obj, varargin)
-            arguments 
-                obj (1, 1) 
+            arguments
+                obj (1, 1)
             end
             arguments (Repeating)
                 varargin
@@ -710,7 +710,7 @@ classdef Path < matlab.mixin.CustomDisplay
                 varargout{i} = objects(i);
             end
         end
-        
+
         function result = vertcat(obj, varargin)
             result = horzcat(obj, varargin);
         end
@@ -718,7 +718,7 @@ classdef Path < matlab.mixin.CustomDisplay
         function result = subsasgn(obj, s, varargin)
             indices = s(end).subs;
             if (length(indices) == 2 && indices{1} ~= 1) || length(indices) > 2
-                e = MException("Path:subsasgn:MultiRowsNotSupported", "Column vectors and 2D arrays are not supported. Use only one indexing dimension instead (""linear indexing""). Example: ""a(2:4) = b""."); 
+                e = MException("Path:subsasgn:MultiRowsNotSupported", "Column vectors and 2D arrays are not supported. Use only one indexing dimension instead (""linear indexing""). Example: ""a(2:4) = b"".");
                 e.throwAsCaller;
             end
             result = builtin("subsasgn", obj, s, varargin{:});
@@ -1019,7 +1019,7 @@ classdef Path < matlab.mixin.CustomDisplay
             else
                 result = cellfun(@isempty, indices);
             end
-            if mode 
+            if mode
                 result = ~result;
             end
 
@@ -1075,7 +1075,7 @@ end
 function tryToClose(fileId)
 try
     fclose(fileId);
-catch 
+catch
 end
 end
 
