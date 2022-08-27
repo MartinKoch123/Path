@@ -85,12 +85,13 @@ Create `Path` objects by calling `Path(...)` with one or multiple arguments of t
 | `absolute` | Absolute path assuming the current working directory as reference | `Path` |
 | `relative` | Path relative to reference directory | `Path` |
 | `is` | Whether properties match patterns | `logical` |
-| `isAbsolute`, `isRelative` | Whether path is absolute or relative | `logical` |
+| `isAbsolute` | Whether path is absolute | `logical` |
+| `isRelative` | Whether path is relative | `logical` |
 
 ### Modify
 | Method | Description | Return type
 |-|-|-|
-| `/`, `\`, `join` | Join paths. | `Path` |
+| `/`, `\`, `join` | Join paths | `Path` |
 | `setName` | Set file or folder name without directory | `Path` |
 | `setParent` | Set parent directory | `Path` |
 | `setRoot` | Set first directory element | `Path` |
@@ -99,6 +100,7 @@ Create `Path` objects by calling `Path(...)` with one or multiple arguments of t
 | `addSuffix` | Add string to the end of the path | `Path` |
 | `addStemSuffix` | Add string to the end of the file stem | `Path` |
 | `regexprep` | Wrapper for built-in [`regexprep`](https://www.mathworks.com/help/matlab/ref/regexprep.html) | `Path` |
+| `tempFileName` | Append random unique file name | `Path` |
 
 ### Compare and filter
 | Method | Description | Return type
@@ -111,9 +113,17 @@ Create `Path` objects by calling `Path(...)` with one or multiple arguments of t
 | Method | Description | Return type
 |-|-|-|
 | `exists` | Whether path exists in filesystem | `logical` |
+| `isFile`| Whether path is an existing file | `logical` |
+| `isDir`| Whether path is an existing directory | `logical` |
 | `mustExist` | Raise error if path does not exist | - |
+| `mustBeFile` | Raise error if path is not an existing file | - |
+| `mustBeDir` | Raise error if path is not an existing directory | - |
 | `modifiedDate` | Date and time of last modification | `datetime` |
+| `bytes` | File size in bytes | - |
+| `mkdir` | Create directory if it does not already exist | - |
+| `cd` | Wrapper for built-in [`cd`](https://www.mathworks.com/help/matlab/ref/cd.html) | `Path` |
 | `createEmptyFile` | Create an empty file | - |
+| `delete` | Delete files and directories. Remove directories recursively with optional argument `'s'`. | - |
 | `fopen` | Wrapper for built-in [`fopen`](https://www.mathworks.com/help/matlab/ref/fopen.html) | `double`; `char` |
 | `open` | Open file and return file ID and `onCleanup` object, which closes the file on destruction. Create parent folder if necessary. Raise error on failure. | `double`; `onCleanup` |
 | `readText` | Read text file | `string` |
@@ -122,15 +132,10 @@ Create `Path` objects by calling `Path(...)` with one or multiple arguments of t
 | `copyToDir` | Copy into target directory preserving the original name | - |
 | `move` | Move to new path (rename) | - |
 | `moveToDir` | Move into target directory preserving the original name | - |
-| `delete` | Delete files and directories. Remove directories recursively with optional argument `'s'`. | - |
-| `bytes` | File size in bytes | - |
-| `cd` | Wrapper for built-in [`cd`](https://www.mathworks.com/help/matlab/ref/cd.html) | `Path` |
-| `mkdir` | Create directory if it does not already exist | - |
 | `listFiles` | List file paths in directory | `Path` |
 | `listDeepFiles` | List files paths in directory and all its subdirectories | `Path` |
 | `listFolders` | List directories in directory | `Path` |
 | `listDeepFolders` | List directories and subdirectories in directory | `Path` |
-| `tempFileName` | Append random unique file name | `Path` |
 
 ### Array
 | Method | Description | Return type
