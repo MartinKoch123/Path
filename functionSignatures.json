@@ -2,7 +2,16 @@
     "Path.Path": {
         "inputs": [
             {"name":"paths", "kind":"required", "type":["string", "file", "folder"], "repeating":true, "purpose":"Path strings"}
+        ],
+        "outputs": [
+            {"name":"paths", "type":["Path"]}
         ]
+    },
+    "Path.setName": {
+        "inputs": [
+            {"name":"objects"},
+            {"name":"name", "type":["string", "Path"], "purpose":"New names"}
+         ]
     },
     "Path.setStem": {
         "inputs": [
@@ -26,6 +35,24 @@
         "inputs": [
             {"name":"objects"},
             {"name":"parent", "type":["string", "Path"], "purpose":"New parent path"}
+        ]
+    },
+    "Path.setRoot": {
+        "inputs": [
+            {"name":"objects"},
+            {"name":"root", "type":["string", "Path"], "purpose":"New root path"}
+        ]
+    },
+    "Path.join": {
+        "inputs": [
+            {"name":"objects"},
+            {"name":"other", "type":["string", "Path"], "purpose":"Path to append"}
+        ]
+    },
+    "Path.absolute": {
+        "inputs": [
+            {"name":"objects"},
+            {"name":"referenceDir", "kind":"ordered", "type":["string", "Path"], "purpose":"Reference directory"}
         ]
     },
     "Path.ofMatlabFile": {

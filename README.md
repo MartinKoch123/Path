@@ -54,7 +54,7 @@ scriptFile = Path.ofCaller
 scriptFile.parent.cd;
 ```
 ## Installation
-Download this repository and add it to your MATLAB search path. 
+Download or clone this repository and add it to your MATLAB search path. 
 Requires R2019b or newer.
 
 ## Reference
