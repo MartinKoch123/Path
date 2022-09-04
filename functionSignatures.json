@@ -55,6 +55,29 @@
             {"name":"referenceDir", "kind":"ordered", "type":["string", "Path"], "purpose":"Reference directory"}
         ]
     },
+    "Path.relative": {
+        "inputs": [
+            {"name":"objects"},
+            {"name":"referenceDir", "kind":"ordered", "type":["string", "Path"], "purpose":"Reference directory"}
+        ]
+    },
+    "Path.regexprep": {
+        "inputs": [
+            {"name":"objects"},
+		    {"name":"expression", "kind":"required", "type":[["char"], ["cell"], ["string"]]},
+		    {"name":"replace",    "kind":"required", "type":[["char"], ["cell"], ["string"]]},
+		    {"name":"option",     "kind":"flag",	 "type":[["char", "choices={'all','once'}"], ["numeric", "scalar"]],   "default":"'all'"},
+		    {"name":"option",     "kind":"flag",	 "type":["char", "choices={'nowarnings','warnings'}"],                 "default":"'nowarnings'"},
+		    {"name":"option",     "kind":"flag",	 "type":["char", "choices={'matchcase','ignorecase','preservecase'}"], "default":"'matchcase'"},
+		    {"name":"option",     "kind":"flag",	 "type":["char", "choices={'noemptymatch','emptymatch'}"],             "default":"'noemptymatch'"},
+		    {"name":"option",     "kind":"flag",	 "type":["char", "choices={'dotall','dotexceptnewline'}"],             "default":"'dotall'"},
+		    {"name":"option",     "kind":"flag",	 "type":["char", "choices={'stringanchors','lineanchors'}"],           "default":"'stringanchors'"},
+		    {"name":"option",     "kind":"flag",	 "type":["char", "choices={'literalspacing','freespacing'}"],          "default":"'literalspacing'"}
+	    ],
+	    "outputs": [
+		    {"name":"newPath", "type":["Path"]}
+	    ]
+    },
     "Path.ofMatlabFile": {
 	    "inputs": [
             {"name": "Matlab files", "kind":"required", "type":["matlabpathfile=*.mat,*.m,*.mlx,*.mdl,*.slx"]}
