@@ -16,7 +16,7 @@ Class for representing filesystem paths in MATLAB and solving path-related probl
  - Clean and resolve paths
  - Build absolute and relative paths
  - Create, copy, move, delete files and directories
- - Get folder of currently executing MATLAB file
+ - Get directory of currently executing MATLAB file
 
  ## Examples
  ### Path properties
@@ -33,9 +33,9 @@ Class for representing filesystem paths in MATLAB and solving path-related probl
  ### Arrays of paths
  ```Matlab
 >> personalFolders = Path("Astronauts") / ["Arthur", "Trillian", "Zaphod"]
-     Path("Astronauts\Andrew")
-     Path("Astronauts\Trudy")
-     Path("Astronauts\Sniffels")
+     Path("Astronauts\Arthur")
+     Path("Astronauts\Trillian")
+     Path("Astronauts\Zaphod")
 >> personalFolders.join("DONT_PANIC.txt").createEmptyFile;
 ``` 
 ### Filtering and chaining
@@ -125,7 +125,7 @@ Create `Path` objects by calling `Path(...)` with one or multiple arguments of t
 | `createEmptyFile` | Create an empty file | - |
 | `delete` | Delete files and directories. Remove directories recursively with optional argument `'s'`. | - |
 | `fopen` | Wrapper for built-in [`fopen`](https://www.mathworks.com/help/matlab/ref/fopen.html) | `double`; `char` |
-| `open` | Open file and return file ID and `onCleanup` object, which closes the file on destruction. Create parent folder if necessary. Raise error on failure. | `double`; `onCleanup` |
+| `open` | Open file and return file ID and `onCleanup` object, which closes the file on destruction. Create parent directory if necessary. Raise error on failure. | `double`; `onCleanup` |
 | `readText` | Read text file | `string` |
 | `writeText` | Write text file | - |
 | `copy` | Copy to new path | - |
