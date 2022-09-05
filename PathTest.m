@@ -241,7 +241,7 @@ classdef PathTest < matlab.unittest.TestCase
                 };
             for test = tests'
                 actual = Path(test{1}).string;
-                if ispc 
+                if ispc
                     expected = Path(test{2}).string;
                 else
                     expected = Path(test{3}).string;
@@ -282,15 +282,6 @@ classdef PathTest < matlab.unittest.TestCase
 
             obj.assertEqual(Path.empty.nameString, strings(1, 0));
             obj.assertEqual(Path("a", "b").nameString, ["a", "b"]);
-        end
-
-        function addSuffix(obj)
-            obj.assertEqual(Path("a/b.c").addSuffix("_s"), Path("a/b.c_s"))
-            obj.assertEqual(Path("a/b.c", "d/e").addSuffix("_s"), Path("a/b.c_s", "d/e_s"));
-            obj.assertEqual(Path("a/b.c", "d/e").addSuffix(["_s1", "_s2"]), Path("a/b.c_s1", "d/e_s2"));
-            obj.assertEqual(Path.empty.addSuffix("s"), Path.empty);
-            obj.assertError(@() Path("a/b.c", "d/e").addSuffix(["_s1", "_s2", "_s3"]), "Path:Validation:InvalidSize");
-            obj.assertError(@() Path("a/b.c", "d/e").addSuffix("/"), "Path:Validation:InvalidName");
         end
 
         %% Extension
@@ -466,7 +457,7 @@ classdef PathTest < matlab.unittest.TestCase
                 {"ParentNot", obj.testRoot + "\o*"}, []
                 {"Parent", "*a*"}, []
                 {"ParentNot", "*a*"}, 1
-                
+
                 {"Name", "*.ab.txt"}, 1
                 {"NameNot", "*.ab.txt"}, []
                 {"Name", "test"}, []
@@ -476,7 +467,7 @@ classdef PathTest < matlab.unittest.TestCase
                 {"RootNot", "*:"}, []
                 {"Root", "*hello*"}, []
                 {"RootNot", "*hello"}, 1
-                
+
                 {"Stem", "*o.a*"}, 1
                 {"StemNot", "*o.a*"}, []
                 {"Stem", "*wa*"}, []
@@ -506,7 +497,7 @@ classdef PathTest < matlab.unittest.TestCase
                 obj.assertEqual(actual, expected);
             end
         end
-        
+
         function where_and_is2(obj)
 
             files = Path([ ...
@@ -540,7 +531,7 @@ classdef PathTest < matlab.unittest.TestCase
 
             end
 
-            % Test Folder and empty 
+            % Test Folder and empty
             obj.assertEqual(Path.empty.where("Name", "*"), Path.empty)
             obj.assertEqual(Path(["a/b", "c/d"]).where("Name", "*b*"), Path("a/b"))
 
@@ -553,16 +544,16 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertEqual(...
                 Path("a.b", obj.testRoot + "/c/d.e").absolute, ...
                 [Path.pwd / "a.b", Path(obj.testRoot + "/c/d.e")] ...
-            );
+                );
             obj.assertEqual(...
                 Path("a.b", obj.testRoot + "/c/d.e").absolute(obj.testRoot + "\x\y"), ...
                 [Path(obj.testRoot + "\x\y\a.b"), Path(obj.testRoot + "/c/d.e")] ...
-            );
+                );
 
             obj.assertEqual(...
                 Path("a.b").absolute("x\y"), ...
                 Path.pwd / "x\y\a.b" ...
-            );
+                );
 
             obj.assertEqual(Path(obj.testRoot).absolute, Path(obj.testRoot));
             obj.assertEqual(Path.empty.absolute, Path.empty);
@@ -708,7 +699,31 @@ classdef PathTest < matlab.unittest.TestCase
             end
         end
 
-         function tempFileName(obj)
+        function addSuffix(obj)
+            obj.assertEqual(Path("a/b.c").addSuffix("_s"), Path("a/b.c_s"))
+            obj.assertEqual(Path("a/b.c", "d/e").addSuffix("_s"), Path("a/b.c_s", "d/e_s"));
+            obj.assertEqual(Path("a/b.c", "d/e").addSuffix(["d\e.f", "g\h\i.j"]), Path("a/b.cd\e.f", "d/eg\h\i.j"));
+            obj.assertEqual(Path.empty.addSuffix("s"), Path.empty);
+            obj.assertError(@() Path("a/b.c", "d/e").addSuffix(["_s1", "_s2", "_s3"]), "Path:Validation:InvalidSize");
+        end
+
+        function plus_left(obj)
+            obj.assertEqual(Path("a/b.c") + "_s", Path("a/b.c_s"))
+            obj.assertEqual(Path("a/b.c", "d/e") + "_s", Path("a/b.c_s", "d/e_s"));
+            obj.assertEqual(Path("a/b.c", "d/e") + ["d\e.f", "g\h\i.j"], Path("a/b.cd\e.f", "d/eg\h\i.j"));
+            obj.assertEqual(Path.empty + "s", Path.empty);
+            obj.assertError(@() Path("a/b.c", "d/e") + ["_s1", "_s2", "_s3"], "Path:Validation:InvalidSize");
+        end
+
+        function plus_right(obj)
+            obj.assertEqual("a/b.c" + Path("_s"), Path("a/b.c_s"))
+            obj.assertEqual(["a/b.c", "d/e"] + Path("_s"), Path("a/b.c_s", "d/e_s"));
+            obj.assertEqual(["a/b.c", "d/e"] + Path(["d\e.f", "g\h\i.j"]), Path("a/b.cd\e.f", "d/eg\h\i.j"));
+            obj.assertEqual(strings(0) + Path("s"), Path.empty);
+            obj.assertError(@() ["a/b.c", "d/e"] + Path(["_s1", "_s2", "_s3"]), "Path:Validation:InvalidSize");
+        end
+
+        function tempFileName(obj)
             obj.assertEqual(Path("a").tempFileName(0), Path.empty);
             files = Path("a").tempFileName(2);
             obj.assertLength(files, 2);
@@ -954,8 +969,8 @@ classdef PathTest < matlab.unittest.TestCase
             sources = obj.testFolder / ["a.b", "c/d.e", "f/g"];
             obj.testFolder.join("f/g/h/i.j").createEmptyFile;
             sources(1:2).createEmptyFile;
-            sources(3).mkdir;            
-            target = obj.testFolder / "target";            
+            sources(3).mkdir;
+            target = obj.testFolder / "target";
 
             sources.copyToDir(target);
 
@@ -991,10 +1006,10 @@ classdef PathTest < matlab.unittest.TestCase
             sources = obj.testFolder / ["a.b", "c/d.e", "f/g"];
             obj.testFolder.join("f/g/h/i.j").createEmptyFile;
             sources(1:2).createEmptyFile;
-            sources(3).mkdir;            
+            sources(3).mkdir;
 
             targets = obj.testFolder / ["t1", "t2", "t3"];
-            
+
             sources.copyToDir(targets);
             targets(1:2).join(sources(1:2).name).mustBeFile;
             targets(3).join("g/h/i.j").mustBeFile;

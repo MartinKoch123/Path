@@ -104,14 +104,6 @@ classdef Path < matlab.mixin.CustomDisplay
             result = [objects.stem_] + [objects.extension_];
         end
 
-        function result = addSuffix(objects, suffix)
-            arguments
-                objects(1, :)
-                suffix (1, :) string {Path.mustBeValidName, Path.mustBeEqualSizeOrScalar(suffix, objects)}
-            end
-            result = Path(objects.string + suffix);
-        end
-
         %% Stem
         function result = stem(objects)
             result = objects.selectString(@(obj) obj.stem_);
@@ -270,6 +262,22 @@ classdef Path < matlab.mixin.CustomDisplay
         function varargout = mldivide(objects, other)
             result = objects.join(other);
             varargout = deal_(result, nargout);
+        end
+
+        function result = addSuffix(objects, suffix)
+            arguments
+                objects(1, :) string
+                suffix (1, :) string {Path.mustBeNonmissing, Path.mustBeEqualSizeOrScalar(suffix, objects)}
+            end
+            result = Path(objects + suffix);
+        end
+
+        function result = plus(objects, suffix)
+            arguments 
+                objects (1, :) string
+                suffix (1, :) string {Path.mustBeNonmissing, Path.mustBeEqualSizeOrScalar(suffix, objects)}
+            end
+            result = Path(objects + suffix);
         end
 
         %% Filter

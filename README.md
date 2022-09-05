@@ -92,12 +92,12 @@ Create `Path` objects by calling `Path(...)` with one or multiple arguments of t
 | Method | Description | Return type
 |-|-|-|
 | `/`, `\`, `join` | Join paths | `Path` |
+| `+`, `addSuffix` | Add string to the end of the path | `Path` |
 | `setName` | Set file or folder name without directory | `Path` |
 | `setParent` | Set parent directory | `Path` |
 | `setRoot` | Set first directory element | `Path` |
 | `setStem` | Set file name without extension | `Path` |
 | `setExtension` | Set file extension | `Path` |
-| `addSuffix` | Add string to the end of the path | `Path` |
 | `addStemSuffix` | Add string to the end of the file stem | `Path` |
 | `regexprep` | Wrapper for built-in [`regexprep`](https://www.mathworks.com/help/matlab/ref/regexprep.html) | `Path` |
 | `tempFileName` | Append random unique file name | `Path` |
