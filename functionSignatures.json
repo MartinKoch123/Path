@@ -78,6 +78,30 @@
 		    {"name":"newPath", "type":["Path"]}
 	    ]
     },
+    "Path.copy": {
+        "inputs": [ 
+            {"name":"objects"},
+            {"name":"targets", "kind":"required", "type":["string, Path"], "purpose":"Target path(s)"}
+        ]
+    },
+    "Path.copyToDir": {
+        "inputs": [ 
+            {"name":"objects"},
+            {"name":"targets", "kind":"required", "type":["string, Path"], "purpose":"Target directories to copy sources into"}
+        ]
+    },
+    "Path.move": {
+        "inputs": [ 
+            {"name":"objects"},
+            {"name":"targets", "kind":"required", "type":["string, Path"], "purpose":"Target path(s)"}
+        ]
+    },
+    "Path.moveToDir": {
+        "inputs": [ 
+            {"name":"objects"},
+            {"name":"targets", "kind":"required", "type":["string, Path"], "purpose":"Target directories to move sources into"}
+        ]
+    },
     "Path.ofMatlabFile": {
 	    "inputs": [
             {"name": "Matlab files", "kind":"required", "type":["matlabpathfile=*.mat,*.m,*.mlx,*.mdl,*.slx"]}
