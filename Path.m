@@ -783,18 +783,25 @@ classdef Path < matlab.mixin.CustomDisplay
             end
         end
 
-        function result = ofCaller(level)
+        function result = this(level)
             arguments
                 level (1, 1) double {mustBeInteger, mustBePositive} = 1
             end
             stack = dbstack("-completenames");
             if length(stack) < level + 1
-                error("Path:ofCaller:NoCaller", "This method was not called from another file" + ifThenElse(level == 1, "", " at the requested stack level") + "."); end
+                error("Path:this:NotAFile", "This method was not called from another file" + ifThenElse(level == 1, "", " at the requested stack level") + "."); end
             callingFilePath = string(stack(level + 1).file);
             callingFileBaseName = regexp(callingFilePath.string, "(+[\w\d_]+(\\|/))*[\w\d_\.]+$", "match", "once");
             if callingFileBaseName.startsWith("LiveEditorEvaluationHelper")
-                error("Path:ofCaller:LiveScript", "Calling this method from a live script is not supported. Consider using 'Path.ofMatlabFile' instead. Example: Path.ofMatlabFile(""PathExamples.mlx"")."); end
+                error("Path:this:LiveScript", "Calling this method from a live script is not supported. Consider using 'Path.ofMatlabFile' instead. Example: Path.ofMatlabFile(""PathExamples.mlx"")."); end
             result = Path.ofMatlabFile(callingFileBaseName);
+        end
+
+        function result = here(level)
+            arguments
+                level (1, 1) double {mustBeInteger, mustBePositive} = 1
+            end
+            result = Path.this(level + 1).parent;
         end
 
         function result = empty
@@ -1068,6 +1075,17 @@ classdef Path < matlab.mixin.CustomDisplay
             if any(arrayfun(@(x) ~isvarname(x), values))
                 throwAsCaller(MException("Path:Validation:InvalidVariableName", "Value must be a valid variable name."));
             end
+        end
+    end
+
+    %% Deprecated
+    methods (Static)
+        function result = ofCaller(level)
+            arguments
+                level (1, 1) double {mustBeInteger, mustBePositive} = 1
+            end
+            warning("Path:deprecated", "Method 'Path.ofCaller' is deprecated. User 'Path.this' instead.");
+            result = Path.this(level + 1);
         end
     end
 end

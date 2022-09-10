@@ -133,9 +133,14 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertError(@() Path.ofMatlabFile("npofas&/"), "Path:ofMatlabFile:NotFound");
         end
 
-        function ofCaller(obj)
-            obj.assertEqual(Path.ofCaller, Path(which("PathTest")));
-            obj.assertEqual(Path.ofCaller(2), Path(which(adjustSeparators("+matlab\+unittest\TestRunner.m"))));
+        function this(obj)
+            obj.assertEqual(Path.this, Path(which("PathTest")));
+            obj.assertEqual(Path.this(2), Path(which(adjustSeparators("+matlab\+unittest\TestRunner.m"))));
+        end
+
+        function here(obj)
+            obj.assertEqual(Path.here, Path.this.parent);
+            obj.assertEqual(Path.here(2), Path.this(2).parent);
         end
 
         function pwd(obj)
@@ -888,7 +893,7 @@ classdef PathTest < matlab.unittest.TestCase
         end
 
         function bytes(obj)
-            oldDir = Path.ofCaller.parent.cd;
+            oldDir = Path.here.cd;
             fileInfo(1) = dir("Path.m");
             fileInfo(2) = dir("PathTest.m");
             obj.assertEqual(Path("Path.m", "PathTest.m").bytes, [fileInfo(1).bytes, fileInfo(2).bytes]);
