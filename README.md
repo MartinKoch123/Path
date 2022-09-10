@@ -124,8 +124,8 @@ Create `Path` objects by calling `Path(...)` with one or multiple arguments of t
 | `cd` | `Path` | Wrapper for built-in [`cd`](https://www.mathworks.com/help/matlab/ref/cd.html) |
 | `createEmptyFile` | - | Create an empty file |
 | `delete` | - | Delete files and directories. Remove directories recursively with optional argument `'s'`. |
-| `fopen` | [`double`, `char`] | Wrapper for built-in [`fopen`](https://www.mathworks.com/help/matlab/ref/fopen.html) |
-| `open` | [`double`, `onCleanup`] | Open file and return file ID and `onCleanup` object, which closes the file on destruction. Create parent directory if necessary. Raise error on failure. |
+| `fopen` | `[double, char]` | Wrapper for built-in [`fopen`](https://www.mathworks.com/help/matlab/ref/fopen.html) |
+| `open` | `[double, onCleanup]` | Open file and return file ID and `onCleanup` object, which closes the file on destruction. Create parent directory if necessary. Raise error on failure. |
 | `readText` | `string` | Read text file |
 | `writeText` | - | Write text file |
 | `copy` | - | Copy to new path |
@@ -142,9 +142,9 @@ Create `Path` objects by calling `Path(...)` with one or multiple arguments of t
 |-|-|-|
 | `isEmpty` | `logical` | Check if array is empty |
 | `count` | `double` | Number of elements |
-| `sort` | [`Path`, `double`] | Sort by path string |
-| `unique_` | [`Path`, `double`, `double`] | Wrapper for built-in [`unique`](https://www.mathworks.com/help/matlab/ref/unique.html) |
-| `deal` | [`Path`, `Path`, ...] | Distribute array objects among output arguments |
+| `sort` | `[Path, double]` | Sort by path string |
+| `unique_` | `[Path, double, double]` | Wrapper for built-in [`unique`](https://www.mathworks.com/help/matlab/ref/unique.html) |
+| `deal` | `[Path, Path, ...]` | Distribute array objects among output arguments |
 
 ### Factories
 | Method | Return type | Description |
