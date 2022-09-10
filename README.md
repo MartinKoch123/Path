@@ -65,107 +65,103 @@ Create `Path` objects by calling `Path(...)` with one or multiple arguments of t
 
 ### Type conversions 
 
-| Method | Description | Return type
+| Method | Return type | Description |
 |-|-|-|
-| `string`|  Convert to string | `string `|
-| `char` |  Convert to char array | `char `|
-| `cellstr` | Convert to cell of char arrays | `cell `|
+| `string`| `string `|  Convert to string |
+| `char` | `char `|  Convert to char array |
+| `cellstr` | `cell `| Convert to cell of char arrays |
 
 ### Properties
 
-| Method | Description | Return type
+| Method | Return type | Description |
 |-|-|-|
-| `name` | File or folder name without directory | `Path` |
-| `parent` | Parent directory | `Path` |
-| `root` | First directory element of absolute paths | `Path` |
-| `stem` | File name without extension | `string` |
-| `extension` | File extension | `string` |
-| `parts` | Split path into list comprising root, folders and name | `string` |
-| `strlength` | Number of characters in the path string | `double` |
-| `absolute` | Absolute path assuming the current working directory as reference | `Path` |
-| `relative` | Path relative to reference directory | `Path` |
-| `is` | Whether properties match patterns | `logical` |
-| `isAbsolute` | Whether path is absolute | `logical` |
-| `isRelative` | Whether path is relative | `logical` |
+| `name` | `Path` | File or folder name without directory |
+| `parent` | `Path` | Parent directory |
+| `root` | `Path` | First directory element of absolute paths |
+| `stem` | `string` | File name without extension |
+| `extension` | `string` | File extension |
+| `parts` | `string` | Split path into list comprising root, folders and name |
+| `strlength` | `double` | Number of characters in the path string |
+| `absolute` | `Path` | Absolute path assuming the current working directory as reference |
+| `relative` | `Path` | Path relative to reference directory |
+| `is` | `logical` | Whether properties match patterns |
+| `isAbsolute` | `logical` | Whether path is absolute |
+| `isRelative` | `logical` | Whether path is relative |
 
 ### Modify
-| Method | Description | Return type
+| Method | Return type | Description |
 |-|-|-|
-| `/`, `\`, `join` | Join paths | `Path` |
-| `+`, `addSuffix` | Add string to the end of the path | `Path` |
-| `setName` | Set file or folder name without directory | `Path` |
-| `setParent` | Set parent directory | `Path` |
-| `setRoot` | Set first directory element | `Path` |
-| `setStem` | Set file name without extension | `Path` |
-| `setExtension` | Set file extension | `Path` |
-| `addStemSuffix` | Add string to the end of the file stem | `Path` |
-| `regexprep` | Wrapper for built-in [`regexprep`](https://www.mathworks.com/help/matlab/ref/regexprep.html) | `Path` |
-| `tempFileName` | Append random unique file name | `Path` |
+| `/`, `\`, `join` | `Path` | Join paths |
+| `+`, `addSuffix` | `Path` | Add string to the end of the path |
+| `setName` | `Path` | Set file or folder name without directory |
+| `setParent` | `Path` | Set parent directory |
+| `setRoot` | `Path` | Set first directory element |
+| `setStem` | `Path` | Set file name without extension |
+| `setExtension` | `Path` | Set file extension |
+| `addStemSuffix` | `Path` | Add string to the end of the file stem |
+| `regexprep` | `Path` | Wrapper for built-in [`regexprep`](https://www.mathworks.com/help/matlab/ref/regexprep.html) |
+| `tempFileName` | `Path` | Append random unique file name |
 
 ### Compare and filter
-| Method | Description | Return type
+| Method | Return type | Description |
 |-|-|-|
-| `==`, `eq` | Whether path strings are equal | `logical` |
-| `~=`, `ne` | Whether path strings are unequal | `logical` |
-| `where` | Select paths where properties match patterns | `Path` |
+| `==`, `eq` | `logical` | Whether path strings are equal |
+| `~=`, `ne` | `logical` | Whether path strings are unequal |
+| `where` | `Path` | Select paths where properties match patterns |
 
 ### File system interaction
-| Method | Description | Return type
+| Method | Return type | Description |
 |-|-|-|
-| `exists` | Whether path exists in filesystem | `logical` |
-| `isFile`| Whether path is an existing file | `logical` |
-| `isDir`| Whether path is an existing directory | `logical` |
-| `mustExist` | Raise error if path does not exist | - |
-| `mustBeFile` | Raise error if path is not an existing file | - |
-| `mustBeDir` | Raise error if path is not an existing directory | - |
-| `modifiedDate` | Date and time of last modification | `datetime` |
-| `bytes` | File size in bytes | - |
-| `mkdir` | Create directory if it does not already exist | - |
-| `cd` | Wrapper for built-in [`cd`](https://www.mathworks.com/help/matlab/ref/cd.html) | `Path` |
-| `createEmptyFile` | Create an empty file | - |
-| `delete` | Delete files and directories. Remove directories recursively with optional argument `'s'`. | - |
-| `fopen` | Wrapper for built-in [`fopen`](https://www.mathworks.com/help/matlab/ref/fopen.html) | `double`; `char` |
-| `open` | Open file and return file ID and `onCleanup` object, which closes the file on destruction. Create parent directory if necessary. Raise error on failure. | `double`; `onCleanup` |
-| `readText` | Read text file | `string` |
-| `writeText` | Write text file | - |
-| `copy` | Copy to new path | - |
-| `copyToDir` | Copy into target directory preserving the original name | - |
-| `move` | Move to new path (rename) | - |
-| `moveToDir` | Move into target directory preserving the original name | - |
-| `listFiles` | List file paths in directory | `Path` |
-| `listDeepFiles` | List files paths in directory and all its subdirectories | `Path` |
-| `listFolders` | List directories in directory | `Path` |
-| `listDeepFolders` | List directories and subdirectories in directory | `Path` |
+| `exists` | `logical` | Whether path exists in filesystem |
+| `isFile`| `logical` | Whether path is an existing file |
+| `isDir`| `logical` | Whether path is an existing directory |
+| `mustExist` | - | Raise error if path does not exist |
+| `mustBeFile` | - | Raise error if path is not an existing file |
+| `mustBeDir` | - | Raise error if path is not an existing directory |
+| `modifiedDate` | `datetime` | Date and time of last modification |
+| `bytes` | - | File size in bytes |
+| `mkdir` | - | Create directory if it does not already exist |
+| `cd` | `Path` | Wrapper for built-in [`cd`](https://www.mathworks.com/help/matlab/ref/cd.html) |
+| `createEmptyFile` | - | Create an empty file |
+| `delete` | - | Delete files and directories. Remove directories recursively with optional argument `'s'`. |
+| `fopen` | [`double`, `char`] | Wrapper for built-in [`fopen`](https://www.mathworks.com/help/matlab/ref/fopen.html) |
+| `open` | [`double`, `onCleanup`] | Open file and return file ID and `onCleanup` object, which closes the file on destruction. Create parent directory if necessary. Raise error on failure. |
+| `readText` | `string` | Read text file |
+| `writeText` | - | Write text file |
+| `copy` | - | Copy to new path |
+| `copyToDir` | - | Copy into target directory preserving the original name |
+| `move` | - | Move to new path (rename) |
+| `moveToDir` | - | Move into target directory preserving the original name |
+| `listFiles` | `Path` | List file paths in directory |
+| `listDeepFiles` | `Path` | List files paths in directory and all its subdirectories |
+| `listFolders` | `Path` | List directories in directory |
+| `listDeepFolders` | `Path` | List directories and subdirectories in directory |
 
 ### Array
-| Method | Description | Return type
+| Method | Return type | Description |
 |-|-|-|
-| `isEmpty` | Check if array is empty | `logical` |
-| `count` | Number of elements | `double` |
-| `sort` | Sort by path string | `Path`; `double` |
-| `unique_` | Wrapper for built-in [`unique`](https://www.mathworks.com/help/matlab/ref/unique.html) | `Path`; `double`; `double` |
-| `deal` | Distribute array objects among output arguments | `Path`; `Path`; ... |
+| `isEmpty` | `logical` | Check if array is empty |
+| `count` | `double` | Number of elements |
+| `sort` | [`Path`, `double`] | Sort by path string |
+| `unique_` | [`Path`, `double`, `double`] | Wrapper for built-in [`unique`](https://www.mathworks.com/help/matlab/ref/unique.html) |
+| `deal` | [`Path`, `Path`, ...] | Distribute array objects among output arguments |
 
 ### Factories
-| Method | Description | Return type
+| Method | Return type | Description |
 |-|-|-|
-| `Path.current` | Current working directory; wrapper for built-in [`pwd`](https://www.mathworks.com/help/matlab/ref/pwd.html) | `Path` |
-| `Path.home` | User home directory | `Path` |
-| `Path.tempDir` | Temporary directory; wrapper for built-in [`tempdir`](https://www.mathworks.com/help/matlab/ref/tempdir.html) | `Path` |
-| `Path.tempFile` | Random unique file in temporary directory; wrapper for built-in [`tempname`](https://www.mathworks.com/help/matlab/ref/tempname.html) | `Path` |
-| `Path.matlab` | Matlab install directory; wrapper for built-in [`matlabroot`](https://www.mathworks.com/help/matlab/ref/matlabroot.html) | `Path` |
-| `Path.searchPath` | Folders on Matlab search path; wrapper for built-in [`path`](https://www.mathworks.com/help/matlab/ref/path.html) | `Path` |
-| `Path.userPath` | Matlab user directory; wrapper for built-in [`userpath`](https://www.mathworks.com/help/matlab/ref/userpath.html) | `Path` |
-| `Path.ofMatlabElement` | Path of Matlab file on the Matlab search path | `Path` |
-| `Path.ofCaller` | Path of Matlab file executing this method | `Path` |
-| `Path.empty` | Empty object array | `Path` |
+| `Path.current` | `Path` | Current working directory; wrapper for built-in [`pwd`](https://www.mathworks.com/help/matlab/ref/pwd.html) |
+| `Path.home` | `Path` | User home directory |
+| `Path.tempDir` | `Path` | Temporary directory; wrapper for built-in [`tempdir`](https://www.mathworks.com/help/matlab/ref/tempdir.html) |
+| `Path.tempFile` | `Path` | Random unique file in temporary directory; wrapper for built-in [`tempname`](https://www.mathworks.com/help/matlab/ref/tempname.html) |
+| `Path.matlab` | `Path` | Matlab install directory; wrapper for built-in [`matlabroot`](https://www.mathworks.com/help/matlab/ref/matlabroot.html) |
+| `Path.searchPath` | `Path` | Folders on Matlab search path; wrapper for built-in [`path`](https://www.mathworks.com/help/matlab/ref/path.html) |
+| `Path.userPath` | `Path` | Matlab user directory; wrapper for built-in [`userpath`](https://www.mathworks.com/help/matlab/ref/userpath.html) |
+| `Path.ofMatlabElement` | `Path` | Path of Matlab file on the Matlab search path |
+| `Path.ofCaller` | `Path` | Path of Matlab file executing this method |
+| `Path.empty` | `Path` | Empty object array |
 
 ### Other
-| Method | Description | Return type
+| Method | Return type | Description |
 |-|-|-|
-| `disp` | Display in console | - |
-| `help` | Open documentation web page | - |
-
-
-
- 
+| `disp` | - | Display in console |
+| `help` | - | Open documentation web page |
