@@ -1,7 +1,7 @@
 classdef PathTest < matlab.unittest.TestCase
 
     properties (Constant)
-        testFolder = Path.ofMatlabFile("PathTest").parent / "test";
+        testDir = Path.ofMatlabFile("PathTest").parent / "test";
     end
 
     methods
@@ -21,15 +21,15 @@ classdef PathTest < matlab.unittest.TestCase
             end
         end
 
-        function assertFolderExists(obj, folders)
-            for folder = folders
-                obj.assertTrue(isfolder(string(folder)));
+        function assertDirExists(obj, dirs)
+            for dir = dirs
+                obj.assertTrue(isfolder(string(dir)));
             end
         end
 
-        function assertFolderDoesNotExist(obj, folders)
-            for folder = folders
-                obj.assertFalse(isfolder(string(folder)));
+        function assertDirDoesNotExist(obj, dirs)
+            for dir = dirs
+                obj.assertFalse(isfolder(string(dir)));
             end
         end
 
@@ -71,9 +71,9 @@ classdef PathTest < matlab.unittest.TestCase
     end
 
     methods(TestMethodTeardown)
-        function removeTestFolder(testCase)
-            if testCase.testFolder.exists
-                rmdir(testCase.testFolder.string, "s");
+        function removeTestDir(testCase)
+            if testCase.testDir.exists
+                rmdir(testCase.testDir.string, "s");
             end
         end
 
@@ -509,16 +509,16 @@ classdef PathTest < matlab.unittest.TestCase
                 obj.testRoot + "/on.e/t=wo.ab.txt"
                 "=.23f/asdf.%43"
                 "..\..\p"
-                "folder\file"
+                "dir\file"
                 ] ...
                 );
 
             tests = {
-                {"Parent", "*o*", "RootNot", obj.testRoot, "Name", ["file", "t=wo.ab.txt"]}, logical([0, 0, 0, 1])
+                {"Parent", "*i*", "RootNot", obj.testRoot, "Name", ["file", "t=wo.ab.txt"]}, logical([0, 0, 0, 1])
                 {"NameNot", "*f*", "Name", ["p", "file"]}, logical([0, 0, 1, 0])
                 {"Root", [".", obj.testRoot]}, logical([1, 1, 1, 1])
                 {"ParentNot", "*"}, logical([0, 0, 0, 0])
-                {"ExtensionNot", ".txt", "Parent", "*e*"}, logical([0, 0, 0, 1])
+                {"ExtensionNot", ".txt", "Parent", "*i*"}, logical([0, 0, 0, 1])
                 };
 
             for test = tests'
@@ -536,7 +536,7 @@ classdef PathTest < matlab.unittest.TestCase
 
             end
 
-            % Test Folder and empty
+            % Test dirs and empty
             obj.assertEqual(Path.empty.where("Name", "*"), Path.empty)
             obj.assertEqual(Path(["a/b", "c/d"]).where("Name", "*b*"), Path("a/b"))
 
@@ -569,8 +569,8 @@ classdef PathTest < matlab.unittest.TestCase
             file1 = Path(obj.testRoot + "/a/d/e.f");
             obj.assertEqual(file1.relative(referencePath), Path("..\..\d\e.f"));
 
-            folder1 = Path(obj.testRoot);
-            obj.assertEqual(folder1.relative(referencePath), Path("..\..\.."));
+            dir1 = Path(obj.testRoot);
+            obj.assertEqual(dir1.relative(referencePath), Path("..\..\.."));
 
             obj.assertEqual(referencePath.relative(referencePath), Path("."));
 
@@ -579,12 +579,12 @@ classdef PathTest < matlab.unittest.TestCase
             file2 = Path(obj.testRoot2 + "/a.b");
             obj.assertError(@() file2.relative(referencePath), "Path:relative:RootsDiffer");
 
-            folder2 = Path("a/b");
-            obj.assertEqual(folder2.relative, folder2.relative(pwd));
+            dir2 = Path("a/b");
+            obj.assertEqual(dir2.relative, dir2.relative(pwd));
 
             file3 = Path("a.b");
-            referenceFolder2 = Path("b/c").absolute;
-            obj.assertEqual(file3.relative(referenceFolder2), Path("..\..\a.b"));
+            referenceDir2 = Path("b/c").absolute;
+            obj.assertEqual(file3.relative(referenceDir2), Path("..\..\a.b"));
 
             obj.assertError2(@() file3.relative([Path, Path]), ["MATLAB:validation:IncompatibleSize", "MATLAB:functionValidation:NotScalar"]);
 
@@ -738,26 +738,26 @@ classdef PathTest < matlab.unittest.TestCase
 
         %% File system interaction
         function cd(obj)
-            obj.testFolder.mkdir;
+            obj.testDir.mkdir;
             actual = pwd;
-            expected = obj.testFolder.cd.char;
+            expected = obj.testDir.cd.char;
             obj.assertEqual(actual, expected);
-            obj.assertEqual(pwd, obj.testFolder.char);
+            obj.assertEqual(pwd, obj.testDir.char);
             cd(actual);
         end
 
         function mkdir(obj)
-            obj.testFolder.join(["a", "b/a"]).mkdir;
-            obj.assertFolderExists(obj.testFolder / ["a", "b/a"]);
+            obj.testDir.join(["a", "b/a"]).mkdir;
+            obj.assertDirExists(obj.testDir / ["a", "b/a"]);
         end
 
         function createEmptyFile(obj)
-            obj.testFolder.join("a.b", "c/d.e").createEmptyFile;
-            obj.assertFileExists(obj.testFolder / ["a.b", "c/d.e"]);
+            obj.testDir.join("a.b", "c/d.e").createEmptyFile;
+            obj.assertFileExists(obj.testDir / ["a.b", "c/d.e"]);
         end
 
         function isFileAndIsDir(obj)
-            paths = obj.testFolder / ["a.b", "c/d.e"];
+            paths = obj.testDir / ["a.b", "c/d.e"];
             obj.assertEqual(paths.exists, [false, false]);
             obj.assertEqual(paths.isDir, [false, false]);
             obj.assertEqual(paths.isFile, [false, false]);
@@ -785,7 +785,7 @@ classdef PathTest < matlab.unittest.TestCase
         end
 
         function fopen(obj)
-            file = obj.testFolder / "a.b";
+            file = obj.testDir / "a.b";
             file.parent.mkdir;
             [id, errorMessage] = file.fopen("w", "n", "UTF-8");
             obj.assertFalse(id == -1);
@@ -795,7 +795,7 @@ classdef PathTest < matlab.unittest.TestCase
         end
 
         function open(obj)
-            file = obj.testFolder / "a.b";
+            file = obj.testDir / "a.b";
             obj.assertError2(@() open([file, file]), ["MATLAB:validation:IncompatibleSize", "MATLAB:functionValidation:NotScalar"]);
             obj.assertError(@() file.open, "Path:NotFound");
             id = file.open("w");
@@ -822,60 +822,60 @@ classdef PathTest < matlab.unittest.TestCase
         end
 
         function listFiles(obj)
-            files = obj.testFolder / ["a.b", "c.d", "e/f.g"];
+            files = obj.testDir / ["a.b", "c.d", "e/f.g"];
             files.createEmptyFile;
-            folders = [obj.testFolder, obj.testFolder];
-            obj.assertEqual(folders.listFiles, obj.testFolder / ["a.b", "c.d"]);
+            dirs = [obj.testDir, obj.testDir];
+            obj.assertEqual(dirs.listFiles, obj.testDir / ["a.b", "c.d"]);
             obj.assertError(@() Path("klajsdfoi67w3pi47n").listFiles, "Path:NotFound");
         end
 
         function listDeepFiles(obj)
-            files = obj.testFolder.join("a.b", "c.d", "e/f/g.h");
+            files = obj.testDir.join("a.b", "c.d", "e/f/g.h");
             files.createEmptyFile;
-            folders = [obj.testFolder, obj.testFolder];
-            obj.assertEqual(folders.listDeepFiles, obj.testFolder.join("a.b", "c.d", "e/f/g.h"));
+            dirs = [obj.testDir, obj.testDir];
+            obj.assertEqual(dirs.listDeepFiles, obj.testDir.join("a.b", "c.d", "e/f/g.h"));
             obj.assertError(@() Path("klajsdfoi67w3pi47n").listDeepFiles, "Path:NotFound");
-            emptyFolder = obj.testFolder.join("empty");
-            emptyFolder.mkdir;
-            obj.assertEqual(emptyFolder.listDeepFiles, Path.empty);
+            emptyDir = obj.testDir.join("empty");
+            emptyDir.mkdir;
+            obj.assertEqual(emptyDir.listDeepFiles, Path.empty);
         end
 
         function listDirs(obj)
-            files = obj.testFolder / ["a.b", "c/d.e", "e/f/g.h", "i/j.k"];
+            files = obj.testDir / ["a.b", "c/d.e", "e/f/g.h", "i/j.k"];
             files.createEmptyFile;
-            folders = [obj.testFolder, obj.testFolder];
-            obj.assertEqual(folders.listDirs, obj.testFolder / ["c", "e", "i"]);
+            dirs = [obj.testDir, obj.testDir];
+            obj.assertEqual(dirs.listDirs, obj.testDir / ["c", "e", "i"]);
             obj.assertError(@() Path("klajsdfoi67w3pi47n").listDirs, "Path:NotFound");
         end
 
         function listDeepDirs(obj)
-            files = obj.testFolder / ["a.b", "c/d.e", "e/f/g.h", "i/j.k"];
+            files = obj.testDir / ["a.b", "c/d.e", "e/f/g.h", "i/j.k"];
             files.createEmptyFile;
-            folders = [obj.testFolder, obj.testFolder];
-            obj.assertEqual(folders.listDeepDirs, obj.testFolder / ["c", "e", "e/f", "i"]);
+            dirs = [obj.testDir, obj.testDir];
+            obj.assertEqual(dirs.listDeepDirs, obj.testDir / ["c", "e", "e/f", "i"]);
             obj.assertError(@() Path("klajsdfoi67w3pi47n").listDeepDirs, "Path:NotFound");
         end
 
         function delete_(obj)
 
             % Delete files
-            files = obj.testFolder / ["a.b", "c/d.e", "e/f"];
+            files = obj.testDir / ["a.b", "c/d.e", "e/f"];
             files(1:2).createEmptyFile;
             obj.assertTrue(all(files(1:2).isFile));
             files.delete;
             obj.assertFalse(any(files.isFile));
 
-            folders = obj.testFolder / ["a", "b"];
-            folders.mkdir;
-            folders(1).join("c.d").createEmptyFile;
-            obj.assertError(@() folders(1).delete, "MATLAB:RMDIR:NoDirectoriesRemoved");
-            folders.delete("s");
-            obj.assertFolderDoesNotExist(folders);
+            dirs = obj.testDir / ["a", "b"];
+            dirs.mkdir;
+            dirs(1).join("c.d").createEmptyFile;
+            obj.assertError(@() dirs(1).delete, "MATLAB:RMDIR:NoDirectoriesRemoved");
+            dirs.delete("s");
+            obj.assertDirDoesNotExist(dirs);
         end
 
         function readText(obj)
             expected = sprintf("line1\nline2\n");
-            file = obj.testFolder / "a.txt";
+            file = obj.testDir / "a.txt";
             fileId = file.openForWritingText;
             fprintf(fileId, "%s", expected);
             fclose(fileId);
@@ -885,7 +885,7 @@ classdef PathTest < matlab.unittest.TestCase
 
         function writeText(obj)
             expected = sprintf("line1\nline2\n");
-            file = obj.testFolder / "a.txt";
+            file = obj.testDir / "a.txt";
             file.writeText(expected);
             actual = string(fileread(file.string));
             actual = actual.replace(sprintf("\r\n"), newline);
@@ -900,46 +900,46 @@ classdef PathTest < matlab.unittest.TestCase
             obj.assertEqual(Path.empty.bytes, zeros(1, 0));
             oldDir.cd;
 
-            obj.testFolder.mkdir;
-            obj.assertError(@() obj.testFolder.bytes, "Path:NotAFile");
+            obj.testDir.mkdir;
+            obj.assertError(@() obj.testDir.bytes, "Path:NotAFile");
         end
 
         function modifiedDate(obj)
-            files = obj.testFolder.join("a.b", "c.d");
+            files = obj.testDir.join("a.b", "c.d");
             files.createEmptyFile;
-            content = dir(obj.testFolder.string);
+            content = dir(obj.testDir.string);
             actual(1) = datetime(content({content.name} == "a.b").datenum, "ConvertFrom", "datenum");
             actual(2) = datetime(content({content.name} == "c.d").datenum, "ConvertFrom", "datenum");
             obj.assertEqual(actual, files.modifiedDate);
 
             actual = datetime(content({content.name} == ".").datenum, "ConvertFrom", "datenum");
-            obj.assertEqual(actual, obj.testFolder.modifiedDate)
+            obj.assertEqual(actual, obj.testDir.modifiedDate)
         end
 
         %% Copy and move
         function copy_n_to_n(obj)
-            sourceFiles = obj.testFolder / ["a.b", "c/d.e"];
-            sourceFolders = obj.testFolder / ["f", "g"];
-            targets = obj.testFolder / ["f.g", "h/i.j", "k", "l/m"];
+            sourceFiles = obj.testDir / ["a.b", "c/d.e"];
+            sourceDirs = obj.testDir / ["f", "g"];
+            targets = obj.testDir / ["f.g", "h/i.j", "k", "l/m"];
 
-            files = obj.testFolder / ["f/b.c", "g/e/f.h"];
+            files = obj.testDir / ["f/b.c", "g/e/f.h"];
             files.createEmptyFile;
             sourceFiles.createEmptyFile;
 
-            sources = [sourceFiles, sourceFolders];
+            sources = [sourceFiles, sourceDirs];
             sources.copy(targets);
 
-            expectedNewFiles = obj.testFolder / ["k/b.c", "l/m/e/f.h"];
+            expectedNewFiles = obj.testDir / ["k/b.c", "l/m/e/f.h"];
             expectedNewFiles.mustBeFile;
             targets(1:2).mustBeFile;
             targets(3:4).mustBeDir;
             sourceFiles.mustBeFile;
-            sourceFolders.mustBeDir;
+            sourceDirs.mustBeDir;
         end
 
         function copy_File_1_to_n(obj)
-            source = obj.testFolder / "k.l";
-            targets = obj.testFolder / ["m.n", "o/p.q"];
+            source = obj.testDir / "k.l";
+            targets = obj.testDir / ["m.n", "o/p.q"];
 
             source.createEmptyFile;
             source.copy(targets);
@@ -948,34 +948,34 @@ classdef PathTest < matlab.unittest.TestCase
             targets.mustBeFile;
         end
 
-        function copy_Folder_1_to_n(obj)
-            files = obj.testFolder / "a/b.c";
+        function copy_Dir_1_to_n(obj)
+            files = obj.testDir / "a/b.c";
             files.createEmptyFile;
 
-            sources = obj.testFolder / "a";
-            targets = obj.testFolder / ["i", "j/k"];
+            sources = obj.testDir / "a";
+            targets = obj.testDir / ["i", "j/k"];
 
             sources.copy(targets);
 
             targets.mustBeDir;
-            newFiles = obj.testFolder / ["i/b.c", "j/k/b.c"];
+            newFiles = obj.testDir / ["i/b.c", "j/k/b.c"];
             newFiles.mustBeFile;
             sources.mustBeDir;
         end
 
         function copy_n_to_1(obj)
-            sources = obj.testFolder / ["a.b", "c/d.e"];
-            targets = obj.testFolder / "f.g";
+            sources = obj.testDir / ["a.b", "c/d.e"];
+            targets = obj.testDir / "f.g";
 
             obj.assertError2(@() sources.copy(targets), "Path:copyOrMove:InvalidNumberOfTargets")
         end
 
         function copyToDir_n_to_1(obj)
-            sources = obj.testFolder / ["a.b", "c/d.e", "f/g"];
-            obj.testFolder.join("f/g/h/i.j").createEmptyFile;
+            sources = obj.testDir / ["a.b", "c/d.e", "f/g"];
+            obj.testDir.join("f/g/h/i.j").createEmptyFile;
             sources(1:2).createEmptyFile;
             sources(3).mkdir;
-            target = obj.testFolder / "target";
+            target = obj.testDir / "target";
 
             sources.copyToDir(target);
 
@@ -986,8 +986,8 @@ classdef PathTest < matlab.unittest.TestCase
         end
 
         function copyToDir_File_1_to_n(obj)
-            source = obj.testFolder / "a.b";
-            targets = obj.testFolder / ["t1", "t2"];
+            source = obj.testDir / "a.b";
+            targets = obj.testDir / ["t1", "t2"];
             source.createEmptyFile;
 
             source.copyToDir(targets);
@@ -996,10 +996,10 @@ classdef PathTest < matlab.unittest.TestCase
             source.mustBeFile;
         end
 
-        function copyToDir_Folder_1_to_n(obj)
-            source = obj.testFolder / "a";
+        function copyToDir_Dir_1_to_n(obj)
+            source = obj.testDir / "a";
             source.join("b/d.c").createEmptyFile;
-            targets = obj.testFolder / ["t1", "t2"];
+            targets = obj.testDir / ["t1", "t2"];
 
             source.copyToDir(targets);
 
@@ -1008,12 +1008,12 @@ classdef PathTest < matlab.unittest.TestCase
         end
 
         function copyToDir_n_to_n(obj)
-            sources = obj.testFolder / ["a.b", "c/d.e", "f/g"];
-            obj.testFolder.join("f/g/h/i.j").createEmptyFile;
+            sources = obj.testDir / ["a.b", "c/d.e", "f/g"];
+            obj.testDir.join("f/g/h/i.j").createEmptyFile;
             sources(1:2).createEmptyFile;
             sources(3).mkdir;
 
-            targets = obj.testFolder / ["t1", "t2", "t3"];
+            targets = obj.testDir / ["t1", "t2", "t3"];
 
             sources.copyToDir(targets);
             targets(1:2).join(sources(1:2).name).mustBeFile;
@@ -1022,8 +1022,8 @@ classdef PathTest < matlab.unittest.TestCase
         end
 
         function move_n_to_n(obj)
-            sources = obj.testFolder / ["a", "d/e.f"];
-            targets = obj.testFolder / ["f", "h/i.j"];
+            sources = obj.testDir / ["a", "d/e.f"];
+            targets = obj.testDir / ["f", "h/i.j"];
             sources(2).createEmptyFile;
             sources(1).join("b.c").createEmptyFile;
 
@@ -1034,20 +1034,20 @@ classdef PathTest < matlab.unittest.TestCase
         end
 
         function move_1_to_n(obj)
-            source = obj.testFolder / "a.b";
-            targets = obj.testFolder / ["f.g", "h/i.j"];
+            source = obj.testDir / "a.b";
+            targets = obj.testDir / ["f.g", "h/i.j"];
             obj.assertError2(@() source.move(targets), "Path:copyOrMove:InvalidNumberOfTargets")
         end
 
         function move_n_to_1(obj)
-            source = obj.testFolder / ["a.b", "c.d"];
-            targets = obj.testFolder / "e.g";
+            source = obj.testDir / ["a.b", "c.d"];
+            targets = obj.testDir / "e.g";
             obj.assertError2(@() source.move(targets), "Path:copyOrMove:InvalidNumberOfTargets")
         end
 
         function moveToDir_n_to_1(obj)
-            sources = obj.testFolder / ["a.b", "c"];
-            target = obj.testFolder / "t";
+            sources = obj.testDir / ["a.b", "c"];
+            target = obj.testDir / "t";
             sources(1).createEmptyFile;
             sources(2).join("d.e").createEmptyFile;
 
@@ -1061,8 +1061,8 @@ classdef PathTest < matlab.unittest.TestCase
         end
 
         function moveToDir_n_to_n(obj)
-            sources = obj.testFolder / ["a.b", "c"];
-            targets = obj.testFolder / ["t", "t2"];
+            sources = obj.testDir / ["a.b", "c"];
+            targets = obj.testDir / ["t", "t2"];
             sources(1).createEmptyFile;
             sources(2).join("d.e").createEmptyFile;
 
@@ -1074,8 +1074,8 @@ classdef PathTest < matlab.unittest.TestCase
         end
 
         function moveToDir_1_to_n(obj)
-            source = obj.testFolder / "a.b";
-            targets = obj.testFolder / ["t1", "t2"];
+            source = obj.testDir / "a.b";
+            targets = obj.testDir / ["t1", "t2"];
             obj.assertError2(@() source.moveToDir(targets), "Path:copyOrMove:InvalidNumberOfTargets")
         end
 
@@ -1083,7 +1083,7 @@ classdef PathTest < matlab.unittest.TestCase
         function save(obj)
             a = 1;
             b = "test";
-            file = obj.testFolder / "data.mat";
+            file = obj.testDir / "data.mat";
             file.save("a", "b");
             clearvars("a", "b");
             load(file.string, "a", "b");
@@ -1094,8 +1094,8 @@ classdef PathTest < matlab.unittest.TestCase
         function load(obj)
             a = 1;
             b = "test";
-            file = obj.testFolder / "data.mat";
-            obj.testFolder.mkdir;
+            file = obj.testDir / "data.mat";
+            obj.testDir.mkdir;
             save(file.string, "a", "b");
             clearvars("a", "b");
             [a, b] = file.load("a", "b");
