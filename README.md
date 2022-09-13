@@ -47,11 +47,13 @@ Class for representing filesystem paths in MATLAB and solving path-related probl
     Path("Sketchy Folder\WormholeResearch.pdf")
 >> files.where("Stem", ["*Virus*", "*Worm*"], "ExtensionNot", ".pdf").moveToDir("D:\Quarantine");
 ```
-### Go to directory of executing file
+### Path and directory of executing file
 ```Matlab
-scriptFile = Path.ofCaller
+scriptFile = Path.this
     Path("C:/projects/SpaceCatapult/simulate.m")
-scriptFile.parent.cd;
+scriptDir = Path.here
+    Path("C:/projects/SpaceCatapult")
+scriptDir.cd;
 ```
 ## Installation
 Download or clone this repository and add it to your MATLAB search path. 
@@ -153,11 +155,12 @@ Create `Path` objects by calling `Path(...)` with one or multiple arguments of t
 | `Path.home` | `Path` | User home directory |
 | `Path.tempDir` | `Path` | Temporary directory; wrapper for built-in [`tempdir`](https://www.mathworks.com/help/matlab/ref/tempdir.html) |
 | `Path.tempFile` | `Path` | Random unique file in temporary directory; wrapper for built-in [`tempname`](https://www.mathworks.com/help/matlab/ref/tempname.html) |
-| `Path.matlab` | `Path` | Matlab install directory; wrapper for built-in [`matlabroot`](https://www.mathworks.com/help/matlab/ref/matlabroot.html) |
-| `Path.searchPath` | `Path` | Folders on Matlab search path; wrapper for built-in [`path`](https://www.mathworks.com/help/matlab/ref/path.html) |
-| `Path.userPath` | `Path` | Matlab user directory; wrapper for built-in [`userpath`](https://www.mathworks.com/help/matlab/ref/userpath.html) |
-| `Path.ofMatlabElement` | `Path` | Path of Matlab file on the Matlab search path |
-| `Path.ofCaller` | `Path` | Path of Matlab file executing this method |
+| `Path.matlab` | `Path` | MATLAB install directory; wrapper for built-in [`matlabroot`](https://www.mathworks.com/help/matlab/ref/matlabroot.html) |
+| `Path.searchPath` | `Path` | Folders on MATLAB search path; wrapper for built-in [`path`](https://www.mathworks.com/help/matlab/ref/path.html) |
+| `Path.userPath` | `Path` | MATLAB user directory; wrapper for built-in [`userpath`](https://www.mathworks.com/help/matlab/ref/userpath.html) |
+| `Path.ofMatlabElement` | `Path` | Path of MATLAB file on the MATLAB search path |
+| `Path.this` | `Path` | Path of MATLAB file executing this method |
+| `Path.here` | `Path` | Directory of MATLAB file executing this method |
 | `Path.empty` | `Path` | Empty object array |
 
 ### Other
