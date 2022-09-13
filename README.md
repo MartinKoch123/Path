@@ -158,7 +158,7 @@ Create `Path` objects by calling `Path(...)` with one or multiple arguments of t
 | `Path.matlab` | `Path` | MATLAB install directory; wrapper for built-in [`matlabroot`](https://www.mathworks.com/help/matlab/ref/matlabroot.html) |
 | `Path.searchPath` | `Path` | Folders on MATLAB search path; wrapper for built-in [`path`](https://www.mathworks.com/help/matlab/ref/path.html) |
 | `Path.userPath` | `Path` | MATLAB user directory; wrapper for built-in [`userpath`](https://www.mathworks.com/help/matlab/ref/userpath.html) |
-| `Path.ofMatlabElement` | `Path` | Path of MATLAB file on the MATLAB search path |
+| `Path.ofMatlabFile` | `Path` | Path of MATLAB file on the MATLAB search path |
 | `Path.this` | `Path` | Path of MATLAB file executing this method |
 | `Path.here` | `Path` | Directory of MATLAB file executing this method |
 | `Path.empty` | `Path` | Empty object array |
