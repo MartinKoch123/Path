@@ -1,69 +1,69 @@
 # Path
-Class for representing filesystem paths in MATLAB and solving path-related problems with short and readable code.
+Class for working with filesystem paths in MATLAB with short and readable code.
 
-[Features](#Features)  
 [Examples](#Examples)  
+[Requirements](#Requirements)  
 [Installation](#Installation)  
 [Reference](#Reference) 
 
 [![View Path on File Exchange](https://www.mathworks.com/matlabcentral/images/matlab-file-exchange.svg)](https://www.mathworks.com/matlabcentral/fileexchange/87552-path)
 
-## Features
- - Get and set path name, parent, root, stem and extension
- - Filter paths by extension, name, etc. using wildcards
- - List files recursively
- - Handle lists of paths
- - Clean and resolve paths
- - Build absolute and relative paths
- - Create, copy, move, delete files and directories
- - Get directory of currently executing MATLAB file
-
  ## Examples
- ### Path properties
+ ### Create
  ```Matlab
->> file = Path("C:\data") \ "model.dat"
-    Path("C:\data\model.dat")
+>> file = Path("C:\projects") \ "portal_gun.mdl"
+
+    Path("C:\projects\portal_gun.mdl")
+```
+### Properties
+```Matlab
 >> file.parent
-    Path("C:\data")
->> file.stem
-    "model"
->> file.extension
-    ".dat"
+
+    Path("C:\projects")
+
+>> file.setExtension(".pew")
+
+    Path("C:\projects\portal_gun.pew")
  ```
- ### Arrays of paths
+### Clean
+```Matlab
+>> Path("C:/stuff/../moreStuff\\//") \ "\subStuff//" / "./file.txt"
+
+    Path("C:\moreStuff\subStuff\file.txt")
+```
+
+ ### Arrays
  ```Matlab
->> personalFolders = Path("Astronauts") / ["Arthur", "Trillian", "Zaphod"]
-     Path("Astronauts\Arthur")
-     Path("Astronauts\Trillian")
-     Path("Astronauts\Zaphod")
->> personalFolders.join("DONT_PANIC.txt").createEmptyFile;
+>> sounds = Path("cat_sounds") / ["meow", "prr", "hsss"] + ".mp3"
+
+     Path("cat_sounds\meow.mp3")
+     Path("cat_sounds\prr.mp3")
+     Path("cat_sounds\hsss.mp3")
+
+>> sounds.copyToDir("dog_triggers")
 ``` 
-### Filtering and chaining
+### Delete files matching criteria
 ```Matlab
->> files = Path("Sketchy Folder").listDeepFiles
-    Path("Sketchy Folder\DeleteStuffVirus.exe")
-    Path("Sketchy Folder\System32\nastyWorm.dll")
-    Path("Sketchy Folder\dark_corner\half_a_sandwich.dat")
-    Path("Sketchy Folder\WormholeResearch.pdf")
->> files.where("Stem", ["*Virus*", "*Worm*"], "ExtensionNot", ".pdf").moveToDir("D:\Quarantine");
+>> files = Path("C:\Windows").listFiles.where("Stem", "*Virus*").delete
 ```
-### Path and directory of executing file
+### Enter directory of executing file
 ```Matlab
-scriptFile = Path.this
-    Path("C:/projects/SpaceCatapult/simulate.m")
-scriptDir = Path.here
-    Path("C:/projects/SpaceCatapult")
-scriptDir.cd;
+Path.here.cd
 ```
+
+## Requirements
+MATLAB R2019b or newer
+
 ## Installation
 Download or clone this repository and add it to your MATLAB search path. 
-Requires R2019b or newer.
 
 ## Reference
 
 ### Constructor
 
-Create `Path` objects by calling `Path(...)` with one or multiple arguments of type `string` vector, `char` vector, `cell` of `string` or `char` vectors.
+`Path(arg1, arg2, ...)`
+
+Supports `string`, `char` or `Path` vectors or `cell` vectors of said types.
 
 ### Type conversions 
 
