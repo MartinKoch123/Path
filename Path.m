@@ -1078,16 +1078,6 @@ classdef Path < matlab.mixin.CustomDisplay
         end
     end
 
-    %% Deprecated
-    methods (Static)
-        function result = ofCaller(level)
-            arguments
-                level (1, 1) double {mustBeInteger, mustBePositive} = 1
-            end
-            warning("Path:deprecated", "Method 'Path.ofCaller' is deprecated. User 'Path.this' instead.");
-            result = Path.this(level + 1);
-        end
-    end
 end
 
 function result = ifThenElse(condition, a, b)
