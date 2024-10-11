@@ -901,14 +901,14 @@ classdef PathTest < matlab.unittest.TestCase
         end
 
         function bytes(obj)
-            oldDir = Path.here.cd;
-            fileInfo(1) = dir("Path.m");
-            fileInfo(2) = dir("PathTest.m");
-            obj.verifyEqual(Path("Path.m", "PathTest.m").bytes, [fileInfo(1).bytes, fileInfo(2).bytes]);
-            obj.verifyEqual(Path.empty.bytes, zeros(1, 0));
-            oldDir.cd;
+            testFiles = obj.testDir / ["f1.txt", "f2.txt"];
+            testFiles(1).writeText("asdf");
+            testFiles(2).writeText("asdfasdfasdf");
+            actual = testFiles.bytes;
+            expected = arrayfun(@(testFile) dir(testFile.string).bytes, testFiles);
+            obj.verifyEqual(actual, expected);
 
-            obj.testDir.mkdir;
+            obj.verifyEqual(Path.empty.bytes, zeros(1, 0));
             obj.verifyError(@() obj.testDir.bytes, "Path:NotAFile");
         end
 
