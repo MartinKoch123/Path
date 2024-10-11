@@ -134,8 +134,16 @@ classdef PathTest < matlab.unittest.TestCase
         end
 
         function this(obj)
-            obj.assertEqual(Path.this, Path(which("PathTest")));
-            obj.assertEqual(Path.this(2), Path(which(adjustSeparators("+matlab\+unittest\TestRunner.m"))));
+
+            % Write test function which calls 'Path.this()'.
+            code = "function p = testPathThis(varargin);      p = Path.this(varargin{:});";
+            testFuncPath = obj.testDir / "testPathThis.m";
+            testFuncPath.writeText(code);
+
+            addpath(obj.testDir.string);
+            obj.assertEqual(testPathThis(), testFuncPath);
+            obj.assertEqual(testPathThis(2), Path(which("PathTest.m")));
+            rmpath(obj.testDir.string);
         end
 
         function here(obj)
@@ -268,7 +276,7 @@ classdef PathTest < matlab.unittest.TestCase
         function setName(obj)
             files = Path("a.b", "c/d");
             obj.assertEqual(files.setName("f.g"), Path("f.g", "c/f.g"));
-            obj.assertEqual(files.setName("f.g", "h/i"), Path("f.g", "c/h/i"));
+            obj.assertEqual(files.setName("h.i", "j/k"), Path("h.i", "c/j/k"));
             obj.assertError(@() files.setName("f", "g", "h"), "Path:join:LengthMismatch");
         end
 
@@ -319,7 +327,7 @@ classdef PathTest < matlab.unittest.TestCase
         function setStem(obj)
             files = Path("a.b", "c/d");
             obj.assertEqual(files.setStem("e"), Path("e.b", "c/e"));
-            obj.assertEqual(files.setStem(["e", "f"]), Path("e.b", "c/f"));
+            obj.assertEqual(files.setStem(["f", "g"]), Path("f.b", "c/g"));
             obj.assertEqual(files.setStem(""), Path(".b", "c"));
             obj.assertError(@() files.setStem("a/\b"), "Path:Validation:InvalidName");
             obj.assertError(@() files.setStem(["a", "b", "c"]), "Path:Validation:InvalidSize");
@@ -1126,5 +1134,5 @@ classdef PathTest < matlab.unittest.TestCase
 end
 
 function s = adjustSeparators(s)
-s = s.replace(["/", "\"], filesep);
+    s = s.replace(["/", "\"], filesep);
 end
