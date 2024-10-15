@@ -45,7 +45,7 @@ classdef PathTest < matlab.unittest.TestCase
             obj.verifyTrue(ismember(actual, expected));
         end
 
-        function result = testRoot(obj)
+        function result = getTestRoot(obj)
             if ispc
                 result = "C:";
             else
@@ -53,7 +53,7 @@ classdef PathTest < matlab.unittest.TestCase
             end
         end
 
-        function result = testRoot2(obj)
+        function result = getTestRoot2(obj)
             if ispc
                 result = "D:";
             else
@@ -61,13 +61,6 @@ classdef PathTest < matlab.unittest.TestCase
             end
         end
 
-        function result = testRootPattern(obj)
-            if ispc
-                result = "C*";
-            else
-                result = "/t*";
-            end
-        end
     end
 
     methods(TestMethodTeardown)
@@ -265,7 +258,7 @@ classdef PathTest < matlab.unittest.TestCase
 
         %% Name
         function name(obj)
-            obj.verifyEqual(Path(obj.testRoot + "/one/two/three.ext").name.string, "three.ext");
+            obj.verifyEqual(Path(obj.getTestRoot + "/one/two/three.ext").name.string, "three.ext");
             obj.verifyEqual(Path("one.two.three.ext").name.string, "one.two.three.ext");
             obj.verifyEqual(Path("one").name.string, "one");
             obj.verifyEqual(Path("..").name.string, "..");
@@ -282,7 +275,7 @@ classdef PathTest < matlab.unittest.TestCase
 
         function nameString(obj)
             testPaths = {
-                Path(obj.testRoot + "/one/two/three.ext")
+                Path(obj.getTestRoot + "/one/two/three.ext")
                 Path("../../one/three.ext")
                 Path("one")
                 Path("..")
@@ -299,7 +292,7 @@ classdef PathTest < matlab.unittest.TestCase
 
         %% Extension
         function extension(obj)
-            obj.verifyEqual(Path(obj.testRoot + "/one/two/three.ext").extension, ".ext");
+            obj.verifyEqual(Path(obj.getTestRoot + "/one/two/three.ext").extension, ".ext");
             obj.verifyEqual(Path("one.two.three.ext").extension, ".ext");
             obj.verifyEqual(Path("one.").extension, ".");
             obj.verifyEqual(Path("one").extension, "");
@@ -315,7 +308,7 @@ classdef PathTest < matlab.unittest.TestCase
 
         %% Stem
         function stem(obj)
-            obj.verifyEqual(Path(obj.testRoot + "/one/two/three.ext").stem, "three");
+            obj.verifyEqual(Path(obj.getTestRoot + "/one/two/three.ext").stem, "three");
             obj.verifyEqual(Path("one.two.three.ext").stem, "one.two.three");
             obj.verifyEqual(Path("one").stem, "one");
             obj.verifyEqual(Path("..").stem, "..");
@@ -345,7 +338,7 @@ classdef PathTest < matlab.unittest.TestCase
 
         %% Parent
         function parent(obj)
-            obj.verifyEqual(Path(obj.testRoot + "/one/two/three.ext").parent, Path(obj.testRoot + "/one/two"));
+            obj.verifyEqual(Path(obj.getTestRoot + "/one/two/three.ext").parent, Path(obj.getTestRoot + "/one/two"));
             obj.verifyEqual(Path("../../one/three.ext").parent, Path("../../one"));
             obj.verifyEqual(Path("one").parent, Path("."));
             obj.verifyEqual(Path("..").parent, Path("."));
@@ -354,7 +347,7 @@ classdef PathTest < matlab.unittest.TestCase
 
         function parentString(obj)
             testPaths = {
-                Path(obj.testRoot + "/one/two/three.ext")
+                Path(obj.getTestRoot + "/one/two/three.ext")
                 Path("../../one/three.ext")
                 Path("one")
                 Path("..")
@@ -375,16 +368,16 @@ classdef PathTest < matlab.unittest.TestCase
         end
 
         function hasParent(obj)
-            obj.verifyEqual(Path("a/b/c", obj.testRoot + "/d/e", "hello.txt").hasParent, [true, true, false]);
+            obj.verifyEqual(Path("a/b/c", obj.getTestRoot + "/d/e", "hello.txt").hasParent, [true, true, false]);
             obj.verifyEqual(Path.empty.hasParent(), logical.empty(1, 0));
         end
 
         %% Root
         function root(obj)
             tests = {
-                Path(obj.testRoot + "/one/two.ext").root, Path(obj.testRoot)
+                Path(obj.getTestRoot + "/one/two.ext").root, Path(obj.getTestRoot)
                 Path("one/two").root, Path(".")
-                Path(obj.testRoot + "/a", "b.txt").root, Path(obj.testRoot, ".")
+                Path(obj.getTestRoot + "/a", "b.txt").root, Path(obj.getTestRoot, ".")
                 };
 
             for test = tests'
@@ -395,7 +388,7 @@ classdef PathTest < matlab.unittest.TestCase
 
         function rootString(obj)
             tests = {
-                Path(obj.testRoot + "/one/two.ext")
+                Path(obj.getTestRoot + "/one/two.ext")
                 Path("one/two").root
                 Path.empty
                 Path("C:\a", "b")
@@ -408,9 +401,9 @@ classdef PathTest < matlab.unittest.TestCase
         end
 
         function setRoot(obj)
-            obj.verifyEqual(Path(obj.testRoot + "/a/b.c", "e/f.g").setRoot(obj.testRoot2), Path(obj.testRoot2 + "/a/b.c", obj.testRoot2 + "/e/f.g"));
-            obj.verifyEqual(Path.empty.setRoot(obj.testRoot), Path.empty);
-            obj.verifyEqual(Path(obj.testRoot + "/a/b").setRoot("../c/d"), Path("../c/d/a/b"));
+            obj.verifyEqual(Path(obj.getTestRoot + "/a/b.c", "e/f.g").setRoot(obj.getTestRoot2), Path(obj.getTestRoot2 + "/a/b.c", obj.getTestRoot2 + "/e/f.g"));
+            obj.verifyEqual(Path.empty.setRoot(obj.getTestRoot), Path.empty);
+            obj.verifyEqual(Path(obj.getTestRoot + "/a/b").setRoot("../c/d"), Path("../c/d/a/b"));
             obj.verifyError(@() Path("a").setRoot(pathsep), "Path:Validation:ContainsPathsep");
         end
 
@@ -429,12 +422,12 @@ classdef PathTest < matlab.unittest.TestCase
         %% Properties
         function isRelative(obj)
             obj.verifyTrue(all(Path(".", "..", "a/b.c", "../../a/b/c").isRelative));
-            obj.verifyFalse(any(Path(obj.testRoot+"\", obj.testRoot+"\a\b.c", "\\test\", "\\test\a\b").isRelative));
+            obj.verifyFalse(any(Path(obj.getTestRoot+"\", obj.getTestRoot+"\a\b.c", "\\test\", "\\test\a\b").isRelative));
         end
 
         function isAbsolute(obj)
             obj.verifyFalse(any(Path(".", "..", "a/b.c", "../../a/b/c").isAbsolute));
-            obj.verifyTrue(any(Path(obj.testRoot+"\", obj.testRoot+"\a\b.c", "\\test\", "\\test\a\b").isAbsolute));
+            obj.verifyTrue(any(Path(obj.getTestRoot+"\", obj.getTestRoot+"\a\b.c", "\\test\", "\\test\a\b").isAbsolute));
         end
 
         function equalAndNotEqual(obj)
@@ -447,8 +440,8 @@ classdef PathTest < matlab.unittest.TestCase
         end
 
         function parts(obj)
-            testRootWithoutLeadingSeparator = regexprep(obj.testRoot, "^" + regexptranslate("escape", filesep), "");
-            obj.verifyEqual(Path(obj.testRoot + "/a/b\\c.e\").parts, [testRootWithoutLeadingSeparator, "a", "b", "c.e"]);
+            testRootWithoutLeadingSeparator = regexprep(obj.getTestRoot, "^" + regexptranslate("escape", filesep), "");
+            obj.verifyEqual(Path(obj.getTestRoot + "/a/b\\c.e\").parts, [testRootWithoutLeadingSeparator, "a", "b", "c.e"]);
             obj.verifyEqual(Path(".\..\/\../a/b\\c.e\").parts, ["..", "..", "a", "b", "c.e"]);
             obj.verifyEqual(Path().parts, ".");
 
@@ -463,11 +456,11 @@ classdef PathTest < matlab.unittest.TestCase
 
         %% Filter
         function where_and_is(obj)
-            files = Path(obj.testRoot + "\on.e/t=wo.ab.txt");
+            files = Path(obj.getTestRoot + "\on.e/t=wo.ab.txt");
 
             tests = {
-                {"Parent", obj.testRoot + "\o*"}, 1
-                {"ParentNot", obj.testRoot + "\o*"}, []
+                {"Parent", obj.getTestRoot + "\o*"}, 1
+                {"ParentNot", obj.getTestRoot + "\o*"}, []
                 {"Parent", "*a*"}, []
                 {"ParentNot", "*a*"}, 1
 
@@ -514,7 +507,7 @@ classdef PathTest < matlab.unittest.TestCase
         function where_and_is2(obj)
 
             files = Path([ ...
-                obj.testRoot + "/on.e/t=wo.ab.txt"
+                obj.getTestRoot + "/on.e/t=wo.ab.txt"
                 "=.23f/asdf.%43"
                 "..\..\p"
                 "dir\file"
@@ -522,9 +515,9 @@ classdef PathTest < matlab.unittest.TestCase
                 );
 
             tests = {
-                {"Parent", "*i*", "RootNot", obj.testRoot, "Name", ["file", "t=wo.ab.txt"]}, logical([0, 0, 0, 1])
+                {"Parent", "*i*", "RootNot", obj.getTestRoot, "Name", ["file", "t=wo.ab.txt"]}, logical([0, 0, 0, 1])
                 {"NameNot", "*f*", "Name", ["p", "file"]}, logical([0, 0, 1, 0])
-                {"Root", [".", obj.testRoot]}, logical([1, 1, 1, 1])
+                {"Root", [".", obj.getTestRoot]}, logical([1, 1, 1, 1])
                 {"ParentNot", "*"}, logical([0, 0, 0, 0])
                 {"ExtensionNot", ".txt", "Parent", "*i*"}, logical([0, 0, 0, 1])
                 };
@@ -555,12 +548,12 @@ classdef PathTest < matlab.unittest.TestCase
         %% Absolute/Relative
         function absolute(obj)
             obj.verifyEqual(...
-                Path("a.b", obj.testRoot + "/c/d.e").absolute, ...
-                [Path.pwd / "a.b", Path(obj.testRoot + "/c/d.e")] ...
+                Path("a.b", obj.getTestRoot + "/c/d.e").absolute, ...
+                [Path.pwd / "a.b", Path(obj.getTestRoot + "/c/d.e")] ...
                 );
             obj.verifyEqual(...
-                Path("a.b", obj.testRoot + "/c/d.e").absolute(obj.testRoot + "\x\y"), ...
-                [Path(obj.testRoot + "\x\y\a.b"), Path(obj.testRoot + "/c/d.e")] ...
+                Path("a.b", obj.getTestRoot + "/c/d.e").absolute(obj.getTestRoot + "\x\y"), ...
+                [Path(obj.getTestRoot + "\x\y\a.b"), Path(obj.getTestRoot + "/c/d.e")] ...
                 );
 
             obj.verifyEqual(...
@@ -568,23 +561,23 @@ classdef PathTest < matlab.unittest.TestCase
                 Path.pwd / "x\y\a.b" ...
                 );
 
-            obj.verifyEqual(Path(obj.testRoot).absolute, Path(obj.testRoot));
+            obj.verifyEqual(Path(obj.getTestRoot).absolute, Path(obj.getTestRoot));
             obj.verifyEqual(Path.empty.absolute, Path.empty);
         end
 
         function relative(obj)
-            referencePath = Path(obj.testRoot + "/a/b/c");
-            file1 = Path(obj.testRoot + "/a/d/e.f");
+            referencePath = Path(obj.getTestRoot + "/a/b/c");
+            file1 = Path(obj.getTestRoot + "/a/d/e.f");
             obj.verifyEqual(file1.relative(referencePath), Path("..\..\d\e.f"));
 
-            dir1 = Path(obj.testRoot);
+            dir1 = Path(obj.getTestRoot);
             obj.verifyEqual(dir1.relative(referencePath), Path("..\..\.."));
 
             obj.verifyEqual(referencePath.relative(referencePath), Path("."));
 
             obj.verifyEqual(Path.empty.relative(referencePath), Path.empty);
 
-            file2 = Path(obj.testRoot2 + "/a.b");
+            file2 = Path(obj.getTestRoot2 + "/a.b");
             obj.verifyError(@() file2.relative(referencePath), "Path:relative:RootsDiffer");
 
             dir2 = Path("a/b");
