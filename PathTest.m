@@ -123,7 +123,23 @@ classdef PathTest < matlab.unittest.TestCase
             actual = Path.ofMatlabFile(["mean", "PathTest"]).string;
             expected = string({which("mean") which("PathTest")});
             obj.verifyEqual(actual, expected);
+        end
+            
+        function ofMatlabFile_notFound(obj)
             obj.verifyError(@() Path.ofMatlabFile("npofas&/"), "Path:ofMatlabFile:NotFound");
+        end
+
+        function ofMatlabFile_nameConflict(obj)
+
+            % Quering the path of a 'result' function forces the
+            % 'ofMatlabFile' function to handle an internal name conflict.
+
+            obj.testDir.join("result.m").writeText("function result");
+            obj.applyFixture(matlab.unittest.fixtures.PathFixture(obj.testDir.string));
+
+            actual = Path.ofMatlabFile("result").string;
+            expected = string(which("result"));
+            obj.verifyEqual(actual, expected);
         end
 
         function this(obj)
@@ -132,11 +148,10 @@ classdef PathTest < matlab.unittest.TestCase
             code = "function p = testPathThis(varargin);      p = Path.this(varargin{:});";
             testFuncPath = obj.testDir / "testPathThis.m";
             testFuncPath.writeText(code);
-
-            addpath(obj.testDir.string);
+            obj.applyFixture(matlab.unittest.fixtures.PathFixture(obj.testDir.string));
+            
             obj.verifyEqual(testPathThis(), testFuncPath);
             obj.verifyEqual(testPathThis(2), Path(which("PathTest.m")));
-            rmpath(obj.testDir.string);
         end
 
         function here(obj)
@@ -168,10 +183,17 @@ classdef PathTest < matlab.unittest.TestCase
             obj.verifyEqual(Path.userPath, Path(userpath));
         end
 
-        function tempFile(obj)
+        function tempFile_empty(obj)
             obj.verifyEqual(Path.tempFile(0), Path.empty)
+        end
+
+        function tempFile_default(obj)
+            files = Path.tempFile;
+            obj.verifyEqual(files.parent, Path(tempdir));
+        end
+
+        function tempFile_vector(obj)
             files = Path.tempFile(2);
-            obj.verifyEqual(files.count, 2);
             obj.verifyEqual(files.parent, Path(tempdir, tempdir));
             obj.verifyNotEqual(files(1).nameString, files(2).nameString);
         end
@@ -729,12 +751,19 @@ classdef PathTest < matlab.unittest.TestCase
             obj.verifyError(@() ["a/b.c", "d/e"] + Path(["_s1", "_s2", "_s3"]), "Path:Validation:InvalidSize");
         end
 
-        function tempFileName(obj)
+        function tempFileName_empty(obj)
             obj.verifyEqual(Path("a").tempFileName(0), Path.empty);
-            files = Path("a").tempFileName(2);
-            obj.verifyLength(files, 2);
+        end
+
+        function tempFileName_default(obj)
+            files = Path("b").tempFileName;
+            obj.verifyEqual(files.parent.string, "b");
+        end
+
+        function tempFileName_vector(obj)
+            files = Path("c").tempFileName(2);
             obj.verifyNotEqual(files(1), files(2));
-            obj.verifyEqual(files(1).parent, Path("a"));
+            obj.verifyEqual(files.parent.string, ["c", "c"]);
         end
 
         %% File system interaction
@@ -757,32 +786,48 @@ classdef PathTest < matlab.unittest.TestCase
             obj.verifyFileExists(obj.testDir / ["a.b", "c/d.e"]);
         end
 
-        function isFileAndIsDir(obj)
+        function exists_isFile_and_isDir(obj)
             paths = obj.testDir / ["a.b", "c/d.e"];
+
+            % Paths do not exist.
             obj.verifyEqual(paths.exists, [false, false]);
             obj.verifyEqual(paths.isDir, [false, false]);
             obj.verifyEqual(paths.isFile, [false, false]);
-            obj.verifyError(@() paths.mustExist, "Path:NotFound");
-            obj.verifyError(@() paths.mustBeDir, "Path:NotFound");
-            obj.verifyError(@() paths.mustBeFile, "Path:NotFound");
 
+            % Paths are files.
             paths.createEmptyFile;
             obj.verifyEqual(paths.exists, [true, true]);
             obj.verifyEqual(paths.isFile, [true, true]);
             obj.verifyEqual(paths.isDir, [false, false]);
+
+            % Paths are folders.
+            delete(paths(1).string, paths(2).string);
+            paths.mkdir;
+            obj.verifyEqual(paths.exists, [true, true]);
+            obj.verifyEqual(paths.isDir, [true, true]);
+            obj.verifyEqual(paths.isFile, [false, false]);
+        end
+
+        function mustExist_mustBeDir_and_mustBeFile(obj)
+            paths = obj.testDir / ["a.b", "c/d.e"];
+
+            % Paths do not exist.
+            obj.verifyError(@() paths.mustExist, "Path:NotFound");
+            obj.verifyError(@() paths.mustBeDir, "Path:NotFound");
+            obj.verifyError(@() paths.mustBeFile, "Path:NotFound");
+
+            % Paths are files.
+            paths.createEmptyFile;
             paths.mustExist;
             paths.mustBeFile;
             obj.verifyError(@() paths.mustBeDir, "Path:NotADir");
 
+            % Paths are folders.
             delete(paths(1).string, paths(2).string);
             paths.mkdir;
-
-            obj.verifyEqual(paths.exists, [true, true]);
-            obj.verifyEqual(paths.isDir, [true, true]);
-            obj.verifyEqual(paths.isFile, [false, false]);
             paths.mustExist;
-            paths.mustBeDir
             obj.verifyError(@() paths.mustBeFile, "Path:NotAFile");
+            paths.mustBeDir
         end
 
         function fopen(obj)
@@ -826,46 +871,60 @@ classdef PathTest < matlab.unittest.TestCase
             files = obj.testDir / ["a.b", "c.d", "e/f.g"];
             files.createEmptyFile;
             dirs = [obj.testDir, obj.testDir];
-            obj.verifyEqual(dirs.listFiles, obj.testDir / ["a.b", "c.d"]);
-            obj.verifyError(@() Path("klajsdfoi67w3pi47n").listFiles, "Path:NotFound");
+            expectedFiles = obj.testDir / ["a.b", "c.d"];
+            obj.verifyEqual(dirs.listFiles, expectedFiles);
         end
 
         function listDeepFiles(obj)
             files = obj.testDir.join("a.b", "c.d", "e/f/g.h");
             files.createEmptyFile;
             dirs = [obj.testDir, obj.testDir];
-            obj.verifyEqual(dirs.listDeepFiles, obj.testDir.join("a.b", "c.d", "e/f/g.h"));
-            obj.verifyError(@() Path("klajsdfoi67w3pi47n").listDeepFiles, "Path:NotFound");
-            emptyDir = obj.testDir.join("empty");
-            emptyDir.mkdir;
-            obj.verifyEqual(emptyDir.listDeepFiles, Path.empty);
+            expectedFiles = obj.testDir.join("a.b", "c.d", "e/f/g.h");
+            obj.verifyEqual(dirs.listDeepFiles, expectedFiles);
         end
 
         function listDirs(obj)
             files = obj.testDir / ["a.b", "c/d.e", "e/f/g.h", "i/j.k"];
             files.createEmptyFile;
             dirs = [obj.testDir, obj.testDir];
-            obj.verifyEqual(dirs.listDirs, obj.testDir / ["c", "e", "i"]);
-            obj.verifyError(@() Path("klajsdfoi67w3pi47n").listDirs, "Path:NotFound");
+            expectedDirs = obj.testDir / ["c", "e", "i"];
+            obj.verifyEqual(dirs.listDirs, expectedDirs);
         end
 
         function listDeepDirs(obj)
             files = obj.testDir / ["a.b", "c/d.e", "e/f/g.h", "i/j.k"];
             files.createEmptyFile;
             dirs = [obj.testDir, obj.testDir];
-            obj.verifyEqual(dirs.listDeepDirs, obj.testDir / ["c", "e", "e/f", "i"]);
-            obj.verifyError(@() Path("klajsdfoi67w3pi47n").listDeepDirs, "Path:NotFound");
+            expectedDirs = obj.testDir / ["c", "e", "e/f", "i"];
+            obj.verifyEqual(dirs.listDeepDirs, expectedDirs);
         end
 
-        function delete_(obj)
+        function listDirsAndFiles_emptyDir(obj)
+            obj.testDir.mkdir;
+            methods = {@listFiles, @listDeepFiles, @listDirs, @listDeepDirs};
+            for method = methods
+                method = method{1};
+                obj.verifyEqual(method(obj.testDir), Path.empty);
+            end
+        end
 
-            % Delete files
+        function listDirsAndFiles_notFoundError(obj)
+            methods = {@listFiles, @listDeepFiles, @listDirs, @listDeepDirs};
+            for method = methods
+                method = method{1};
+                obj.verifyError(@() method(obj.testDir), "Path:NotFound");
+            end
+        end
+
+        function delete_files(obj)
             files = obj.testDir / ["a.b", "c/d.e", "e/f"];
             files(1:2).createEmptyFile;
-            obj.verifyTrue(all(files(1:2).isFile));
+            obj.verifyFileExists(files(1:2));
             files.delete;
-            obj.verifyFalse(any(files.isFile));
+            obj.verifyFileDoesNotExists(files);
+        end
 
+        function delete_folders(obj)
             dirs = obj.testDir / ["a", "b"];
             dirs.mkdir;
             dirs(1).join("c.d").createEmptyFile;
@@ -964,11 +1023,20 @@ classdef PathTest < matlab.unittest.TestCase
             sources.mustBeDir;
         end
 
-        function copy_n_to_1(obj)
+        function copy_or_move_n_to_1(obj)
             sources = obj.testDir / ["a.b", "c/d.e"];
             targets = obj.testDir / "f.g";
+            obj.verifyError(@() sources.copy(targets), "Path:copyOrMove:InvalidNumberOfTargets")
+            obj.verifyError(@() sources.move(targets), "Path:copyOrMove:InvalidNumberOfTargets")
+        end
 
-            obj.verifyError2(@() sources.copy(targets), "Path:copyOrMove:InvalidNumberOfTargets")
+        function copy_or_move_toDir(obj)
+            source = obj.testDir / "file.dat";
+            source.createEmptyFile;
+            target = obj.testDir / "folder";
+            target.mkdir;
+            obj.verifyError(@() source.copy(target), "Path:copyOrMove:TargetIsDir");
+            obj.verifyError(@() source.move(target), "Path:copyOrMove:TargetIsDir");
         end
 
         function copyToDir_n_to_1(obj)
@@ -1034,16 +1102,11 @@ classdef PathTest < matlab.unittest.TestCase
             obj.verifyAllFalse(sources.exists);
         end
 
-        function move_1_to_n(obj)
+        function move_or_moveToDir_1_to_n(obj)
             source = obj.testDir / "a.b";
             targets = obj.testDir / ["f.g", "h/i.j"];
-            obj.verifyError2(@() source.move(targets), "Path:copyOrMove:InvalidNumberOfTargets")
-        end
-
-        function move_n_to_1(obj)
-            source = obj.testDir / ["a.b", "c.d"];
-            targets = obj.testDir / "e.g";
-            obj.verifyError2(@() source.move(targets), "Path:copyOrMove:InvalidNumberOfTargets")
+            obj.verifyError(@() source.move(targets), "Path:copyOrMove:InvalidNumberOfTargets")
+            obj.verifyError(@() source.moveToDir(targets), "Path:copyOrMove:InvalidNumberOfTargets")
         end
 
         function moveToDir_n_to_1(obj)
@@ -1074,12 +1137,6 @@ classdef PathTest < matlab.unittest.TestCase
             obj.verifyAllFalse(sources.exists);
         end
 
-        function moveToDir_1_to_n(obj)
-            source = obj.testDir / "a.b";
-            targets = obj.testDir / ["t1", "t2"];
-            obj.verifyError2(@() source.moveToDir(targets), "Path:copyOrMove:InvalidNumberOfTargets")
-        end
-
         %% Save and load
         function save(obj)
             a = 1;
@@ -1087,12 +1144,22 @@ classdef PathTest < matlab.unittest.TestCase
             file = obj.testDir / "data.mat";
             file.save("a", "b");
             clearvars("a", "b");
-            load(file.string, "a", "b");
-            obj.verifyEqual(a, 1);
-            obj.verifyEqual(b, "test");
+            actual = load(file.string, "a", "b");
+            expected = struct("a", 1, "b", "test");
+            obj.verifyEqual(actual, expected);
+        end
+
+        function save_empty(obj)
+            file = obj.testDir / "data.mat";
+            file.save();
+            actual = load(file.string);
+            obj.verifyEqual(actual, struct());
         end
 
         function load(obj)
+
+            obj.applyFixture(matlab.unittest.fixtures.SuppressedWarningsFixture("MATLAB:load:variableNotFound"))
+
             a = 1;
             b = "test";
             file = obj.testDir / "data.mat";
@@ -1112,14 +1179,12 @@ classdef PathTest < matlab.unittest.TestCase
             end
             obj.verifyTrue(raisedError);
             raisedError = false;
-            warning("off", "MATLAB:load:variableNotFound");
             try
                 c = file.load("c");
             catch exception
                 obj.verifyEqual(string(exception.identifier), "Path:load:VariableNotFound");
                 raisedError = true;
             end
-            warning("on", "MATLAB:load:variableNotFound");
             obj.verifyTrue(raisedError);
         end
 
