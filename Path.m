@@ -663,9 +663,7 @@ classdef Path < matlab.mixin.CustomDisplay
             arguments (Repeating)
                 variables (1, 1) string {Path.mustBeValidVariableName}
             end
-            if isempty(variables)
-                error("Path:load:MissingArgument", "Not enough inputs arguments.");
-            end
+            saveStruct = struct();
             for variable = [variables{:}]
                 saveStruct.(variable) = evalin("caller", variable);
             end
@@ -769,13 +767,11 @@ classdef Path < matlab.mixin.CustomDisplay
                     temp = eval(element);
                     clearvars(element);
                     path = string(which(element));
-                    eval(element + " = temp");
+                    eval(element + " = temp;");
                 end
 
-                if path.startsWith("built")
-
-                    % Remove "build in" and brackets.
-                    path = regexprep(path, ["^[^\(]*\(", "\)$"], "");
+                if path.startsWith("built-in (")
+                    path = path.extractBetween("(", ")");
                 elseif path == ""
                     error("Path:ofMatlabFile:NotFound", "Element ""%s"" is not on the search path.", element);
                 end
@@ -874,14 +870,6 @@ classdef Path < matlab.mixin.CustomDisplay
             end
         end
 
-        function result = where_(objects, filterFun)
-            keep = true(1, length(objects));
-            for iObject = 1:length(objects)
-                keep(iObject) = filterFun(objects(iObject));
-            end
-            result = objects(keep);
-        end
-
         function result = notFoundException(obj)
 
             result = MException("Path:NotFound", "Path ""%s"" not found. ", obj.string);
@@ -900,37 +888,43 @@ classdef Path < matlab.mixin.CustomDisplay
             end
         end
 
-        function copyOrMove(objects, targets, copy, toDirMode)
-            if objects.count == 1 && copy
-                objects = repmat(objects, 1, length(targets));
+        function copyOrMove(objects, targets, isCopyMode, isToDirMode)
+            if objects.count == 1 && isCopyMode
+                objects = repelem(objects, length(targets));
             end
-            if targets.count == 1 && toDirMode
-                targets = repmat(targets, 1, length(objects));
+            if targets.count == 1 && isToDirMode
+                targets = repelem(targets, length(objects));
             end
             if objects.count ~= length(targets)
-                error("Path:copyOrMove:InvalidNumberOfTargets", "Number of target paths must be equal the number of source paths.")
+                MException("Path:copyOrMove:InvalidNumberOfTargets", "The number of target paths must equal the number of source paths.").throwAsCaller;
             end
+            operation = ifThenElse(isCopyMode, @copyfile, @movefile);
+            operationName = ifThenElse(isCopyMode, "copy", "move");
             for i = 1 : objects.count
                 obj = objects(i);
                 obj.mustExist;
-                if toDirMode
+                if isToDirMode
                     target = targets(i) / obj.name;
                 else
                     target = targets(i);
                 end
                 if obj.isFile && target.isDir
-                    error("Path:copy:TargetIsDir", "The source ""%s"" is a file but the target ""%s"" is an existing directory.", target)
+                    MException( ...
+                        "Path:copyOrMove:TargetIsDir", ...
+                        "The source ""%s"" is a file but the target ""%s"" is an existing directory. Consider using method ""%sToDir"" instead.", ...
+                        obj.string, target.string, operationName ...
+                    ).throwAsCaller;
                 end
                 try
                     target.parent.mkdir;
-                    if copy
-                        copyfile(obj.string, target.string);
-                    else
-                        movefile(obj.string, target.string);
-                    end
+                    operation(obj.string, target.string);
                 catch exception
-                    operationName = ifThenElse(copy, "copy", "move");
-                    Path.extendError(exception, ["MATLAB:COPYFILE:", "MATLAB:MOVEFILE:", "MATLAB:MKDIR:"], "Unable to %s %s ""%s"" to ""%s"".", operationName, lower(class(obj)), obj, target);
+                    Path.extendError( ...
+                        exception, ...
+                        "MATLAB:" + ["COPYFILE:", "MOVEFILE:", "MKDIR:"], ...
+                        "Unable to %s %s ""%s"" to ""%s"".", ...
+                        operationName, lower(class(obj)), obj, target ...
+                    );
                 end
             end
         end
