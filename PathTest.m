@@ -1170,6 +1170,9 @@ classdef PathTest < matlab.unittest.TestCase
             obj.verifyEqual(a, 1);
             obj.verifyEqual(b, "test");
 
+            % Use try/catch instead of verifyError since the test scenarios
+            % require the function outputs to be assigend to variables,
+            % which is not possible with anonymous function.
             raisedError = false;
             try
                 a = file.load("a", "b");
