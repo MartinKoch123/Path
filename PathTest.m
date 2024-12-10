@@ -928,7 +928,12 @@ classdef PathTest < matlab.unittest.TestCase
             dirs = obj.testDir / ["a", "b"];
             dirs.mkdir;
             dirs(1).join("c.d").createEmptyFile;
-            obj.verifyError(@() dirs(1).delete, "MATLAB:RMDIR:NoDirectoriesRemoved");
+            if isMATLABReleaseOlderThan("R2023b")
+                errorId = "MATLAB:RMDIR:NoDirectoriesRemoved";
+            else
+                errorId = "MATLAB:RMDIR:DirectoryNotRemoved";
+            end
+            obj.verifyError(@() dirs(1).delete, errorId);
             dirs.delete("s");
             obj.verifyDirDoesNotExist(dirs);
         end
