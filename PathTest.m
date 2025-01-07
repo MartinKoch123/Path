@@ -1162,7 +1162,6 @@ classdef PathTest < matlab.unittest.TestCase
         end
 
         function load(obj)
-
             obj.applyFixture(matlab.unittest.fixtures.SuppressedWarningsFixture("MATLAB:load:variableNotFound"))
 
             a = 1;
@@ -1171,29 +1170,12 @@ classdef PathTest < matlab.unittest.TestCase
             obj.testDir.mkdir;
             save(file.string, "a", "b");
             clearvars("a", "b");
-            [a, b] = file.load("a", "b");
-            obj.verifyEqual(a, 1);
-            obj.verifyEqual(b, "test");
 
-            % Use try/catch instead of verifyError since the test scenarios
-            % require the function outputs to be assigend to variables,
-            % which is not possible with anonymous function.
-            raisedError = false;
-            try
-                a = file.load("a", "b");
-            catch exception
-                obj.verifyEqual(string(exception.identifier), "Path:load:InputOutputMismatch");
-                raisedError = true;
-            end
-            obj.verifyTrue(raisedError);
-            raisedError = false;
-            try
-                c = file.load("c");
-            catch exception
-                obj.verifyEqual(string(exception.identifier), "Path:load:VariableNotFound");
-                raisedError = true;
-            end
-            obj.verifyTrue(raisedError);
+            [a, b] = file.load("a", "b");
+            obj.verifyEqual({a, b}, {1, "test"});
+
+            out = obj.verifyError(@() file.load("a", "b"), "Path:load:InputOutputMismatch");
+            out = obj.verifyError(@() file.load("c"), "Path:load:VariableNotFound");
         end
 
     end
