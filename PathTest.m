@@ -145,13 +145,30 @@ classdef PathTest < matlab.unittest.TestCase
         function this(obj)
 
             % Write test function which calls 'Path.this()'.
-            code = "function p = testPathThis(varargin);      p = Path.this(varargin{:});";
+            code = ...
+                "function p = testPathThis(varargin); " + ...
+                "p = Path.this(varargin{:});";
             testFuncPath = obj.testDir / "testPathThis.m";
             testFuncPath.writeText(code);
             obj.applyFixture(matlab.unittest.fixtures.PathFixture(obj.testDir.string));
             
             obj.verifyEqual(testPathThis(), testFuncPath);
             obj.verifyEqual(testPathThis(2), Path(which("PathTest.m")));
+        end
+
+        function this_callerNotOnSearchPath(obj)
+
+            % Write test function which calls 'Path.this()' after removing its own directory from the search path.
+            testFuncPath = obj.testDir / "testPathThis.m";
+            code = ...
+                "function p = testPathThis(varargin); " + ...
+                "rmpath('" + testFuncPath.parent.string + "');" + ...
+                "p = Path.this(varargin{:});";
+            
+            testFuncPath.writeText(code);
+            obj.applyFixture(matlab.unittest.fixtures.PathFixture(obj.testDir.string));
+            
+            obj.verifyEqual(testPathThis(), testFuncPath);
         end
 
         function here(obj)
@@ -360,11 +377,41 @@ classdef PathTest < matlab.unittest.TestCase
 
         %% Parent
         function parent(obj)
-            obj.verifyEqual(Path(obj.getTestRoot + "/one/two/three.ext").parent, Path(obj.getTestRoot + "/one/two"));
-            obj.verifyEqual(Path("../../one/three.ext").parent, Path("../../one"));
-            obj.verifyEqual(Path("one").parent, Path("."));
-            obj.verifyEqual(Path("..").parent, Path("."));
-            obj.verifyEqual(Path(".").parent, Path("."));
+            rt = obj.getTestRoot;
+            tests = {
+                % Test path                 parent 1            parent 2        parent 3    parent 4
+                rt + "/one/two/three.ext",  rt + "/one/two",    rt + "/one",    rt,         "."
+                "../../_.~ 1/three",         "../../_.~ 1",     "../..",        "..",       "."
+                "one",                      ".",                ".",            ".",        "."
+                "..",                       ".",                ".",            ".",        "."
+                ".",                        ".",                ".",            ".",        "."
+            };
+
+            for test = tests'
+
+                path = Path(test{1});
+
+                % Without argument
+                expected = Path(test{2});
+                actual = path.parent;
+                obj.verifyEqual(actual, expected);
+
+                % With argument
+                for level = 1:4
+                    expected = Path(test{1 + level});
+                    actual = path.parent(level);
+                    obj.verifyEqual(actual, expected);
+                end
+            
+            end
+        end
+
+        function parent_empty(obj)
+            obj.verifyEqual(Path.empty.parent(3), string.empty(1, 0))
+        end
+
+        function parent_array(obj)
+            obj.verifyEqual(Path(obj.getTestRoot + "/a/b/c", "u/v/w").parent(2), Path(obj.getTestRoot + "/a", "u"))
         end
 
         function parentString(obj)
@@ -1171,11 +1218,17 @@ classdef PathTest < matlab.unittest.TestCase
             save(file.string, "a", "b");
             clearvars("a", "b");
 
-            [a, b] = file.load("a", "b");
-            obj.verifyEqual({a, b}, {1, "test"});
+            [actual_a, actual_b] = file.load("a", "b");
+            expected = {1, "test"};
+            obj.verifyEqual({actual_a, actual_b}, expected);
+
+            actual = file.load();
+            expected = struct("a", 1, "b", "test");
+            obj.verifyEqual(actual, expected);
 
             out = obj.verifyError(@() file.load("a", "b"), "Path:load:InputOutputMismatch");
             out = obj.verifyError(@() file.load("c"), "Path:load:VariableNotFound");
+            
         end
 
     end
