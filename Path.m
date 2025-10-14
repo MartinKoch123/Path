@@ -149,8 +149,22 @@ classdef Path < matlab.mixin.CustomDisplay
         end
 
         %% Parent
-        function result = parent(objects)
-            result = Path(objects.parentString);
+        function result = parent(objects, level)
+            arguments
+                objects (1, :)
+                level (1, 1) {mustBeInteger, mustBePositive} = 1
+            end
+            
+            if isempty(objects)
+                result = strings(1, 0);
+                return
+            end
+
+            % Repeating groups of non-separators (folder name) and a single separator.
+            pattern = "([^" + Path.FILE_SEPARATOR_REGEX + "]+" + Path.FILE_SEPARATOR_REGEX + "){0," + (level-1) + "}$";
+
+            parentStrings = regexprep([objects.parent_], pattern, "");
+            result = Path(parentStrings);
         end
 
         function result = parentString(objects)
@@ -679,14 +693,19 @@ classdef Path < matlab.mixin.CustomDisplay
                 variables (1, 1) string {Path.mustBeValidVariableName}
             end
 
-            if nargout ~= length(variables)
+            if nargout ~= length(variables) && ~isempty(variables)
                 error("Path:load:InputOutputMismatch", "The number of outputs, %i, must match the number of variables to load, %i.", nargout, length(variables)); end
             data = load(obj.string, variables{:});
             varargout = {};
-            for variable = string(variables)
-                if ~isfield(data, variable)
-                    error("Path:load:VariableNotFound", "Variable ""%s"" not found in file ""%s"".", variable, obj); end
-                varargout{end+1} = data.(variable);
+            
+            if isempty(variables)
+                varargout = {data};
+            else
+                for variable = string(variables)
+                    if ~isfield(data, variable)
+                        error("Path:load:VariableNotFound", "Variable ""%s"" not found in file ""%s"".", variable, obj); end
+                    varargout{end+1} = data.(variable);
+                end
             end
         end
 
@@ -790,7 +809,7 @@ classdef Path < matlab.mixin.CustomDisplay
             callingFileBaseName = regexp(callingFilePath.string, "(+[\w\d_]+(\\|/))*[\w\d_\.]+$", "match", "once");
             if callingFileBaseName.startsWith("LiveEditorEvaluationHelper")
                 error("Path:this:LiveScript", "Calling this method from a live script is not supported. Consider using 'Path.ofMatlabFile' instead. Example: Path.ofMatlabFile(""PathExamples.mlx"")."); end
-            result = Path.ofMatlabFile(callingFileBaseName);
+            result = Path(callingFilePath);
         end
 
         function result = here(level)
