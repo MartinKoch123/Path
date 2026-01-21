@@ -76,11 +76,11 @@ classdef Path < matlab.mixin.CustomDisplay
             arguments
                 obj (1, 1)
             end
-            result = char(obj.string);
+            result = char(string(obj));
         end
 
         function result = cellstr(objects)
-            result = cellstr(objects.string);
+            result = cellstr(string(objects));
         end
 
         function result = quote(objects)
@@ -186,7 +186,7 @@ classdef Path < matlab.mixin.CustomDisplay
                 parent = repmat(parent, 1, objects.count);
             end
             for i = 1 : length(objects)
-                objects(i).parent_ = parent(i).string + filesep;
+                objects(i).parent_ = string(parent(i)) + filesep;
             end
         end
 
@@ -204,7 +204,7 @@ classdef Path < matlab.mixin.CustomDisplay
                 result = strings(1, 0);
                 return
             end
-            result = regexp(objects.string, Path.ROOT_REGEX, "match", "emptymatch", "once");
+            result = regexp(string(objects), Path.ROOT_REGEX, "match", "emptymatch", "once");
             result(result == "") = ".";
         end
 
@@ -215,7 +215,7 @@ classdef Path < matlab.mixin.CustomDisplay
             end
             root = root + filesep;
             result = objects.selectPath( ...
-                @(obj) Path(regexprep(obj.string, Path.ROOT_REGEX, root, "emptymatch")), ...
+                @(obj) Path(regexprep(string(obj), Path.ROOT_REGEX, root, "emptymatch")), ...
                 objects.empty);
         end
 
@@ -229,7 +229,7 @@ classdef Path < matlab.mixin.CustomDisplay
         end
 
         function result = eq(objects, others)
-            result = objects.string == others.string;
+            result = string(objects) == string(others);
         end
 
         function result = ne(objects, others)
@@ -240,12 +240,12 @@ classdef Path < matlab.mixin.CustomDisplay
             arguments
                 obj (1, 1)
             end
-            result = regexp(obj.string, Path.FILE_SEPARATOR_REGEX, "split");
+            result = regexp(string(obj), Path.FILE_SEPARATOR_REGEX, "split");
             result(strlength(result) == 0) = [];
         end
 
         function result = strlength(obj)
-            result = obj.string.strlength;
+            result = strlength(string(obj));
         end
 
         %% Join
@@ -261,7 +261,7 @@ classdef Path < matlab.mixin.CustomDisplay
             if isempty(objects) || isempty(other)
                 result = objects;
             elseif isscalar(objects) || isscalar(other) || length(objects) == length(other)
-                result = Path(objects.string + filesep + other.string);
+                result = Path(string(objects) + filesep + string(other));
             else
                 error("Path:join:LengthMismatch", "Length of Path array, %i, and length of joined array, %i, must either match or one of them must be scalar.", length(objects), length(other));
             end
@@ -342,7 +342,7 @@ classdef Path < matlab.mixin.CustomDisplay
                 options.(option) = Path.clean(options.(option));
             end
 
-            paths = objects.string;
+            paths = string(objects);
             names = objects.nameString;
             stems = objects.stem;
             extensions = objects.extension;
@@ -375,7 +375,7 @@ classdef Path < matlab.mixin.CustomDisplay
             end
             isRelative = objects.isRelative;
             result = objects;
-            result(isRelative) = Path(referenceDir.string + filesep + objects(isRelative).string);
+            result(isRelative) = Path(string(referenceDir) + filesep + string(objects(isRelative)));
         end
 
         function result = relative(objects, referenceDir)
@@ -412,20 +412,20 @@ classdef Path < matlab.mixin.CustomDisplay
             arguments (Repeating)
                 varargin
             end
-            result = Path(regexprep(objects.string, expression, replace, varargin{:}));
+            result = Path(regexprep(string(objects), expression, replace, varargin{:}));
         end
 
         %% File systen interaction
         function result = exists(objects)
-            result = objects.selectLogical(@(obj) isfile(obj.string) || isfolder(obj.string));
+            result = objects.selectLogical(@(obj) isfile(string(obj)) || isfolder(string(obj)));
         end
 
         function result = isFile(objects)
-            result = objects.selectLogical(@(obj) isfile(obj.string));
+            result = objects.selectLogical(@(obj) isfile(string(obj)));
         end
 
         function result = isDir(objects)
-            result = objects.selectLogical(@(obj) isfolder(obj.string));
+            result = objects.selectLogical(@(obj) isfolder(string(obj)));
         end
 
         function mustExist(objects)
@@ -440,7 +440,7 @@ classdef Path < matlab.mixin.CustomDisplay
             objects.mustExist;
             for obj = objects
                 if ~obj.isDir
-                    MException("Path:NotADir", "Path '%s' exists but is not a directory.", obj.string).throwAsCaller;
+                    MException("Path:NotADir", "Path '%s' exists but is not a directory.", string(obj)).throwAsCaller;
                 end
             end
         end
@@ -449,7 +449,7 @@ classdef Path < matlab.mixin.CustomDisplay
             objects.mustExist;
             for obj = objects
                 if ~obj.isFile
-                    MException("Path:NotAFile", "Path '%s' exists but is not a file.", obj.string).throwAsCaller;
+                    MException("Path:NotAFile", "Path '%s' exists but is not a file.", string(obj)).throwAsCaller;
                 end
             end
         end
@@ -457,7 +457,7 @@ classdef Path < matlab.mixin.CustomDisplay
         function result = modifiedDate(objects)
             result(objects.count) = datetime;
             for i = 1 : objects.count
-                content = dir(objects(i).string);
+                content = dir(string(objects(i)));
                 if objects(i).isFile
                     datenum = content.datenum;
                 else
@@ -475,7 +475,7 @@ classdef Path < matlab.mixin.CustomDisplay
             arguments (Repeating)
                 varargin
             end
-            [varargout{1:nargout}] = fopen(obj.string, varargin{:});
+            [varargout{1:nargout}] = fopen(string(obj), varargin{:});
         end
 
         function [id, autoClose] = open(obj, permission, varargin)
@@ -535,7 +535,7 @@ classdef Path < matlab.mixin.CustomDisplay
                 varargout = {Path.pwd};
             end
             try
-                cd(obj.string);
+                cd(string(obj));
             catch exception
                 throwAsCaller(exception);
             end
@@ -547,7 +547,7 @@ classdef Path < matlab.mixin.CustomDisplay
                     return;
                 end
                 try
-                    mkdir(obj.string);
+                    mkdir(string(obj));
                 catch exception
                     Path.extendError(exception, "MATLAB:MKDIR", "Error while creating directory ""%s"".", obj);
                 end
@@ -558,10 +558,10 @@ classdef Path < matlab.mixin.CustomDisplay
             files = strings(1, 0);
             objects.mustBeDir;
             for obj = objects.unique_
-                contentInfo = dir(obj.string);
+                contentInfo = dir(string(obj));
                 fileInfoList = contentInfo(~[contentInfo.isdir]);
                 for fileInfo = fileInfoList'
-                    files(end+1) = obj.string + "\" + fileInfo.name;
+                    files(end+1) = string(obj) + "\" + fileInfo.name;
                 end
             end
             result = Path(files);
@@ -571,7 +571,7 @@ classdef Path < matlab.mixin.CustomDisplay
             files = strings(1, 0);
             objects.mustBeDir;
             for obj = objects.unique_
-                files = [files, listDeepPaths(obj.string, true)];
+                files = [files, listDeepPaths(string(obj), true)];
             end
             result = Path(files);
         end
@@ -580,12 +580,12 @@ classdef Path < matlab.mixin.CustomDisplay
             dirs = strings(1, 0);
             objects.mustBeDir;
             for obj = objects.unique_
-                contentInfo = dir(obj.string);
+                contentInfo = dir(string(obj));
                 dirInfoList = contentInfo([contentInfo.isdir]);
                 for dirInfo = dirInfoList'
                     if ismember(dirInfo.name, [".", ".."])
                         continue; end
-                    dirs(end+1) = obj.string + "\" + dirInfo.name;
+                    dirs(end+1) = string(obj) + "\" + dirInfo.name;
                 end
             end
             result = Path(dirs);
@@ -595,7 +595,7 @@ classdef Path < matlab.mixin.CustomDisplay
             dirs = strings(1, 0);
             objects.mustBeDir;
             for obj = objects.unique_
-                dirs = [dirs, listDeepPaths(obj.string, false)];
+                dirs = [dirs, listDeepPaths(string(obj), false)];
             end
             result = Path(dirs);
         end
@@ -603,9 +603,9 @@ classdef Path < matlab.mixin.CustomDisplay
         function delete(objects, varargin)
             for obj = objects
                 if obj.isFile
-                    delete(obj.string)
+                    delete(string(obj))
                 elseif obj.isDir
-                    rmdir(obj.string, varargin{:});
+                    rmdir(string(obj), varargin{:});
                 end
             end
         end
@@ -615,7 +615,7 @@ classdef Path < matlab.mixin.CustomDisplay
                 obj (1, 1)
             end
             obj.mustBeFile;
-            result = string(fileread(obj.string));
+            result = string(fileread(string(obj)));
             result = result.replace(sprintf("\r\n"), newline);
         end
 
@@ -632,7 +632,7 @@ classdef Path < matlab.mixin.CustomDisplay
             objects.mustBeFile;
             result = zeros(1, objects.count);
             for i = 1:objects.count
-                result(i) = dir(objects(i).string).bytes;
+                result(i) = dir(string(objects(i))).bytes;
             end
         end
 
@@ -682,7 +682,7 @@ classdef Path < matlab.mixin.CustomDisplay
                 saveStruct.(variable) = evalin("caller", variable);
             end
             obj.parent.mkdir;
-            save(obj.string, "-struct", "saveStruct");
+            save(string(obj), "-struct", "saveStruct");
         end
 
         function varargout = load(obj, variables)
@@ -695,7 +695,7 @@ classdef Path < matlab.mixin.CustomDisplay
 
             if nargout ~= length(variables) && ~isempty(variables)
                 error("Path:load:InputOutputMismatch", "The number of outputs, %i, must match the number of variables to load, %i.", nargout, length(variables)); end
-            data = load(obj.string, variables{:});
+            data = load(string(obj), variables{:});
             varargout = {};
             
             if isempty(variables)
@@ -719,12 +719,12 @@ classdef Path < matlab.mixin.CustomDisplay
         end
 
         function [result, indices] = sort(objects, varargin)
-            [~, indices] = sort(objects.string, varargin{:});
+            [~, indices] = sort(string(objects), varargin{:});
             result = objects(indices);
         end
 
         function varargout = unique_(objects, varargin)
-            [varargout{1:nargout}] = unique(objects.string, varargin{:});
+            [varargout{1:nargout}] = unique(string(objects), varargin{:});
             varargout{1} = Path(varargout{1});
         end
 
@@ -764,7 +764,7 @@ classdef Path < matlab.mixin.CustomDisplay
             end
             result = Path.empty;
             for i = 1:n
-                result(i) = tempname(obj.string);
+                result(i) = tempname(string(obj));
             end
         end
     end
@@ -806,7 +806,7 @@ classdef Path < matlab.mixin.CustomDisplay
             if length(stack) < level + 1
                 error("Path:this:NotAFile", "This method was not called from another file" + ifThenElse(level == 1, "", " at the requested stack level") + "."); end
             callingFilePath = string(stack(level + 1).file);
-            callingFileBaseName = regexp(callingFilePath.string, "(+[\w\d_]+(\\|/))*[\w\d_\.]+$", "match", "once");
+            callingFileBaseName = regexp(callingFilePath, "(+[\w\d_]+(\\|/))*[\w\d_\.]+$", "match", "once");
             if callingFileBaseName.startsWith("LiveEditorEvaluationHelper")
                 error("Path:this:LiveScript", "Calling this method from a live script is not supported. Consider using 'Path.ofMatlabFile' instead. Example: Path.ofMatlabFile(""PathExamples.mlx"")."); end
             result = Path(callingFilePath);
@@ -891,7 +891,7 @@ classdef Path < matlab.mixin.CustomDisplay
 
         function result = notFoundException(obj)
 
-            result = MException("Path:NotFound", "Path ""%s"" not found. ", obj.string);
+            result = MException("Path:NotFound", "Path ""%s"" not found. ", string(obj));
 
             if ~obj.hasParent || obj.parent.exists
                 return; end
@@ -931,12 +931,12 @@ classdef Path < matlab.mixin.CustomDisplay
                     MException( ...
                         "Path:copyOrMove:TargetIsDir", ...
                         "The source ""%s"" is a file but the target ""%s"" is an existing directory. Consider using method ""%sToDir"" instead.", ...
-                        obj.string, target.string, operationName ...
+                        string(obj), string(target), operationName ...
                     ).throwAsCaller;
                 end
                 try
                     target.parent.mkdir;
-                    operation(obj.string, target.string);
+                    operation(string(obj), string(target));
                 catch exception
                     Path.extendError( ...
                         exception, ...
@@ -951,7 +951,7 @@ classdef Path < matlab.mixin.CustomDisplay
 
     methods (Access = protected)
         function displayScalarObject(obj)
-            fprintf("    %s(""%s"")\n\n", class(obj), obj.string);
+            fprintf("    %s(""%s"")\n\n", class(obj), string(obj));
         end
 
         function displayNonScalarObject(objects)
@@ -959,7 +959,7 @@ classdef Path < matlab.mixin.CustomDisplay
             if isempty(objects)
                 return; end
             for obj = objects
-                fprintf("     %s(""%s"")\n", class(obj), obj.string);
+                fprintf("     %s(""%s"")\n", class(obj), string(obj));
             end
             fprintf("\n");
         end
